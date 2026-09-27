@@ -1,16 +1,16 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/EconViz/principle-econ/docs/docs/assets/banner.svg" alt="principle-econ" width="480">
+  <img src="https://raw.githubusercontent.com/EconViz/principle-viz/docs/docs/assets/banner.svg" alt="principle-viz" width="480">
 </p>
 
 <p align="center">
-  <a href="https://github.com/EconViz/principle-econ/actions/workflows/publish.yml"><img alt="CI / Publish" src="https://img.shields.io/github/actions/workflow/status/EconViz/principle-econ/publish.yml?branch=main&style=flat-square&color=181818&labelColor=f3f3f3&label=CI%20%2F%20Publish"></a>
-  <a href="https://pypi.org/project/principle-econ/"><img alt="PyPI" src="https://img.shields.io/pypi/v/principle-econ?style=flat-square&color=181818&labelColor=f3f3f3"></a>
-  <a href="https://pypi.org/project/principle-econ/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/principle-econ?style=flat-square&color=181818&labelColor=f3f3f3"></a>
+  <a href="https://github.com/EconViz/principle-viz/actions/workflows/publish.yml"><img alt="CI / Publish" src="https://img.shields.io/github/actions/workflow/status/EconViz/principle-viz/publish.yml?branch=main&style=flat-square&color=181818&labelColor=f3f3f3&label=CI%20%2F%20Publish"></a>
+  <a href="https://pypi.org/project/principle-viz/"><img alt="PyPI" src="https://img.shields.io/pypi/v/principle-viz?style=flat-square&color=181818&labelColor=f3f3f3"></a>
+  <a href="https://pypi.org/project/principle-viz/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/principle-viz?style=flat-square&color=181818&labelColor=f3f3f3"></a>
   <a href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/badge/License-MIT-181818?style=flat-square&color=181818&labelColor=f3f3f3"></a>
-  <a href="https://github.com/EconViz/principle-econ/tree/docs"><img alt="Docs Branch" src="https://img.shields.io/badge/docs-branch-181818?style=flat-square&color=181818&labelColor=f3f3f3"></a>
+  <a href="https://github.com/EconViz/principle-viz/tree/docs"><img alt="Docs Branch" src="https://img.shields.io/badge/docs-branch-181818?style=flat-square&color=181818&labelColor=f3f3f3"></a>
 </p>
 
-`principle-econ` is a Python package for Principles of Economics market analysis and diagrams.
+`principle-viz` is a Python package for Principles of Economics market analysis and diagrams.
 It focuses on **linear demand/supply** models with clean module boundaries across solver logic, policy layers, welfare decomposition, and plotting.
 
 ## Features
@@ -27,23 +27,23 @@ It focuses on **linear demand/supply** models with clean module boundaries acros
 ## Installation
 
 ```bash
-pip install principle-econ
+pip install principle-viz
 ```
 
 For development:
 
 ```bash
-git clone https://github.com/EconViz/principle-econ.git
-cd principle-econ
-poetry install --with dev
+git clone https://github.com/EconViz/principle-viz.git
+cd principle-viz
+uv sync
 ```
 
 ## Quick Start
 
 ```python
-from principle_econ.core.line import Line
-from principle_econ.core.equilibrium import solve_equilibrium
-from principle_econ.plot.figure import MarketFigure
+from principle_viz.core.line import Line
+from principle_viz.core.equilibrium import solve_equilibrium
+from principle_viz.plot.figure import MarketFigure
 
 demand = Line.from_inverse(10.0, -1.0)
 supply = Line.from_inverse(2.0, 1.0)
@@ -60,9 +60,9 @@ fig.close()
 ## Tax Example (Consumer vs Producer Incidence)
 
 ```python
-from principle_econ.core.line import Line
-from principle_econ.plot.figure import MarketFigure
-from principle_econ.policy.tax import TaxOn, TaxScenario, TaxType
+from principle_viz.core.line import Line
+from principle_viz.plot.figure import MarketFigure
+from principle_viz.policy.tax import TaxOn, TaxScenario, TaxType
 
 demand = Line.from_inverse(10.0, -1.0)
 supply = Line.from_inverse(0.0, 1.0)
@@ -79,11 +79,11 @@ fig.close()
 ## CLI
 
 ```bash
-principle-econ equilibrium \
+principle-viz equilibrium \
   --demand-intercept 10 --demand-slope -1 \
   --supply-intercept 2 --supply-slope 1
 
-principle-econ tax \
+principle-viz tax \
   --demand-intercept 10 --demand-slope -1 \
   --supply-intercept 2 --supply-slope 1 \
   --tax-type per_unit --amount 1 --tax-on producer
@@ -94,7 +94,7 @@ principle-econ tax \
 Run all examples:
 
 ```bash
-poetry run python examples/scipts/run_all.py
+uv run python examples/scipts/run_all.py
 ```
 
 Generated images are grouped by topic under `examples/output/`:
@@ -107,22 +107,22 @@ Generated images are grouped by topic under `examples/output/`:
 
 ### Example Gallery
 
-![Basic Equilibrium](https://raw.githubusercontent.com/EconViz/principle-econ/docs/docs/assets/examples/basic_equilibrium.png)
+![Basic Equilibrium](https://raw.githubusercontent.com/EconViz/principle-viz/docs/docs/assets/examples/basic_equilibrium.png)
 
-![Comparative Statics](https://raw.githubusercontent.com/EconViz/principle-econ/docs/docs/assets/examples/comparative_statics.png)
+![Comparative Statics](https://raw.githubusercontent.com/EconViz/principle-viz/docs/docs/assets/examples/comparative_statics.png)
 
-![Tax (Ad Valorem, Consumer)](https://raw.githubusercontent.com/EconViz/principle-econ/docs/docs/assets/examples/tax_ad_valorem_consumer.png)
+![Tax (Ad Valorem, Consumer)](https://raw.githubusercontent.com/EconViz/principle-viz/docs/docs/assets/examples/tax_ad_valorem_consumer.png)
 
-![Price Controls and Welfare](https://raw.githubusercontent.com/EconViz/principle-econ/docs/docs/assets/examples/price_controls_welfare.png)
+![Price Controls and Welfare](https://raw.githubusercontent.com/EconViz/principle-viz/docs/docs/assets/examples/price_controls_welfare.png)
 
-![Tax Welfare Decomposition](https://raw.githubusercontent.com/EconViz/principle-econ/docs/docs/assets/examples/welfare_tax.png)
+![Tax Welfare Decomposition](https://raw.githubusercontent.com/EconViz/principle-viz/docs/docs/assets/examples/welfare_tax.png)
 
 ## Development
 
 ```bash
-poetry run ruff check src tests examples/scipts
-poetry run pytest -q
-poetry build
+uv run ruff check src tests examples/scipts
+uv run pytest -q
+uv build
 ```
 
 ## PyPI Publishing

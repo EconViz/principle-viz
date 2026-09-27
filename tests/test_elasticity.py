@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from principle_econ.core.elasticity import arc_price_elasticity, classify_elasticity, point_price_elasticity
-from principle_econ.core.line import Line
+from principle_viz.core.elasticity import (
+    arc_price_elasticity,
+    classify_elasticity,
+    point_price_elasticity,
+)
+from principle_viz.core.line import Line
 
 
 def test_point_elasticity_linear_demand() -> None:

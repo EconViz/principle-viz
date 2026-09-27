@@ -3,16 +3,15 @@
 from __future__ import annotations
 
 from basic_equilibrium import main as basic_main
+from common import clear_all_outputs, remove_non_image_outputs
+from dwl_report import main as report_main
+from elasticity_demo import main as elasticity_main
+from elasticity_five_types_centered import main as elasticity_five_main
+from price_controls import main as control_main
+from price_controls_welfare import main as control_welfare_main
 from shift_scenarios import main as shift_main
 from tax_comparison import main as tax_main
 from welfare_tax import main as welfare_main
-from price_controls import main as control_main
-from price_controls_welfare import main as control_welfare_main
-from elasticity_demo import main as elasticity_main
-from elasticity_five_types_centered import main as elasticity_five_main
-from dwl_report import main as report_main
-from common import clear_all_outputs, remove_non_image_outputs
-
 
 
 def main() -> None:

@@ -73,9 +73,9 @@ create_pr_body() {
 - run lint/tests/build for release readiness
 
 ## Validation
-- poetry run ruff check src tests examples/scipts
-- poetry run pytest -q
-- poetry build
+- uv run ruff check src tests examples/scipts
+- uv run pytest -q
+- uv build
 EOF_BODY
 }
 
@@ -93,9 +93,9 @@ prepare_release() {
 
   bump_version "$version"
 
-  run poetry run ruff check src tests examples/scipts
-  run poetry run pytest -q
-  run poetry build
+  run uv run ruff check src tests examples/scipts
+  run uv run pytest -q
+  run uv build
 
   run git add pyproject.toml
   run git commit -m "chore(release): prepare ${tag}"
@@ -130,7 +130,7 @@ finalize_release() {
 main() {
   need_cmd git
   need_cmd gh
-  need_cmd poetry
+  need_cmd uv
 
   [[ $# -ge 1 ]] || { usage; exit 1; }
   if [[ "$1" == "-h" || "$1" == "--help" ]]; then

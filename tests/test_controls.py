@@ -1,7 +1,11 @@
 from __future__ import annotations
 
-from principle_econ.core.controls import PriceControlScenario, PriceControlType, evaluate_price_control
-from principle_econ.core.line import Line
+from principle_viz.core.controls import (
+    PriceControlScenario,
+    PriceControlType,
+    evaluate_price_control,
+)
+from principle_viz.core.line import Line
 
 
 def test_binding_price_ceiling_has_shortage() -> None:

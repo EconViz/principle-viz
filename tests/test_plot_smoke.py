@@ -4,12 +4,16 @@ import matplotlib
 
 matplotlib.use("Agg")
 
-from principle_econ.core.line import Line
-from principle_econ.core.equilibrium import solve_equilibrium
-from principle_econ.core.shifts import ShiftScenario, ShiftSpec, comparative_statics
-from principle_econ.plot.figure import MarketFigure
-from principle_econ.policy.tax import TaxOn, TaxScenario, TaxType, solve_tax_equilibrium
-from principle_econ.welfare.surplus import compute_surplus, outcome_from_equilibrium, outcome_from_tax
+from principle_viz.core.equilibrium import solve_equilibrium
+from principle_viz.core.line import Line
+from principle_viz.core.shifts import ShiftScenario, ShiftSpec, comparative_statics
+from principle_viz.plot.figure import MarketFigure
+from principle_viz.policy.tax import TaxOn, TaxScenario, TaxType, solve_tax_equilibrium
+from principle_viz.welfare.surplus import (
+    compute_surplus,
+    outcome_from_equilibrium,
+    outcome_from_tax,
+)
 
 
 def test_market_figure_smoke_save(tmp_path) -> None:
@@ -104,7 +108,7 @@ def test_market_figure_welfare_transition_smoke(tmp_path) -> None:
     labels = [text.get_text() for text in fig.ax.texts]
     assert r"$Q_0$" in labels
     assert r"$Q_1$" in labels
-    assert any(letter in labels for letter in {"A", "B", "C"})
+    assert any(letter in labels for letter in ("A", "B", "C"))
 
     output = tmp_path / "smoke_welfare_transition.png"
     fig.save(str(output))

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from principle_econ.plot.canvas import Canvas
+from principle_viz.plot.canvas import Canvas
 
 
 def test_canvas_uses_first_quadrant_and_no_top_right_spines() -> None:

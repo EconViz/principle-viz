@@ -1,4 +1,4 @@
-# Principle-Econ Architecture
+# Principle-Viz Architecture
 
 ## Scope
 This package focuses on linear demand and supply analysis for Principles of Economics use cases:
@@ -10,16 +10,16 @@ This package focuses on linear demand and supply analysis for Principles of Econ
 - publication-ready instructional plots
 
 ## Layered Structure
-- `principle_econ.core`: immutable line domain, equilibrium solving, shifts, elasticity, and controls.
-- `principle_econ.policy`: tax policy layer split by responsibility.
+- `principle_viz.core`: immutable line domain, equilibrium solving, shifts, elasticity, and controls.
+- `principle_viz.policy`: tax policy layer split by responsibility.
   - `models.py`: enums + dataclasses (`TaxScenario`, `TaxEquilibriumResult`, etc.)
   - `solver.py`: numerical/equation solving for fixed/per-unit/ad valorem taxes
   - `analysis.py`: baseline-vs-policy comparison logic
   - `tax.py`: compatibility facade for public imports
-- `principle_econ.welfare`: surplus metrics, welfare delta decomposition, and DWL reports.
-- `principle_econ.plot`: figure facade and focused renderer modules.
-- `principle_econ.api`: high-level API aggregating core/policy/welfare/plot helpers.
-- `principle_econ.cli`: command-line interface for reproducible scenarios.
+- `principle_viz.welfare`: surplus metrics, welfare delta decomposition, and DWL reports.
+- `principle_viz.plot`: figure facade and focused renderer modules.
+- `principle_viz.api`: high-level API aggregating core/policy/welfare/plot helpers.
+- `principle_viz.cli`: command-line interface for reproducible scenarios.
 
 ## Design Rules
 - Core math is plotting-agnostic.

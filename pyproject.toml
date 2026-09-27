@@ -1,47 +1,48 @@
-[tool.poetry]
-name = "principle-econ"
-version = "0.1.0"
+[project]
+name = "principle-viz"
+version = "0.2.0"
 description = "Principles of Economics toolkit for demand/supply analytics and diagrams."
-authors = ["Anthony Sung <sungpinyue@gmail.com>"]
-license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/EconViz/principle-econ"
-repository = "https://github.com/EconViz/principle-econ"
-documentation = "https://github.com/EconViz/principle-econ"
+authors = [{ name = "Anthony Sung", email = "sungpinyue@gmail.com" }]
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10,<4.0"
 keywords = ["economics", "microeconomics", "demand", "supply", "equilibrium", "welfare", "tax"]
 classifiers = [
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3 :: Only",
-  "License :: OSI Approved :: MIT License",
-  "Operating System :: OS Independent",
-  "Intended Audience :: Education",
-  "Topic :: Scientific/Engineering",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Education",
+    "Topic :: Scientific/Engineering",
 ]
-packages = [{ include = "principle_econ", from = "src" }]
+dependencies = ["numpy>=1.24.0", "matplotlib>=3.6.0,<4.0.0"]
 
-[tool.poetry.dependencies]
-python = ">=3.10,<4.0"
-numpy = ">=1.24.0"
-matplotlib = ">=3.6.0,<4.0.0"
+[project.scripts]
+principle-viz = "principle_viz.cli.main:main"
 
-[tool.poetry.group.dev.dependencies]
-pytest = ">=8.0.0,<9.0.0"
-pytest-cov = ">=5.0.0,<6.0.0"
-ruff = ">=0.5.0,<1.0.0"
-
-[tool.poetry.scripts]
-principle-econ = "principle_econ.cli.main:main"
+[project.urls]
+Homepage = "https://github.com/EconViz/principle-viz"
+Repository = "https://github.com/EconViz/principle-viz"
+Documentation = "https://github.com/EconViz/principle-viz"
+Changelog = "https://github.com/EconViz/principle-viz/blob/main/CHANGELOG.md"
 
 [build-system]
-requires = ["poetry-core>=1.9.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.12.1,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "principle_viz"
+module-root = "src"
+
+[dependency-groups]
+dev = ["pytest>=8.0.0,<9.0.0", "pytest-cov>=5.0.0,<6.0.0", "ruff>=0.5.0,<1.0.0"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--maxfail=1 --disable-warnings -q"
 
 [tool.coverage.run]
-source = ["principle_econ"]
+source = ["principle_viz"]
 
 [tool.coverage.report]
 show_missing = true

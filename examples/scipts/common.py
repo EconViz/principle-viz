@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 import shutil
-
+from pathlib import Path
 
 OUTPUT_DIR = Path("examples/output")
 EXAMPLE_PALETTE = "monochrome"

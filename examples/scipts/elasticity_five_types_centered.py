@@ -8,12 +8,10 @@ Outputs:
 from __future__ import annotations
 
 import numpy as np
-
-from principle_econ.plot import MarketFigure
-from principle_econ.plot.primitives import annotate_text, plot_point
-
 from common import EXAMPLE_PALETTE, ensure_output_dir, themed_output_path
 
+from principle_viz.plot import MarketFigure
+from principle_viz.plot.primitives import annotate_text, plot_point
 
 Q0 = 5.0
 P0 = 5.0

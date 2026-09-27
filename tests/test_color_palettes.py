@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from principle_econ.plot import MarketFigure, PlotTheme, get_color_model, list_color_models
-
+from principle_viz.plot import (
+    MarketFigure,
+    PlotTheme,
+    get_color_model,
+    list_color_models,
+)
 
 
 def test_list_color_models_matches_econ_viz_builtin_names() -> None:

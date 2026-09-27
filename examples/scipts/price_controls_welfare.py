@@ -2,19 +2,22 @@
 
 from __future__ import annotations
 
-from principle_econ.core.controls import PriceControlScenario, PriceControlType, evaluate_price_control
-from principle_econ.core.equilibrium import solve_equilibrium
-from principle_econ.core.line import Line
-from principle_econ.plot.figure import MarketFigure
-from principle_econ.welfare.surplus import (
+from common import EXAMPLE_PALETTE, ensure_output_dir, themed_output_path
+
+from principle_viz.core.controls import (
+    PriceControlScenario,
+    PriceControlType,
+    evaluate_price_control,
+)
+from principle_viz.core.equilibrium import solve_equilibrium
+from principle_viz.core.line import Line
+from principle_viz.plot.figure import MarketFigure
+from principle_viz.welfare.surplus import (
     compare_surplus,
     compute_surplus,
     outcome_from_control,
     outcome_from_equilibrium,
 )
-
-from common import EXAMPLE_PALETTE, ensure_output_dir, themed_output_path
-
 
 THEME = "price_controls"
 

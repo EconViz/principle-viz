@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from principle_econ.core.line import Line
-from principle_econ.core.shifts import ShiftScenario, ShiftSpec, comparative_statics
-from principle_econ.plot.figure import MarketFigure
-
 from common import EXAMPLE_PALETTE, ensure_output_dir, themed_output_path
 
+from principle_viz.core.line import Line
+from principle_viz.core.shifts import ShiftScenario, ShiftSpec, comparative_statics
+from principle_viz.plot.figure import MarketFigure
 
 THEME = "equilibrium"
 

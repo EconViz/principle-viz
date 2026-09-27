@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import json
 
-from principle_econ.cli.main import main
+from principle_viz.cli.main import main
 
 
 def test_cli_equilibrium_outputs_json(monkeypatch, capsys) -> None:
     monkeypatch.setattr(
         "sys.argv",
         [
-            "principle-econ",
+            "principle-viz",
             "equilibrium",
             "--demand-intercept",
             "10",
@@ -32,7 +32,7 @@ def test_cli_tax_outputs_json(monkeypatch, capsys) -> None:
     monkeypatch.setattr(
         "sys.argv",
         [
-            "principle-econ",
+            "principle-viz",
             "tax",
             "--demand-intercept",
             "10",

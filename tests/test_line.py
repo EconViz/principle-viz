@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from principle_econ.core.line import Line
-from principle_econ.exceptions import NonInvertibleLineError
+from principle_viz.core.line import Line
+from principle_viz.exceptions import NonInvertibleLineError
 
 
 def test_line_from_inverse_and_eval() -> None:

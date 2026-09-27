@@ -8,12 +8,11 @@ Includes both legal incidence sides (consumer/producer) for:
 
 from __future__ import annotations
 
-from principle_econ.core.line import Line
-from principle_econ.plot.figure import MarketFigure
-from principle_econ.policy.tax import TaxOn, TaxScenario, TaxType, compare_tax_scenario
-
 from common import EXAMPLE_PALETTE, ensure_output_dir, themed_output_path
 
+from principle_viz.core.line import Line
+from principle_viz.plot.figure import MarketFigure
+from principle_viz.policy.tax import TaxOn, TaxScenario, TaxType, compare_tax_scenario
 
 THEME = "taxation"
 

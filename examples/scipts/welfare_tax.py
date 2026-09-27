@@ -2,14 +2,23 @@
 
 from __future__ import annotations
 
-from principle_econ.core.equilibrium import solve_equilibrium
-from principle_econ.core.line import Line
-from principle_econ.plot.figure import MarketFigure
-from principle_econ.policy.tax import TaxOn, TaxScenario, TaxType, compare_tax_scenario, solve_tax_equilibrium
-from principle_econ.welfare.surplus import compare_surplus, outcome_from_equilibrium, outcome_from_tax
-
 from common import EXAMPLE_PALETTE, ensure_output_dir, themed_output_path
 
+from principle_viz.core.equilibrium import solve_equilibrium
+from principle_viz.core.line import Line
+from principle_viz.plot.figure import MarketFigure
+from principle_viz.policy.tax import (
+    TaxOn,
+    TaxScenario,
+    TaxType,
+    compare_tax_scenario,
+    solve_tax_equilibrium,
+)
+from principle_viz.welfare.surplus import (
+    compare_surplus,
+    outcome_from_equilibrium,
+    outcome_from_tax,
+)
 
 THEME = "welfare"
 

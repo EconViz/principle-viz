@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from principle_econ.core.line import Line
-from principle_econ.policy.tax import (
+from principle_viz.core.line import Line
+from principle_viz.policy.tax import (
     AnchorMode,
     TaxOn,
     TaxScenario,

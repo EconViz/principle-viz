@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from principle_econ.core.elasticity import point_price_elasticity
-from principle_econ.core.line import Line
-from principle_econ.plot.figure import MarketFigure
-from principle_econ.plot.primitives import annotate_text, plot_point
-from principle_econ.plot.renderers import render_curve
-
 from common import EXAMPLE_PALETTE, ensure_output_dir, themed_output_path
 
+from principle_viz.core.elasticity import point_price_elasticity
+from principle_viz.core.line import Line
+from principle_viz.plot.figure import MarketFigure
+from principle_viz.plot.primitives import annotate_text, plot_point
+from principle_viz.plot.renderers import render_curve
 
 THEME = "elasticity"
 

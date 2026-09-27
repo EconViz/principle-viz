@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from principle_econ.core.equilibrium import solve_equilibrium
-from principle_econ.core.line import Line
-from principle_econ.exceptions import CoincidentLinesError, ParallelLinesError
+from principle_viz.core.equilibrium import solve_equilibrium
+from principle_viz.core.line import Line
+from principle_viz.exceptions import CoincidentLinesError, ParallelLinesError
 
 
 def test_solve_equilibrium_regular_case() -> None:

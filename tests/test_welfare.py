@@ -1,11 +1,16 @@
 from __future__ import annotations
 
-from principle_econ.core.line import Line
-from principle_econ.core.equilibrium import solve_equilibrium
-from principle_econ.policy.tax import TaxOn, TaxScenario, TaxType, solve_tax_equilibrium
-from principle_econ.welfare.layout import build_welfare_annotation_layout
-from principle_econ.welfare.report import build_dwl_report
-from principle_econ.welfare.surplus import compare_surplus, compute_surplus, outcome_from_equilibrium, outcome_from_tax
+from principle_viz.core.equilibrium import solve_equilibrium
+from principle_viz.core.line import Line
+from principle_viz.policy.tax import TaxOn, TaxScenario, TaxType, solve_tax_equilibrium
+from principle_viz.welfare.layout import build_welfare_annotation_layout
+from principle_viz.welfare.report import build_dwl_report
+from principle_viz.welfare.surplus import (
+    compare_surplus,
+    compute_surplus,
+    outcome_from_equilibrium,
+    outcome_from_tax,
+)
 
 
 def test_baseline_surplus_positive() -> None:

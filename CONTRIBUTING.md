@@ -1,20 +1,20 @@
-# Contributing to principle-econ
+# Contributing to principle-viz
 
-Thanks for your interest in improving `principle-econ`.
+Thanks for your interest in improving `principle-viz`.
 
 ## Development Setup
 
 ```bash
-git clone https://github.com/EconViz/principle-econ.git
-cd principle-econ
-poetry install --with dev
+git clone https://github.com/EconViz/principle-viz.git
+cd principle-viz
+uv sync
 ```
 
 Run checks before opening a PR:
 
 ```bash
-poetry run ruff check src tests examples/scipts
-poetry run pytest -q
+uv run ruff check src tests examples/scipts
+uv run pytest -q
 ```
 
 ## Project Conventions
@@ -52,8 +52,8 @@ PyPI publish is handled by GitHub Actions Trusted Publishing:
 Helper script:
 
 ```bash
-scripts/release.sh prepare 0.1.0
-scripts/release.sh finalize 0.1.0
+scripts/release.sh prepare 0.2.0
+scripts/release.sh finalize 0.2.0
 ```
 
 ## License

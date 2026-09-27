@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from principle_econ.core.line import Line
-from principle_econ.core.shifts import ShiftScenario, ShiftSpec, comparative_statics
+from principle_viz.core.line import Line
+from principle_viz.core.shifts import ShiftScenario, ShiftSpec, comparative_statics
 
 
 def test_comparative_statics_demand_shift_up() -> None:

@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from principle_econ.core.equilibrium import solve_equilibrium
-from principle_econ.core.line import Line
-from principle_econ.plot.figure import MarketFigure
-
 from common import EXAMPLE_PALETTE, ensure_output_dir, themed_output_path
 
+from principle_viz.core.equilibrium import solve_equilibrium
+from principle_viz.core.line import Line
+from principle_viz.plot.figure import MarketFigure
 
 THEME = "equilibrium"
 

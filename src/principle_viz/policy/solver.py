@@ -13,7 +13,9 @@ from principle_viz.policy.models import (
 )
 
 
-def _solve_specific_tax(demand: Line, supply: Line, scenario: TaxScenario) -> TaxEquilibriumResult:
+def _solve_specific_tax(
+    demand: Line, supply: Line, scenario: TaxScenario
+) -> TaxEquilibriumResult:
     """Solve fixed/per-unit tax using shifted curves in inverse form."""
     t = float(scenario.amount)
 
@@ -40,8 +42,9 @@ def _solve_specific_tax(demand: Line, supply: Line, scenario: TaxScenario) -> Ta
     )
 
 
-
-def _solve_ad_valorem_tax(demand: Line, supply: Line, scenario: TaxScenario) -> TaxEquilibriumResult:
+def _solve_ad_valorem_tax(
+    demand: Line, supply: Line, scenario: TaxScenario
+) -> TaxEquilibriumResult:
     """Solve ad valorem tax under linear demand/supply."""
     rate = float(scenario.amount)
     if rate <= -1.0:
@@ -75,8 +78,9 @@ def _solve_ad_valorem_tax(demand: Line, supply: Line, scenario: TaxScenario) -> 
     )
 
 
-
-def solve_tax_equilibrium(demand: Line, supply: Line, scenario: TaxScenario) -> TaxEquilibriumResult:
+def solve_tax_equilibrium(
+    demand: Line, supply: Line, scenario: TaxScenario
+) -> TaxEquilibriumResult:
     """Solve post-tax equilibrium under selected tax type and incidence side."""
     if scenario.tax_type in {TaxType.FIXED_TAX, TaxType.PER_UNIT_TAX}:
         return _solve_specific_tax(demand, supply, scenario)

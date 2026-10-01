@@ -16,7 +16,13 @@ from principle_viz.core.discrete import (
 from principle_viz.core.elasticity import arc_price_elasticity, point_price_elasticity
 from principle_viz.core.equilibrium import solve_equilibrium
 from principle_viz.core.line import Line
+from principle_viz.core.revenue import elasticity_revenue_schedule
 from principle_viz.core.shifts import ShiftScenario, ShiftSpec, comparative_statics
+from principle_viz.policy.subsidy import (
+    SubsidyScenario,
+    compare_subsidy_scenario,
+    solve_subsidy_equilibrium,
+)
 from principle_viz.policy.tax import (
     TaxScenario,
     build_tax_visual_guide,
@@ -110,19 +116,23 @@ __all__ = [
     "PriceControlType",
     "ShiftScenario",
     "ShiftSpec",
+    "SubsidyScenario",
     "TaxScenario",
     "build_dwl_report",
     "build_tax_visual_guide",
     "comparative_statics",
+    "compare_subsidy_scenario",
     "compare_tax_scenario",
     "compute_arc_elasticity",
     "compute_point_elasticity",
     "compute_surplus",
     "compute_surplus_from_prices",
+    "elasticity_revenue_schedule",
     "evaluate_price_control",
     "line_from_inverse",
     "line_from_standard",
     "solve_discrete_market",
     "solve_equilibrium",
+    "solve_subsidy_equilibrium",
     "solve_tax_equilibrium",
 ]

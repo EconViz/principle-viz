@@ -21,7 +21,9 @@ class TaxVisualGuide:
     transform_kind: str
 
 
-def _anchored_rotation(line: Line, *, anchor_q: float, anchor_p: float, slope_scale: float) -> Line:
+def _anchored_rotation(
+    line: Line, *, anchor_q: float, anchor_p: float, slope_scale: float
+) -> Line:
     intercept, slope = line.to_inverse()
     _ = intercept  # keep explicit to document that intercept is intentionally recomputed
     rotated_slope = slope * slope_scale
@@ -34,7 +36,9 @@ def _origin_rotation(line: Line, *, slope_scale: float) -> Line:
     return Line.from_inverse(intercept * slope_scale, slope * slope_scale)
 
 
-def build_tax_visual_guide(demand: Line, supply: Line, scenario: TaxScenario) -> TaxVisualGuide:
+def build_tax_visual_guide(
+    demand: Line, supply: Line, scenario: TaxScenario
+) -> TaxVisualGuide:
     """Build a baseline-vs-taxed curve guide for rendering classroom diagrams."""
     baseline = solve_equilibrium(demand, supply)
 
@@ -57,7 +61,9 @@ def build_tax_visual_guide(demand: Line, supply: Line, scenario: TaxScenario) ->
         )
 
     if scenario.tax_type != TaxType.AD_VALOREM_TAX:
-        raise PolicyError(f"Unsupported tax type for visualization: {scenario.tax_type}")
+        raise PolicyError(
+            f"Unsupported tax type for visualization: {scenario.tax_type}"
+        )
 
     rate = float(scenario.amount)
     if rate <= -1.0:

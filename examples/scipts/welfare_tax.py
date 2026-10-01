@@ -23,7 +23,6 @@ from principle_viz.welfare.surplus import (
 THEME = "welfare"
 
 
-
 def main() -> None:
     demand = Line.from_inverse(10.0, -1.0)
     supply = Line.from_inverse(2.0, 1.0)
@@ -45,7 +44,12 @@ def main() -> None:
     )
 
     # Raw welfare shading (no region letters).
-    fig_raw = MarketFigure(x_max=12, y_max=12, title="Welfare with Tax (Raw Regions)", palette=EXAMPLE_PALETTE)
+    fig_raw = MarketFigure(
+        x_max=12,
+        y_max=12,
+        title="Welfare with Tax (Raw Regions)",
+        palette=EXAMPLE_PALETTE,
+    )
     fig_raw.add_curves(demand, supply, q_max=10)
     fig_raw.add_welfare(delta.policy)
     fig_raw.add_tax_comparison(tax_comparison)
@@ -54,7 +58,12 @@ def main() -> None:
     fig_raw.close()
 
     # Annotated welfare regions with baseline/policy reference guides.
-    fig = MarketFigure(x_max=12, y_max=12, title="Welfare with Tax (Region Labels)", palette=EXAMPLE_PALETTE)
+    fig = MarketFigure(
+        x_max=12,
+        y_max=12,
+        title="Welfare with Tax (Region Labels)",
+        palette=EXAMPLE_PALETTE,
+    )
     fig.add_curves(demand, supply, q_max=10)
     fig.add_welfare_transition(
         baseline_outcome=baseline_outcome,

@@ -21,6 +21,11 @@ from principle_viz.core.elasticity import (
 )
 from principle_viz.core.equilibrium import EquilibriumResult, solve_equilibrium
 from principle_viz.core.line import Line
+from principle_viz.core.revenue import (
+    ElasticityRevenueResult,
+    RevenuePoint,
+    elasticity_revenue_schedule,
+)
 from principle_viz.core.shifts import (
     ComparativeStaticsResult,
     ShiftedMarket,
@@ -36,12 +41,14 @@ __all__ = [
     "DiscreteEquilibriumResult",
     "DiscreteMarketError",
     "DiscreteSupply",
+    "ElasticityRevenueResult",
     "EquilibriumPriceRule",
     "EquilibriumResult",
     "Line",
     "PriceControlResult",
     "PriceControlScenario",
     "PriceControlType",
+    "RevenuePoint",
     "ShiftScenario",
     "ShiftSpec",
     "ShiftedMarket",
@@ -49,6 +56,7 @@ __all__ = [
     "arc_price_elasticity",
     "classify_elasticity",
     "comparative_statics",
+    "elasticity_revenue_schedule",
     "evaluate_price_control",
     "point_price_elasticity",
     "solve_discrete_equilibrium",

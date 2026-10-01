@@ -214,6 +214,12 @@ class PlotTheme:
                 stroke=Stroke(color=c.tax_color, width=self.tax_linewidth, dash=dashed),
                 text=TextStyle(color=c.tax_color, size=10),
             ),
+            "principle.policy.subsidy": StyleBundle(
+                stroke=Stroke(
+                    color=c.shifted_color, width=self.tax_linewidth, dash=dashed
+                ),
+                text=TextStyle(color=c.shifted_color, size=10),
+            ),
             "principle.welfare.consumer": StyleBundle(
                 fill=Fill(color=c.cs_color, opacity=0.18), stroke=Stroke(width=0)
             ),
@@ -222,6 +228,10 @@ class PlotTheme:
             ),
             "principle.welfare.revenue": StyleBundle(
                 fill=Fill(color=c.tax_revenue_color, opacity=0.22),
+                stroke=Stroke(width=0),
+            ),
+            "principle.welfare.subsidy": StyleBundle(
+                fill=Fill(color=c.shifted_color, opacity=0.16),
                 stroke=Stroke(width=0),
             ),
             "principle.welfare.loss": StyleBundle(

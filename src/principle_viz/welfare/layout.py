@@ -84,7 +84,9 @@ def build_welfare_annotation_layout(
         policy_consumer_price=policy_outcome.consumer_price,
         policy_producer_price=policy_outcome.producer_price,
     )
-    return WelfareAnnotationLayout(reference=reference, regions=build_labeled_regions(surplus))
+    return WelfareAnnotationLayout(
+        reference=reference, regions=build_labeled_regions(surplus)
+    )
 
 
 __all__ = [

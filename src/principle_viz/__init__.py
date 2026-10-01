@@ -4,15 +4,18 @@ from principle_viz.api import (
     build_dwl_report,
     build_tax_visual_guide,
     comparative_statics,
+    compare_subsidy_scenario,
     compare_tax_scenario,
     compute_arc_elasticity,
     compute_point_elasticity,
     compute_surplus,
+    elasticity_revenue_schedule,
     evaluate_price_control,
     line_from_inverse,
     line_from_standard,
     solve_discrete_market,
     solve_equilibrium,
+    solve_subsidy_equilibrium,
     solve_tax_equilibrium,
 )
 from principle_viz.core.discrete import (
@@ -23,6 +26,7 @@ from principle_viz.core.discrete import (
     EquilibriumPriceRule,
     solve_discrete_equilibrium,
 )
+from principle_viz.core.revenue import ElasticityRevenueResult, RevenuePoint
 from principle_viz.plot import (
     BUILTIN_COLOR_MODELS,
     COLORBLIND_COLOR_MODEL,
@@ -35,6 +39,12 @@ from principle_viz.plot import (
     PlotTheme,
     get_color_model,
     list_color_models,
+)
+from principle_viz.policy.subsidy import (
+    SubsidyComparisonResult,
+    SubsidyEquilibriumResult,
+    SubsidyScenario,
+    SubsidyTo,
 )
 from principle_viz.welfare.discrete import (
     DiscreteSurplusResult,
@@ -54,17 +64,25 @@ __all__ = [
     "DiscreteMarketError",
     "DiscreteSupply",
     "DiscreteSurplusResult",
+    "ElasticityRevenueResult",
     "EquilibriumPriceRule",
     "MarketFigure",
     "PlotTheme",
+    "RevenuePoint",
+    "SubsidyComparisonResult",
+    "SubsidyEquilibriumResult",
+    "SubsidyScenario",
+    "SubsidyTo",
     "build_dwl_report",
     "build_tax_visual_guide",
     "comparative_statics",
+    "compare_subsidy_scenario",
     "compare_tax_scenario",
     "compute_arc_elasticity",
     "compute_discrete_surplus",
     "compute_point_elasticity",
     "compute_surplus",
+    "elasticity_revenue_schedule",
     "evaluate_price_control",
     "get_color_model",
     "line_from_inverse",
@@ -73,5 +91,6 @@ __all__ = [
     "solve_discrete_equilibrium",
     "solve_discrete_market",
     "solve_equilibrium",
+    "solve_subsidy_equilibrium",
     "solve_tax_equilibrium",
 ]

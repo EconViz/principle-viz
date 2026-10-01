@@ -18,8 +18,9 @@ def point_price_elasticity(line: Line, q: float, tol: float = EPSILON) -> float:
     return (p / q) / slope
 
 
-
-def arc_price_elasticity(q0: float, p0: float, q1: float, p1: float, tol: float = EPSILON) -> float:
+def arc_price_elasticity(
+    q0: float, p0: float, q1: float, p1: float, tol: float = EPSILON
+) -> float:
     """Compute arc elasticity between two points."""
     q0 = float(q0)
     q1 = float(q1)
@@ -32,10 +33,11 @@ def arc_price_elasticity(q0: float, p0: float, q1: float, p1: float, tol: float 
     dp = p1 - p0
 
     if abs(q_avg) <= tol or abs(p_avg) <= tol or abs(dp) <= tol:
-        raise LineError("Arc elasticity is undefined for zero midpoint or zero price change.")
+        raise LineError(
+            "Arc elasticity is undefined for zero midpoint or zero price change."
+        )
 
     return (dq / q_avg) / (dp / p_avg)
-
 
 
 def classify_elasticity(value: float, tol: float = EPSILON) -> str:

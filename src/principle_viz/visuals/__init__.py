@@ -10,10 +10,12 @@ from principle_viz.visuals.equilibrium import equilibrium_layers, movement_layer
 from principle_viz.visuals.metrics import metrics_layer
 from principle_viz.visuals.policy import (
     price_control_layers,
+    subsidy_layers,
     tax_rotation_layers,
     tax_shift_layers,
     tax_wedge_layers,
 )
+from principle_viz.visuals.revenue import elasticity_revenue_canvases
 from principle_viz.visuals.theme import (
     BUILTIN_COLOR_MODELS,
     COLORBLIND_COLOR_MODEL,
@@ -42,6 +44,7 @@ __all__ = [
     "curve_layer",
     "discrete_equilibrium_layers",
     "discrete_schedule_layers",
+    "elasticity_revenue_canvases",
     "equilibrium_layers",
     "get_color_model",
     "list_color_models",
@@ -50,6 +53,7 @@ __all__ = [
     "movement_layers",
     "price_control_layers",
     "segment_layer",
+    "subsidy_layers",
     "tax_rotation_layers",
     "tax_shift_layers",
     "tax_wedge_layers",

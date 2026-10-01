@@ -39,7 +39,6 @@ class PriceControlResult:
     baseline_equilibrium: EquilibriumResult
 
 
-
 def evaluate_price_control(
     demand: Line,
     supply: Line,

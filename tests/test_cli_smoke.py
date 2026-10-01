@@ -81,3 +81,45 @@ def test_cli_discrete_outputs_json(monkeypatch, capsys) -> None:
     assert payload["price_low"] == 5
     assert payload["price_high"] == 7
     assert payload["price_rule"] == "midpoint"
+
+
+def test_cli_subsidy_outputs_json(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "principle-viz",
+            "subsidy",
+            "--demand-intercept",
+            "12",
+            "--demand-slope",
+            "-1",
+            "--supply-intercept",
+            "2",
+            "--supply-slope",
+            "1",
+            "--amount",
+            "2",
+        ],
+    )
+    main()
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["post_subsidy"]["q_star"] == 6
+    assert payload["post_subsidy"]["government_expenditure"] == 12
+
+
+def test_cli_revenue_outputs_json(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "principle-viz",
+            "revenue",
+            "--demand-intercept",
+            "12",
+            "--demand-slope",
+            "-1",
+        ],
+    )
+    main()
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["unit_elastic_quantity"] == 6
+    assert payload["maximum_revenue"] == 36

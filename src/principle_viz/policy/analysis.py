@@ -8,7 +8,9 @@ from principle_viz.policy.models import TaxComparisonResult, TaxScenario
 from principle_viz.policy.solver import solve_tax_equilibrium
 
 
-def _direction(delta: float, positive_label: str, negative_label: str, tol: float = EPSILON) -> str:
+def _direction(
+    delta: float, positive_label: str, negative_label: str, tol: float = EPSILON
+) -> str:
     if delta > tol:
         return positive_label
     if delta < -tol:
@@ -16,8 +18,9 @@ def _direction(delta: float, positive_label: str, negative_label: str, tol: floa
     return "none"
 
 
-
-def compare_tax_scenario(demand: Line, supply: Line, scenario: TaxScenario) -> TaxComparisonResult:
+def compare_tax_scenario(
+    demand: Line, supply: Line, scenario: TaxScenario
+) -> TaxComparisonResult:
     """Compute baseline and post-tax comparison, with movement directions."""
     baseline = solve_equilibrium(demand, supply)
     post_tax = solve_tax_equilibrium(demand, supply, scenario)
@@ -33,6 +36,10 @@ def compare_tax_scenario(demand: Line, supply: Line, scenario: TaxScenario) -> T
         delta_p_consumer=delta_p_consumer,
         delta_p_producer=delta_p_producer,
         direction_q=_direction(delta_q, positive_label="right", negative_label="left"),
-        direction_p_consumer=_direction(delta_p_consumer, positive_label="up", negative_label="down"),
-        direction_p_producer=_direction(delta_p_producer, positive_label="up", negative_label="down"),
+        direction_p_consumer=_direction(
+            delta_p_consumer, positive_label="up", negative_label="down"
+        ),
+        direction_p_producer=_direction(
+            delta_p_producer, positive_label="up", negative_label="down"
+        ),
     )

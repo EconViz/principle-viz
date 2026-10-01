@@ -26,6 +26,7 @@ from principle_viz.welfare.surplus import (
     compute_surplus,
     outcome_from_control,
     outcome_from_equilibrium,
+    outcome_from_subsidy,
     outcome_from_tax,
 )
 
@@ -47,6 +48,7 @@ __all__ = [
     "compute_surplus",
     "outcome_from_control",
     "outcome_from_equilibrium",
+    "outcome_from_subsidy",
     "outcome_from_tax",
     "save_dwl_report_csv",
     "save_dwl_report_json",

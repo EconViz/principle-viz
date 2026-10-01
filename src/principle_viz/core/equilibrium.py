@@ -18,8 +18,9 @@ class EquilibriumResult:
     notes: tuple[str, ...] = ()
 
 
-
-def solve_equilibrium(demand: Line, supply: Line, tol: float = EPSILON) -> EquilibriumResult:
+def solve_equilibrium(
+    demand: Line, supply: Line, tol: float = EPSILON
+) -> EquilibriumResult:
     """Solve equilibrium from two linear equations."""
     a1, b1, c1 = demand.as_tuple()
     a2, b2, c2 = supply.as_tuple()
@@ -27,8 +28,12 @@ def solve_equilibrium(demand: Line, supply: Line, tol: float = EPSILON) -> Equil
     det = a1 * b2 - a2 * b1
     if abs(det) <= tol:
         if demand.is_coincident(supply, tol=tol):
-            raise CoincidentLinesError("Demand and supply are coincident; equilibrium is non-unique.")
-        raise ParallelLinesError("Demand and supply are parallel; no equilibrium intersection exists.")
+            raise CoincidentLinesError(
+                "Demand and supply are coincident; equilibrium is non-unique."
+            )
+        raise ParallelLinesError(
+            "Demand and supply are parallel; no equilibrium intersection exists."
+        )
 
     p_star = ((-c1) * b2 - (-c2) * b1) / det
     q_star = (a1 * (-c2) - a2 * (-c1)) / det

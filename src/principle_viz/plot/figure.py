@@ -17,6 +17,7 @@ from principle_viz.core.equilibrium import EquilibriumResult
 from principle_viz.core.line import Line
 from principle_viz.core.shifts import ComparativeStaticsResult
 from principle_viz.plot.theme import PlotTheme
+from principle_viz.policy.subsidy import SubsidyComparisonResult
 from principle_viz.policy.tax import (
     TaxComparisonResult,
     TaxScenario,
@@ -34,6 +35,7 @@ from principle_viz.visuals import (
     movement_layers,
     price_control_layers,
     segment_layer,
+    subsidy_layers,
     tax_rotation_layers,
     tax_shift_layers,
     tax_wedge_layers,
@@ -252,6 +254,33 @@ class MarketFigure:
                 producer_price=result.post_tax.producer_price,
             )
         )
+        return self.add_layers(layers)
+
+    def add_subsidy_comparison(self, result: SubsidyComparisonResult) -> MarketFigure:
+        post = result.post_subsidy
+        layers: list[Layer] = []
+        layers.extend(
+            equilibrium_layers(
+                result.baseline_equilibrium,
+                layer_id="market.equilibrium.baseline",
+                label=r"$e_0$",
+                label_offset=(14, -14),
+            )
+        )
+        layers.extend(
+            equilibrium_layers(
+                EquilibriumResult(
+                    q_star=post.q_star,
+                    p_star=post.consumer_price,
+                    is_valid_market=True,
+                    notes=(),
+                ),
+                layer_id="market.equilibrium.subsidized",
+                role="principle.market.equilibrium.shifted",
+                label=r"$e_s$",
+            )
+        )
+        layers.extend(subsidy_layers(result))
         return self.add_layers(layers)
 
     def add_tax_transform(

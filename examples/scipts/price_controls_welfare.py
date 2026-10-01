@@ -22,7 +22,6 @@ from principle_viz.welfare.surplus import (
 THEME = "price_controls"
 
 
-
 def main() -> None:
     demand = Line.from_inverse(10.0, -1.0)
     supply = Line.from_inverse(2.0, 1.0)
@@ -41,7 +40,12 @@ def main() -> None:
     delta = compare_surplus(demand, supply, baseline_outcome, control_outcome)
 
     # Raw welfare shading (no letters).
-    fig_raw = MarketFigure(x_max=12, y_max=12, title="Price Ceiling Welfare (Raw Regions)", palette=EXAMPLE_PALETTE)
+    fig_raw = MarketFigure(
+        x_max=12,
+        y_max=12,
+        title="Price Ceiling Welfare (Raw Regions)",
+        palette=EXAMPLE_PALETTE,
+    )
     fig_raw.add_curves(demand, supply, q_max=10)
     fig_raw.add_price_control(control_result)
     fig_raw.add_welfare(delta.policy)
@@ -50,7 +54,12 @@ def main() -> None:
     fig_raw.close()
 
     # Annotated welfare regions with baseline/policy guides.
-    fig = MarketFigure(x_max=12, y_max=12, title="Price Ceiling Welfare (Region Labels)", palette=EXAMPLE_PALETTE)
+    fig = MarketFigure(
+        x_max=12,
+        y_max=12,
+        title="Price Ceiling Welfare (Region Labels)",
+        palette=EXAMPLE_PALETTE,
+    )
     fig.add_curves(demand, supply, q_max=10)
     fig.add_price_control(control_result)
     fig.add_welfare_transition(

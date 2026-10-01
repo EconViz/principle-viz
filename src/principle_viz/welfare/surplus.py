@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from principle_viz.core.controls import PriceControlResult
 from principle_viz.core.equilibrium import EquilibriumResult
 from principle_viz.core.line import EPSILON, Line
+from principle_viz.policy.subsidy import SubsidyEquilibriumResult
 from principle_viz.policy.tax import TaxEquilibriumResult
 
 
@@ -58,8 +59,9 @@ class SurplusDeltaResult:
     deadweight_loss: float
 
 
-
-def outcome_from_equilibrium(eq: EquilibriumResult, label: str = "baseline") -> MarketOutcome:
+def outcome_from_equilibrium(
+    eq: EquilibriumResult, label: str = "baseline"
+) -> MarketOutcome:
     """Create market outcome from single-price equilibrium."""
     return MarketOutcome(
         quantity=eq.q_star,
@@ -67,7 +69,6 @@ def outcome_from_equilibrium(eq: EquilibriumResult, label: str = "baseline") -> 
         producer_price=eq.p_star,
         label=label,
     )
-
 
 
 def outcome_from_tax(tax_eq: TaxEquilibriumResult, label: str = "tax") -> MarketOutcome:
@@ -80,8 +81,21 @@ def outcome_from_tax(tax_eq: TaxEquilibriumResult, label: str = "tax") -> Market
     )
 
 
+def outcome_from_subsidy(
+    subsidy_eq: SubsidyEquilibriumResult, label: str = "subsidy"
+) -> MarketOutcome:
+    """Create an outcome whose negative government balance is the subsidy cost."""
+    return MarketOutcome(
+        quantity=subsidy_eq.q_star,
+        consumer_price=subsidy_eq.consumer_price,
+        producer_price=subsidy_eq.producer_price,
+        label=label,
+    )
 
-def outcome_from_control(control: PriceControlResult, label: str = "control") -> MarketOutcome:
+
+def outcome_from_control(
+    control: PriceControlResult, label: str = "control"
+) -> MarketOutcome:
     """Create market outcome from price control result."""
     return MarketOutcome(
         quantity=control.traded_quantity,
@@ -91,15 +105,15 @@ def outcome_from_control(control: PriceControlResult, label: str = "control") ->
     )
 
 
-
 def _integral_price_curve(line: Line, quantity: float) -> float:
     intercept, slope = line.to_inverse()
     q = float(quantity)
     return intercept * q + 0.5 * slope * q * q
 
 
-
-def _build_lost_polygon(demand: Line, supply: Line, q0: float, q1: float) -> tuple[tuple[float, float], ...]:
+def _build_lost_polygon(
+    demand: Line, supply: Line, q0: float, q1: float
+) -> tuple[tuple[float, float], ...]:
     if abs(q0 - q1) <= EPSILON:
         return ()
     q_low = min(q0, q1)
@@ -110,7 +124,6 @@ def _build_lost_polygon(demand: Line, supply: Line, q0: float, q1: float) -> tup
         (q_high, demand.p_at(q_high)),
         (q_high, supply.p_at(q_high)),
     )
-
 
 
 def compute_surplus(
@@ -140,7 +153,8 @@ def compute_surplus(
             - baseline_outcome.consumer_price * baseline_outcome.quantity
             + baseline_outcome.producer_price * baseline_outcome.quantity
             - _integral_price_curve(supply, baseline_outcome.quantity)
-            + (baseline_outcome.consumer_price - baseline_outcome.producer_price) * baseline_outcome.quantity
+            + (baseline_outcome.consumer_price - baseline_outcome.producer_price)
+            * baseline_outcome.quantity
         )
         deadweight_loss = max(0.0, baseline_total - total_surplus)
 
@@ -193,7 +207,6 @@ def compute_surplus(
     )
 
 
-
 def compare_surplus(
     demand: Line,
     supply: Line,
@@ -202,7 +215,9 @@ def compare_surplus(
 ) -> SurplusDeltaResult:
     """Compare baseline and policy surplus decomposition."""
     baseline = compute_surplus(demand, supply, baseline_outcome)
-    policy = compute_surplus(demand, supply, policy_outcome, baseline_outcome=baseline_outcome)
+    policy = compute_surplus(
+        demand, supply, policy_outcome, baseline_outcome=baseline_outcome
+    )
 
     return SurplusDeltaResult(
         baseline=baseline,

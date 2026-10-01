@@ -15,7 +15,6 @@ from principle_viz.plot.figure import MarketFigure
 THEME = "price_controls"
 
 
-
 def main() -> None:
     demand = Line.from_inverse(10.0, -1.0)
     supply = Line.from_inverse(2.0, 1.0)
@@ -26,7 +25,9 @@ def main() -> None:
         PriceControlScenario(control_type=PriceControlType.CEILING, control_price=4.0),
     )
 
-    fig = MarketFigure(x_max=12, y_max=12, title="Binding Price Ceiling", palette=EXAMPLE_PALETTE)
+    fig = MarketFigure(
+        x_max=12, y_max=12, title="Binding Price Ceiling", palette=EXAMPLE_PALETTE
+    )
     fig.add_curves(demand, supply, q_max=10)
     fig.add_price_control(result)
     fig.add_metrics(

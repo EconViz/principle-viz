@@ -17,7 +17,6 @@ from principle_viz.policy.tax import TaxOn, TaxScenario, TaxType, compare_tax_sc
 THEME = "taxation"
 
 
-
 def _plot_tax_case(name: str, scenario: TaxScenario, filename: str) -> None:
     demand = Line.from_inverse(10.0, -1.0)
     supply = Line.from_inverse(0.0, 1.0)
@@ -42,7 +41,6 @@ def _plot_tax_case(name: str, scenario: TaxScenario, filename: str) -> None:
     fig.finalize(legend=True)
     fig.save(str(themed_output_path(THEME, filename)))
     fig.close()
-
 
 
 def main() -> None:

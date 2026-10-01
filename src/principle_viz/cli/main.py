@@ -27,7 +27,14 @@ from principle_viz.core.elasticity import (
 )
 from principle_viz.core.equilibrium import solve_equilibrium
 from principle_viz.core.line import Line
+from principle_viz.core.revenue import elasticity_revenue_schedule
 from principle_viz.core.shifts import ShiftScenario, ShiftSpec, comparative_statics
+from principle_viz.policy.subsidy import (
+    SubsidyScenario,
+    SubsidyTo,
+    compare_subsidy_scenario,
+    solve_subsidy_equilibrium,
+)
 from principle_viz.policy.tax import (
     TaxOn,
     TaxScenario,
@@ -45,6 +52,7 @@ from principle_viz.welfare.surplus import (
     compute_surplus,
     outcome_from_control,
     outcome_from_equilibrium,
+    outcome_from_subsidy,
     outcome_from_tax,
 )
 
@@ -116,6 +124,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--tax-on", choices=[s.value for s in TaxOn], default=TaxOn.PRODUCER.value
     )
 
+    subsidy = sub.add_parser("subsidy", help="Solve per-unit subsidy equilibrium")
+    add_market_line_args(subsidy)
+    subsidy.add_argument("--amount", type=float, required=True)
+    subsidy.add_argument(
+        "--subsidy-to",
+        choices=[side.value for side in SubsidyTo],
+        default=SubsidyTo.PRODUCER.value,
+    )
+
     ctl = sub.add_parser("controls", help="Evaluate price control")
     add_market_line_args(ctl)
     ctl.add_argument(
@@ -126,12 +143,19 @@ def build_parser() -> argparse.ArgumentParser:
     wf = sub.add_parser("welfare", help="Compute welfare metrics")
     add_market_line_args(wf)
     wf.add_argument(
-        "--policy", choices=["baseline", "tax", "control"], default="baseline"
+        "--policy",
+        choices=["baseline", "tax", "subsidy", "control"],
+        default="baseline",
     )
     wf.add_argument("--tax-type", choices=[t.value for t in TaxType])
     wf.add_argument("--amount", type=float)
     wf.add_argument(
         "--tax-on", choices=[s.value for s in TaxOn], default=TaxOn.PRODUCER.value
+    )
+    wf.add_argument(
+        "--subsidy-to",
+        choices=[side.value for side in SubsidyTo],
+        default=SubsidyTo.PRODUCER.value,
     )
     wf.add_argument("--control-type", choices=[c.value for c in PriceControlType])
     wf.add_argument("--control-price", type=float)
@@ -144,13 +168,26 @@ def build_parser() -> argparse.ArgumentParser:
     el.add_argument("--p1", type=float)
     el.add_argument("--output", type=str)
 
+    revenue = sub.add_parser(
+        "revenue", help="Generate a demand elasticity and total-revenue schedule"
+    )
+    revenue.add_argument("--demand-intercept", type=float, required=True)
+    revenue.add_argument("--demand-slope", type=float, required=True)
+    revenue.add_argument("--samples", type=int, default=101)
+    revenue.add_argument("--output", type=str)
+
     rep = sub.add_parser("report-dwl", help="Generate one-row DWL report for a policy")
     add_market_line_args(rep)
-    rep.add_argument("--policy", choices=["tax", "control"], required=True)
+    rep.add_argument("--policy", choices=["tax", "subsidy", "control"], required=True)
     rep.add_argument("--tax-type", choices=[t.value for t in TaxType])
     rep.add_argument("--amount", type=float)
     rep.add_argument(
         "--tax-on", choices=[s.value for s in TaxOn], default=TaxOn.PRODUCER.value
+    )
+    rep.add_argument(
+        "--subsidy-to",
+        choices=[side.value for side in SubsidyTo],
+        default=SubsidyTo.PRODUCER.value,
     )
     rep.add_argument("--control-type", choices=[c.value for c in PriceControlType])
     rep.add_argument("--control-price", type=float)
@@ -188,6 +225,12 @@ def main() -> None:
         _dump_result(result, args.output)
         return
 
+    if args.command == "revenue":
+        demand = Line.from_inverse(args.demand_intercept, args.demand_slope)
+        result = elasticity_revenue_schedule(demand, samples=args.samples)
+        _dump_result(result, args.output)
+        return
+
     demand = _line_from_args(args, "demand")
     supply = _line_from_args(args, "supply")
 
@@ -219,6 +262,15 @@ def main() -> None:
         _dump_result(result, args.output)
         return
 
+    if args.command == "subsidy":
+        scenario = SubsidyScenario(
+            amount=args.amount,
+            subsidy_to=SubsidyTo(args.subsidy_to),
+        )
+        result = compare_subsidy_scenario(demand, supply, scenario)
+        _dump_result(result, args.output)
+        return
+
     if args.command == "controls":
         scenario = PriceControlScenario(
             control_type=PriceControlType(args.control_type),
@@ -247,6 +299,15 @@ def main() -> None:
             )
             tax_eq = solve_tax_equilibrium(demand, supply, tax_scenario)
             policy_outcome = outcome_from_tax(tax_eq)
+        elif args.policy == "subsidy":
+            if args.amount is None:
+                raise SystemExit("--amount is required for policy=subsidy")
+            subsidy_eq = solve_subsidy_equilibrium(
+                demand,
+                supply,
+                SubsidyScenario(args.amount, SubsidyTo(args.subsidy_to)),
+            )
+            policy_outcome = outcome_from_subsidy(subsidy_eq)
         else:
             if args.control_type is None or args.control_price is None:
                 raise SystemExit(
@@ -280,6 +341,15 @@ def main() -> None:
             )
             policy_eq = solve_tax_equilibrium(demand, supply, tax_scenario)
             policy_outcome = outcome_from_tax(policy_eq)
+        elif args.policy == "subsidy":
+            if args.amount is None:
+                raise SystemExit("--amount is required for policy=subsidy")
+            policy_eq = solve_subsidy_equilibrium(
+                demand,
+                supply,
+                SubsidyScenario(args.amount, SubsidyTo(args.subsidy_to)),
+            )
+            policy_outcome = outcome_from_subsidy(policy_eq)
         else:
             if args.control_type is None or args.control_price is None:
                 raise SystemExit(

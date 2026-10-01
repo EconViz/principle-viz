@@ -51,7 +51,9 @@ class Line:
     def q_at(self, p: float) -> float:
         """Evaluate Q at a given P."""
         if abs(self.q_coef) < EPSILON:
-            raise NonInvertibleLineError("Horizontal line cannot be represented as Q(P).")
+            raise NonInvertibleLineError(
+                "Horizontal line cannot be represented as Q(P)."
+            )
         return (-self.p_coef * float(p) - self.constant) / self.q_coef
 
     def shifted(self, delta_intercept: float = 0.0, delta_slope: float = 0.0) -> Line:

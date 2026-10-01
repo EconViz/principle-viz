@@ -25,7 +25,6 @@ class DWLScenarioRow:
     deadweight_loss: float
 
 
-
 def build_dwl_report(
     rows: list[tuple[str, SurplusResult, SurplusResult]],
 ) -> list[DWLScenarioRow]:
@@ -38,8 +37,10 @@ def build_dwl_report(
                 baseline_quantity=baseline.quantity,
                 policy_quantity=policy.quantity,
                 delta_quantity=policy.quantity - baseline.quantity,
-                delta_consumer_surplus=policy.consumer_surplus - baseline.consumer_surplus,
-                delta_producer_surplus=policy.producer_surplus - baseline.producer_surplus,
+                delta_consumer_surplus=policy.consumer_surplus
+                - baseline.consumer_surplus,
+                delta_producer_surplus=policy.producer_surplus
+                - baseline.producer_surplus,
                 delta_tax_revenue=policy.tax_revenue - baseline.tax_revenue,
                 delta_total_surplus=policy.total_surplus - baseline.total_surplus,
                 deadweight_loss=policy.deadweight_loss,
@@ -48,13 +49,13 @@ def build_dwl_report(
     return report
 
 
-
 def save_dwl_report_json(report: list[DWLScenarioRow], path: str | Path) -> None:
     """Save DWL report as JSON."""
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps([asdict(item) for item in report], indent=2), encoding="utf-8")
-
+    target.write_text(
+        json.dumps([asdict(item) for item in report], indent=2), encoding="utf-8"
+    )
 
 
 def save_dwl_report_csv(report: list[DWLScenarioRow], path: str | Path) -> None:

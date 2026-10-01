@@ -54,14 +54,14 @@ class ComparativeStaticsResult:
     direction_p: str
 
 
-
-def _direction(delta: float, positive_label: str, negative_label: str, tol: float = EPSILON) -> str:
+def _direction(
+    delta: float, positive_label: str, negative_label: str, tol: float = EPSILON
+) -> str:
     if delta > tol:
         return positive_label
     if delta < -tol:
         return negative_label
     return "none"
-
 
 
 def apply_shifts(demand: Line, supply: Line, scenario: ShiftScenario) -> ShiftedMarket:
@@ -80,8 +80,9 @@ def apply_shifts(demand: Line, supply: Line, scenario: ShiftScenario) -> Shifted
     )
 
 
-
-def comparative_statics(demand: Line, supply: Line, scenario: ShiftScenario) -> ComparativeStaticsResult:
+def comparative_statics(
+    demand: Line, supply: Line, scenario: ShiftScenario
+) -> ComparativeStaticsResult:
     """Solve baseline and shifted equilibria with movement metadata."""
     shifted = apply_shifts(demand, supply, scenario)
 

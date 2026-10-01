@@ -1,6 +1,6 @@
 [project]
 name = "principle-viz"
-version = "0.2.0"
+version = "0.3.0"
 description = "Principles of Economics toolkit for demand/supply analytics and diagrams."
 readme = "README.md"
 authors = [{ name = "Anthony Sung", email = "sungpinyue@gmail.com" }]
@@ -15,7 +15,9 @@ classifiers = [
     "Intended Audience :: Education",
     "Topic :: Scientific/Engineering",
 ]
-dependencies = ["numpy>=1.24.0", "matplotlib>=3.6.0,<4.0.0"]
+dependencies = [
+    "mosaickit>=0.1.0,<0.2.0",
+]
 
 [project.scripts]
 principle-viz = "principle_viz.cli.main:main"

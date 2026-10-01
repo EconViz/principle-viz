@@ -10,7 +10,6 @@ EXAMPLE_PALETTE = "monochrome"
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".svg", ".pdf"}
 
 
-
 def ensure_output_dir(theme: str | None = None) -> Path:
     """Create output directory (optionally themed) and return it."""
     target = OUTPUT_DIR / theme if theme else OUTPUT_DIR
@@ -23,12 +22,15 @@ def themed_output_path(theme: str, filename: str) -> Path:
     return ensure_output_dir(theme) / filename
 
 
-
 def remove_non_image_outputs() -> None:
     """Delete non-image files from output directory recursively."""
     ensure_output_dir()
     for item in OUTPUT_DIR.rglob("*"):
-        if item.is_file() and item.suffix.lower() not in IMAGE_SUFFIXES:
+        if (
+            item.is_file()
+            and item.name != ".gitkeep"
+            and item.suffix.lower() not in IMAGE_SUFFIXES
+        ):
             item.unlink()
 
 
@@ -37,3 +39,4 @@ def clear_all_outputs() -> None:
     if OUTPUT_DIR.exists():
         shutil.rmtree(OUTPUT_DIR)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    (OUTPUT_DIR / ".gitkeep").touch()

@@ -1,17 +1,11 @@
-"""Centered elasticity-type example: exactly two output figures.
-
-Outputs:
-- examples/output/elasticity_five_types_centered/demand_elasticity_five_types.png
-- examples/output/elasticity_five_types_centered/supply_elasticity_five_types.png
-"""
+"""Centered demand and supply elasticity-type diagrams."""
 
 from __future__ import annotations
 
-import numpy as np
 from common import EXAMPLE_PALETTE, ensure_output_dir, themed_output_path
+from mosaickit import DashStyle, Marker, MarkerLayer, PathLayer, Stroke, TextLayer
 
 from principle_viz.plot import MarketFigure
-from principle_viz.plot.primitives import annotate_text, plot_point
 
 Q0 = 5.0
 P0 = 5.0
@@ -20,127 +14,77 @@ Q_MAX = 10.0
 Y_MIN = 0.0
 Y_MAX = 10.0
 THEME = "elasticity"
-DEMAND_FILENAME = "demand_elasticity_five_types.png"
-SUPPLY_FILENAME = "supply_elasticity_five_types.png"
 
 
-
-def _line_through_center(slope: float, q_values: np.ndarray) -> np.ndarray:
+def _line_points(slope: float) -> tuple[tuple[float, float], tuple[float, float]]:
     intercept = P0 - slope * Q0
-    return intercept + slope * q_values
-
+    return ((Q_MIN, intercept + slope * Q_MIN), (Q_MAX, intercept + slope * Q_MAX))
 
 
 def _add_center_point(fig: MarketFigure) -> None:
-    plot_point(
-        fig.ax,
-        x=Q0,
-        y=P0,
-        color=fig.theme.baseline_color,
-        marker_size=7.0,
+    fig.add_layers(
+        (
+            MarkerLayer(
+                ((Q0, P0),),
+                id="elasticity.center",
+                role="principle.market.equilibrium",
+                marker=Marker(
+                    color=fig.theme.baseline_color,
+                    edge_color=fig.theme.baseline_color,
+                    edge_width=0,
+                    size=48,
+                ),
+                z_index=6,
+            ),
+            TextLayer(
+                (Q0, P0),
+                r"$e^{*}$",
+                id="elasticity.center.label",
+                role="principle.market.equilibrium",
+                offset=(14, 14),
+                anchor="left",
+                z_index=7,
+            ),
+        )
     )
-    annotate_text(
-        fig.ax,
-        x=Q0,
-        y=P0,
-        text=r"$e^{*}$",
-        color=fig.theme.baseline_color,
-        offset=(14, 14),
-        curved_arrow=True,
-        curvature=0.22,
-    )
 
 
-
-def _plot_demand_types() -> None:
+def _plot_types(kind: str, slopes: tuple[float, float, float], filename: str) -> None:
     fig = MarketFigure(
         x_max=Q_MAX,
         y_max=Y_MAX,
         x_label="Q",
         y_label="P",
-        title="Demand: Five Elasticity Types (Centered)",
+        title=f"{kind}: Five Elasticity Types (Centered)",
         palette=EXAMPLE_PALETTE,
     )
-
-    q = np.linspace(Q_MIN, Q_MAX, 300)
-
-    # Perfectly elastic: horizontal line through center price.
-    fig.ax.hlines(P0, Q_MIN, Q_MAX, colors="#111111", linewidth=2.2, linestyles="-", label="Perfectly Elastic")
-
-    # Elastic / unit / inelastic are linear and all pass through the center.
-    demand_specs = [
-        ("Elastic", -0.5, "#111111", "--"),
-        ("Unit Elastic", -1.0, "#111111", "-."),
-        ("Inelastic", -2.0, "#111111", ":"),
-    ]
-    for label, slope, color, linestyle in demand_specs:
-        p_vals = _line_through_center(slope, q)
-        fig.ax.plot(q, p_vals, color=color, linewidth=2.0, linestyle=linestyle, label=label)
-
-    # Perfectly inelastic: vertical line through center quantity.
-    fig.ax.vlines(
-        Q0,
-        Y_MIN,
-        Y_MAX,
-        colors="#111111",
-        linewidth=2.2,
-        linestyles=(0, (4, 1, 1, 1)),
-        label="Perfectly Inelastic",
+    specs = (
+        ("Perfectly Elastic", ((Q_MIN, P0), (Q_MAX, P0)), DashStyle.SOLID),
+        ("Elastic", _line_points(slopes[0]), DashStyle.DASHED),
+        ("Unit Elastic", _line_points(slopes[1]), DashStyle.DASHDOT),
+        ("Inelastic", _line_points(slopes[2]), DashStyle.DOTTED),
+        ("Perfectly Inelastic", ((Q0, Y_MIN), (Q0, Y_MAX)), DashStyle.SOLID),
     )
-
+    for index, (label, points, dash) in enumerate(specs):
+        fig.add_layer(
+            PathLayer(
+                points,
+                id=f"elasticity.type.{index}",
+                role="principle.market.demand",
+                legend=label,
+                stroke=Stroke(color="#111111", width=2.0, dash=dash),
+                z_index=2,
+            )
+        )
     _add_center_point(fig)
     fig.finalize(legend=True)
-    fig.save(str(themed_output_path(THEME, DEMAND_FILENAME)))
-    fig.close()
-
-
-
-def _plot_supply_types() -> None:
-    fig = MarketFigure(
-        x_max=Q_MAX,
-        y_max=Y_MAX,
-        x_label="Q",
-        y_label="P",
-        title="Supply: Five Elasticity Types (Centered)",
-        palette=EXAMPLE_PALETTE,
-    )
-
-    q = np.linspace(Q_MIN, Q_MAX, 300)
-
-    # Perfectly elastic: horizontal line through center price.
-    fig.ax.hlines(P0, Q_MIN, Q_MAX, colors="#111111", linewidth=2.2, linestyles="-", label="Perfectly Elastic")
-
-    supply_specs = [
-        ("Elastic", 0.5, "#111111", "--"),
-        ("Unit Elastic", 1.0, "#111111", "-."),
-        ("Inelastic", 2.0, "#111111", ":"),
-    ]
-    for label, slope, color, linestyle in supply_specs:
-        p_vals = _line_through_center(slope, q)
-        fig.ax.plot(q, p_vals, color=color, linewidth=2.0, linestyle=linestyle, label=label)
-
-    # Perfectly inelastic: vertical line through center quantity.
-    fig.ax.vlines(
-        Q0,
-        Y_MIN,
-        Y_MAX,
-        colors="#111111",
-        linewidth=2.2,
-        linestyles=(0, (4, 1, 1, 1)),
-        label="Perfectly Inelastic",
-    )
-
-    _add_center_point(fig)
-    fig.finalize(legend=True)
-    fig.save(str(themed_output_path(THEME, SUPPLY_FILENAME)))
-    fig.close()
-
+    fig.save(themed_output_path(THEME, filename))
 
 
 def main() -> None:
     ensure_output_dir(THEME)
-    _plot_demand_types()
-    _plot_supply_types()
+    _plot_types("Demand", (-0.5, -1.0, -2.0), "demand_elasticity_five_types.png")
+    _plot_types("Supply", (0.5, 1.0, 2.0), "supply_elasticity_five_types.png")
 
 
 if __name__ == "__main__":

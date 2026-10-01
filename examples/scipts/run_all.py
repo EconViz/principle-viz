@@ -9,6 +9,7 @@ from dwl_report import main as report_main
 from elasticity_demo import main as elasticity_main
 from elasticity_five_types_centered import main as elasticity_five_main
 from elasticity_total_revenue import main as elasticity_revenue_main
+from international_trade import main as trade_main
 from price_controls import main as control_main
 from price_controls_welfare import main as control_welfare_main
 from shift_scenarios import main as shift_main
@@ -25,6 +26,7 @@ def main() -> None:
     shift_main()
     tax_main()
     subsidy_main()
+    trade_main()
     welfare_main()
     control_main()
     control_welfare_main()

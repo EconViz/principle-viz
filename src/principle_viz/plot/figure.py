@@ -25,6 +25,7 @@ from principle_viz.policy.tax import (
     build_tax_visual_guide,
     compare_tax_scenario,
 )
+from principle_viz.policy.trade import TradeComparisonResult
 from principle_viz.visuals import (
     curve_layer,
     discrete_equilibrium_layers,
@@ -39,6 +40,7 @@ from principle_viz.visuals import (
     tax_rotation_layers,
     tax_shift_layers,
     tax_wedge_layers,
+    trade_layers,
     welfare_layers,
     welfare_overlay_layers,
 )
@@ -380,6 +382,9 @@ class MarketFigure:
 
     def add_price_control(self, result: PriceControlResult) -> MarketFigure:
         return self.add_layers(price_control_layers(result, x_max=self.x_max))
+
+    def add_trade(self, result: TradeComparisonResult) -> MarketFigure:
+        return self.add_layers(trade_layers(result, x_max=self.x_max))
 
     def add_welfare(self, surplus: SurplusResult) -> MarketFigure:
         return self.add_layers(welfare_layers(surplus))

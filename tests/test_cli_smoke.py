@@ -123,3 +123,30 @@ def test_cli_revenue_outputs_json(monkeypatch, capsys) -> None:
     payload = json.loads(capsys.readouterr().out)
     assert payload["unit_elastic_quantity"] == 6
     assert payload["maximum_revenue"] == 36
+
+
+def test_cli_trade_outputs_json(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "principle-viz",
+            "trade",
+            "--demand-intercept",
+            "12",
+            "--demand-slope",
+            "-1",
+            "--supply-intercept",
+            "2",
+            "--supply-slope",
+            "1",
+            "--world-price",
+            "4",
+            "--tariff",
+            "2",
+        ],
+    )
+    main()
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["policy"]["imports"] == 2
+    assert payload["policy"]["government_revenue"] == 4
+    assert payload["deadweight_loss"] == 4

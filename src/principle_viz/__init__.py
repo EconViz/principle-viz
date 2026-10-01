@@ -1,6 +1,7 @@
 """Principle-Econ public package interface."""
 
 from principle_viz.api import (
+    analyze_trade,
     build_dwl_report,
     build_tax_visual_guide,
     comparative_statics,
@@ -46,6 +47,13 @@ from principle_viz.policy.subsidy import (
     SubsidyScenario,
     SubsidyTo,
 )
+from principle_viz.policy.trade import (
+    QuotaRentRecipient,
+    TradeComparisonResult,
+    TradeDirection,
+    TradeOutcome,
+    TradeScenario,
+)
 from principle_viz.welfare.discrete import (
     DiscreteSurplusResult,
     compute_discrete_surplus,
@@ -68,11 +76,17 @@ __all__ = [
     "EquilibriumPriceRule",
     "MarketFigure",
     "PlotTheme",
+    "QuotaRentRecipient",
     "RevenuePoint",
     "SubsidyComparisonResult",
     "SubsidyEquilibriumResult",
     "SubsidyScenario",
     "SubsidyTo",
+    "TradeComparisonResult",
+    "TradeDirection",
+    "TradeOutcome",
+    "TradeScenario",
+    "analyze_trade",
     "build_dwl_report",
     "build_tax_visual_guide",
     "comparative_statics",

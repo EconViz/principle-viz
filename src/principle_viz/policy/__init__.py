@@ -20,9 +20,18 @@ from principle_viz.policy.tax import (
     compare_tax_scenario,
     solve_tax_equilibrium,
 )
+from principle_viz.policy.trade import (
+    QuotaRentRecipient,
+    TradeComparisonResult,
+    TradeDirection,
+    TradeOutcome,
+    TradeScenario,
+    analyze_trade,
+)
 
 __all__ = [
     "AnchorMode",
+    "QuotaRentRecipient",
     "SubsidyComparisonResult",
     "SubsidyEquilibriumResult",
     "SubsidyScenario",
@@ -33,6 +42,11 @@ __all__ = [
     "TaxScenario",
     "TaxType",
     "TaxVisualGuide",
+    "TradeComparisonResult",
+    "TradeDirection",
+    "TradeOutcome",
+    "TradeScenario",
+    "analyze_trade",
     "build_tax_visual_guide",
     "compare_subsidy_scenario",
     "compare_tax_scenario",

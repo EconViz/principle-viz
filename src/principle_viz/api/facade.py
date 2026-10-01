@@ -29,6 +29,7 @@ from principle_viz.policy.tax import (
     compare_tax_scenario,
     solve_tax_equilibrium,
 )
+from principle_viz.policy.trade import TradeScenario, analyze_trade
 from principle_viz.welfare.report import build_dwl_report
 from principle_viz.welfare.surplus import MarketOutcome
 from principle_viz.welfare.surplus import compute_surplus as _compute_surplus
@@ -118,6 +119,8 @@ __all__ = [
     "ShiftSpec",
     "SubsidyScenario",
     "TaxScenario",
+    "TradeScenario",
+    "analyze_trade",
     "build_dwl_report",
     "build_tax_visual_guide",
     "comparative_statics",

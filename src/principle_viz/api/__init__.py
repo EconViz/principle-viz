@@ -1,6 +1,7 @@
 """Public API facade."""
 
 from principle_viz.api.facade import (
+    analyze_trade,
     build_dwl_report,
     build_tax_visual_guide,
     comparative_statics,
@@ -20,6 +21,7 @@ from principle_viz.api.facade import (
 )
 
 __all__ = [
+    "analyze_trade",
     "build_dwl_report",
     "build_tax_visual_guide",
     "comparative_statics",

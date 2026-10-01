@@ -220,6 +220,22 @@ class PlotTheme:
                 ),
                 text=TextStyle(color=c.shifted_color, size=10),
             ),
+            "principle.trade.world": StyleBundle(
+                stroke=Stroke(color=c.axis_color, width=1.5, dash=dashed),
+                text=TextStyle(color=c.label_color, size=10),
+            ),
+            "principle.trade.policy": StyleBundle(
+                stroke=Stroke(color=c.tax_color, width=1.8, dash=dashed),
+                text=TextStyle(color=c.tax_color, size=10),
+            ),
+            "principle.trade.flow": StyleBundle(
+                stroke=Stroke(color=c.arrow_color, width=self.arrow_linewidth),
+                text=TextStyle(color=c.label_color, size=10),
+            ),
+            "principle.trade.rent": StyleBundle(
+                fill=Fill(color=c.tax_revenue_color, opacity=0.22),
+                stroke=Stroke(width=0),
+            ),
             "principle.welfare.consumer": StyleBundle(
                 fill=Fill(color=c.cs_color, opacity=0.18), stroke=Stroke(width=0)
             ),

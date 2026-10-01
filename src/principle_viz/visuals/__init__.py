@@ -29,6 +29,7 @@ from principle_viz.visuals.theme import (
     get_color_model,
     list_color_models,
 )
+from principle_viz.visuals.trade import trade_layers
 from principle_viz.visuals.welfare import welfare_layers, welfare_overlay_layers
 
 __all__ = [
@@ -57,6 +58,7 @@ __all__ = [
     "tax_rotation_layers",
     "tax_shift_layers",
     "tax_wedge_layers",
+    "trade_layers",
     "welfare_layers",
     "welfare_overlay_layers",
 ]

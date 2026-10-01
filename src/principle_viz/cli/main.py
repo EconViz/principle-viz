@@ -42,6 +42,11 @@ from principle_viz.policy.tax import (
     compare_tax_scenario,
     solve_tax_equilibrium,
 )
+from principle_viz.policy.trade import (
+    QuotaRentRecipient,
+    TradeScenario,
+    analyze_trade,
+)
 from principle_viz.welfare.report import (
     build_dwl_report,
     save_dwl_report_csv,
@@ -131,6 +136,17 @@ def build_parser() -> argparse.ArgumentParser:
         "--subsidy-to",
         choices=[side.value for side in SubsidyTo],
         default=SubsidyTo.PRODUCER.value,
+    )
+
+    trade = sub.add_parser("trade", help="Analyze world price, tariff, or import quota")
+    add_market_line_args(trade)
+    trade.add_argument("--world-price", type=float, required=True)
+    trade.add_argument("--tariff", type=float, default=0.0)
+    trade.add_argument("--import-quota", type=float)
+    trade.add_argument(
+        "--quota-rent-recipient",
+        choices=[recipient.value for recipient in QuotaRentRecipient],
+        default=QuotaRentRecipient.DOMESTIC.value,
     )
 
     ctl = sub.add_parser("controls", help="Evaluate price control")
@@ -268,6 +284,20 @@ def main() -> None:
             subsidy_to=SubsidyTo(args.subsidy_to),
         )
         result = compare_subsidy_scenario(demand, supply, scenario)
+        _dump_result(result, args.output)
+        return
+
+    if args.command == "trade":
+        result = analyze_trade(
+            demand,
+            supply,
+            TradeScenario(
+                world_price=args.world_price,
+                tariff=args.tariff,
+                import_quota=args.import_quota,
+                quota_rent_recipient=QuotaRentRecipient(args.quota_rent_recipient),
+            ),
+        )
         _dump_result(result, args.output)
         return
 

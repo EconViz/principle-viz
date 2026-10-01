@@ -11,8 +11,17 @@ from principle_viz.api import (
     evaluate_price_control,
     line_from_inverse,
     line_from_standard,
+    solve_discrete_market,
     solve_equilibrium,
     solve_tax_equilibrium,
+)
+from principle_viz.core.discrete import (
+    DiscreteDemand,
+    DiscreteEquilibriumResult,
+    DiscreteMarketError,
+    DiscreteSupply,
+    EquilibriumPriceRule,
+    solve_discrete_equilibrium,
 )
 from principle_viz.plot import (
     BUILTIN_COLOR_MODELS,
@@ -27,6 +36,10 @@ from principle_viz.plot import (
     get_color_model,
     list_color_models,
 )
+from principle_viz.welfare.discrete import (
+    DiscreteSurplusResult,
+    compute_discrete_surplus,
+)
 
 __all__ = [
     "BUILTIN_COLOR_MODELS",
@@ -36,6 +49,12 @@ __all__ = [
     "NORD_COLOR_MODEL",
     "Canvas",
     "ColorModel",
+    "DiscreteDemand",
+    "DiscreteEquilibriumResult",
+    "DiscreteMarketError",
+    "DiscreteSupply",
+    "DiscreteSurplusResult",
+    "EquilibriumPriceRule",
     "MarketFigure",
     "PlotTheme",
     "build_dwl_report",
@@ -43,6 +62,7 @@ __all__ = [
     "comparative_statics",
     "compare_tax_scenario",
     "compute_arc_elasticity",
+    "compute_discrete_surplus",
     "compute_point_elasticity",
     "compute_surplus",
     "evaluate_price_control",
@@ -50,6 +70,8 @@ __all__ = [
     "line_from_inverse",
     "line_from_standard",
     "list_color_models",
+    "solve_discrete_equilibrium",
+    "solve_discrete_market",
     "solve_equilibrium",
     "solve_tax_equilibrium",
 ]

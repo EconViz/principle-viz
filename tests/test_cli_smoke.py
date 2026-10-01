@@ -55,3 +55,29 @@ def test_cli_tax_outputs_json(monkeypatch, capsys) -> None:
     payload = json.loads(out)
     assert "post_tax" in payload
     assert "delta_q" in payload
+
+
+def test_cli_discrete_outputs_json(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "principle-viz",
+            "discrete",
+            "--demand-values",
+            "11",
+            "9",
+            "7",
+            "5",
+            "--supply-values",
+            "1",
+            "3",
+            "5",
+            "8",
+        ],
+    )
+    main()
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["q_star"] == 3
+    assert payload["price_low"] == 5
+    assert payload["price_high"] == 7
+    assert payload["price_rule"] == "midpoint"

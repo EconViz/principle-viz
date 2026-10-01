@@ -6,6 +6,14 @@ from principle_viz.core.controls import (
     PriceControlType,
     evaluate_price_control,
 )
+from principle_viz.core.discrete import (
+    DiscreteDemand,
+    DiscreteEquilibriumResult,
+    DiscreteMarketError,
+    DiscreteSupply,
+    EquilibriumPriceRule,
+    solve_discrete_equilibrium,
+)
 from principle_viz.core.elasticity import (
     arc_price_elasticity,
     classify_elasticity,
@@ -24,6 +32,11 @@ from principle_viz.core.shifts import (
 
 __all__ = [
     "ComparativeStaticsResult",
+    "DiscreteDemand",
+    "DiscreteEquilibriumResult",
+    "DiscreteMarketError",
+    "DiscreteSupply",
+    "EquilibriumPriceRule",
     "EquilibriumResult",
     "Line",
     "PriceControlResult",
@@ -38,5 +51,6 @@ __all__ = [
     "comparative_statics",
     "evaluate_price_control",
     "point_price_elasticity",
+    "solve_discrete_equilibrium",
     "solve_equilibrium",
 ]

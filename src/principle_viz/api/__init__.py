@@ -11,6 +11,7 @@ from principle_viz.api.facade import (
     evaluate_price_control,
     line_from_inverse,
     line_from_standard,
+    solve_discrete_market,
     solve_equilibrium,
     solve_tax_equilibrium,
 )
@@ -26,6 +27,7 @@ __all__ = [
     "evaluate_price_control",
     "line_from_inverse",
     "line_from_standard",
+    "solve_discrete_market",
     "solve_equilibrium",
     "solve_tax_equilibrium",
 ]

@@ -8,6 +8,11 @@ from pathlib import Path
 from mosaickit import Canvas, CanvasSpec, Layer, LegendLayer, LegendStyle, Scene
 
 from principle_viz.core.controls import PriceControlResult
+from principle_viz.core.discrete import (
+    DiscreteDemand,
+    DiscreteEquilibriumResult,
+    DiscreteSupply,
+)
 from principle_viz.core.equilibrium import EquilibriumResult
 from principle_viz.core.line import Line
 from principle_viz.core.shifts import ComparativeStaticsResult
@@ -21,6 +26,8 @@ from principle_viz.policy.tax import (
 )
 from principle_viz.visuals import (
     curve_layer,
+    discrete_equilibrium_layers,
+    discrete_schedule_layers,
     equilibrium_layers,
     market_axes_layers,
     metrics_layer,
@@ -114,6 +121,44 @@ class MarketFigure:
                     role="principle.market.supply",
                     label=supply_label,
                 ),
+            )
+        )
+
+    def add_discrete_curves(
+        self,
+        demand: DiscreteDemand,
+        supply: DiscreteSupply,
+        *,
+        demand_label: str = "Demand",
+        supply_label: str = "Supply",
+    ) -> MarketFigure:
+        self.add_layers(
+            discrete_schedule_layers(
+                demand,
+                schedule_id="market.discrete.demand",
+                role="principle.market.demand",
+                color=self.theme.demand_color,
+                label=demand_label,
+            )
+        )
+        return self.add_layers(
+            discrete_schedule_layers(
+                supply,
+                schedule_id="market.discrete.supply",
+                role="principle.market.supply",
+                color=self.theme.supply_color,
+                label=supply_label,
+            )
+        )
+
+    def add_discrete_equilibrium(
+        self, equilibrium: DiscreteEquilibriumResult
+    ) -> MarketFigure:
+        return self.add_layers(
+            discrete_equilibrium_layers(
+                equilibrium,
+                x_max=self.x_max,
+                color=self.theme.baseline_color,
             )
         )
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from basic_equilibrium import main as basic_main
 from common import clear_all_outputs, remove_non_image_outputs
+from discrete_market import main as discrete_main
 from dwl_report import main as report_main
 from elasticity_demo import main as elasticity_main
 from elasticity_five_types_centered import main as elasticity_five_main
@@ -18,6 +19,7 @@ def main() -> None:
     clear_all_outputs()
     remove_non_image_outputs()
     basic_main()
+    discrete_main()
     shift_main()
     tax_main()
     welfare_main()

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 from dataclasses import asdict, is_dataclass
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,12 @@ from principle_viz.core.controls import (
     PriceControlScenario,
     PriceControlType,
     evaluate_price_control,
+)
+from principle_viz.core.discrete import (
+    DiscreteDemand,
+    DiscreteSupply,
+    EquilibriumPriceRule,
+    solve_discrete_equilibrium,
 )
 from principle_viz.core.elasticity import (
     arc_price_elasticity,
@@ -49,8 +56,9 @@ def _to_jsonable(value: Any) -> Any:
         return {k: _to_jsonable(v) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
         return [_to_jsonable(v) for v in value]
+    if isinstance(value, Enum):
+        return value.value
     return value
-
 
 
 def _dump_result(payload: Any, output: str | None) -> None:
@@ -62,12 +70,10 @@ def _dump_result(payload: Any, output: str | None) -> None:
     print(text)
 
 
-
 def _line_from_args(args: argparse.Namespace, prefix: str) -> Line:
     intercept = getattr(args, f"{prefix}_intercept")
     slope = getattr(args, f"{prefix}_slope")
     return Line.from_inverse(intercept=intercept, slope=slope)
-
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -85,6 +91,16 @@ def build_parser() -> argparse.ArgumentParser:
     eq = sub.add_parser("equilibrium", help="Solve linear market equilibrium")
     add_market_line_args(eq)
 
+    discrete = sub.add_parser("discrete", help="Solve a discrete unit market")
+    discrete.add_argument("--demand-values", type=float, nargs="+", required=True)
+    discrete.add_argument("--supply-values", type=float, nargs="+", required=True)
+    discrete.add_argument(
+        "--price-rule",
+        choices=[rule.value for rule in EquilibriumPriceRule],
+        default=EquilibriumPriceRule.MIDPOINT.value,
+    )
+    discrete.add_argument("--output", type=str)
+
     sh = sub.add_parser("shift", help="Solve comparative statics with shifted lines")
     add_market_line_args(sh)
     sh.add_argument("--demand-delta-intercept", type=float, default=0.0)
@@ -96,19 +112,27 @@ def build_parser() -> argparse.ArgumentParser:
     add_market_line_args(tax)
     tax.add_argument("--tax-type", choices=[t.value for t in TaxType], required=True)
     tax.add_argument("--amount", type=float, required=True)
-    tax.add_argument("--tax-on", choices=[s.value for s in TaxOn], default=TaxOn.PRODUCER.value)
+    tax.add_argument(
+        "--tax-on", choices=[s.value for s in TaxOn], default=TaxOn.PRODUCER.value
+    )
 
     ctl = sub.add_parser("controls", help="Evaluate price control")
     add_market_line_args(ctl)
-    ctl.add_argument("--control-type", choices=[c.value for c in PriceControlType], required=True)
+    ctl.add_argument(
+        "--control-type", choices=[c.value for c in PriceControlType], required=True
+    )
     ctl.add_argument("--control-price", type=float, required=True)
 
     wf = sub.add_parser("welfare", help="Compute welfare metrics")
     add_market_line_args(wf)
-    wf.add_argument("--policy", choices=["baseline", "tax", "control"], default="baseline")
+    wf.add_argument(
+        "--policy", choices=["baseline", "tax", "control"], default="baseline"
+    )
     wf.add_argument("--tax-type", choices=[t.value for t in TaxType])
     wf.add_argument("--amount", type=float)
-    wf.add_argument("--tax-on", choices=[s.value for s in TaxOn], default=TaxOn.PRODUCER.value)
+    wf.add_argument(
+        "--tax-on", choices=[s.value for s in TaxOn], default=TaxOn.PRODUCER.value
+    )
     wf.add_argument("--control-type", choices=[c.value for c in PriceControlType])
     wf.add_argument("--control-price", type=float)
 
@@ -125,13 +149,14 @@ def build_parser() -> argparse.ArgumentParser:
     rep.add_argument("--policy", choices=["tax", "control"], required=True)
     rep.add_argument("--tax-type", choices=[t.value for t in TaxType])
     rep.add_argument("--amount", type=float)
-    rep.add_argument("--tax-on", choices=[s.value for s in TaxOn], default=TaxOn.PRODUCER.value)
+    rep.add_argument(
+        "--tax-on", choices=[s.value for s in TaxOn], default=TaxOn.PRODUCER.value
+    )
     rep.add_argument("--control-type", choices=[c.value for c in PriceControlType])
     rep.add_argument("--control-price", type=float)
     rep.add_argument("--csv", type=str)
 
     return parser
-
 
 
 def main() -> None:
@@ -154,6 +179,15 @@ def main() -> None:
         _dump_result(payload, args.output)
         return
 
+    if args.command == "discrete":
+        result = solve_discrete_equilibrium(
+            DiscreteDemand(tuple(args.demand_values)),
+            DiscreteSupply(tuple(args.supply_values)),
+            price_rule=EquilibriumPriceRule(args.price_rule),
+        )
+        _dump_result(result, args.output)
+        return
+
     demand = _line_from_args(args, "demand")
     supply = _line_from_args(args, "supply")
 
@@ -164,8 +198,12 @@ def main() -> None:
 
     if args.command == "shift":
         scenario = ShiftScenario(
-            demand_shift=ShiftSpec(args.demand_delta_intercept, args.demand_delta_slope),
-            supply_shift=ShiftSpec(args.supply_delta_intercept, args.supply_delta_slope),
+            demand_shift=ShiftSpec(
+                args.demand_delta_intercept, args.demand_delta_slope
+            ),
+            supply_shift=ShiftSpec(
+                args.supply_delta_intercept, args.supply_delta_slope
+            ),
         )
         result = comparative_statics(demand, supply, scenario)
         _dump_result(result, args.output)
@@ -211,11 +249,15 @@ def main() -> None:
             policy_outcome = outcome_from_tax(tax_eq)
         else:
             if args.control_type is None or args.control_price is None:
-                raise SystemExit("--control-type and --control-price are required for policy=control")
+                raise SystemExit(
+                    "--control-type and --control-price are required for policy=control"
+                )
             control = evaluate_price_control(
                 demand,
                 supply,
-                PriceControlScenario(PriceControlType(args.control_type), args.control_price),
+                PriceControlScenario(
+                    PriceControlType(args.control_type), args.control_price
+                ),
             )
             policy_outcome = outcome_from_control(control)
 
@@ -240,15 +282,21 @@ def main() -> None:
             policy_outcome = outcome_from_tax(policy_eq)
         else:
             if args.control_type is None or args.control_price is None:
-                raise SystemExit("--control-type and --control-price are required for policy=control")
+                raise SystemExit(
+                    "--control-type and --control-price are required for policy=control"
+                )
             control = evaluate_price_control(
                 demand,
                 supply,
-                PriceControlScenario(PriceControlType(args.control_type), args.control_price),
+                PriceControlScenario(
+                    PriceControlType(args.control_type), args.control_price
+                ),
             )
             policy_outcome = outcome_from_control(control)
 
-        policy = compute_surplus(demand, supply, policy_outcome, baseline_outcome=baseline_outcome)
+        policy = compute_surplus(
+            demand, supply, policy_outcome, baseline_outcome=baseline_outcome
+        )
         report = build_dwl_report([("scenario", baseline, policy)])
         if args.csv:
             save_dwl_report_csv(report, args.csv)

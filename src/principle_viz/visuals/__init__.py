@@ -2,6 +2,10 @@
 
 from principle_viz.visuals.axes import market_axes_layers
 from principle_viz.visuals.curves import curve_layer, segment_layer
+from principle_viz.visuals.discrete import (
+    discrete_equilibrium_layers,
+    discrete_schedule_layers,
+)
 from principle_viz.visuals.equilibrium import equilibrium_layers, movement_layers
 from principle_viz.visuals.metrics import metrics_layer
 from principle_viz.visuals.policy import (
@@ -36,6 +40,8 @@ __all__ = [
     "ColorModel",
     "PlotTheme",
     "curve_layer",
+    "discrete_equilibrium_layers",
+    "discrete_schedule_layers",
     "equilibrium_layers",
     "get_color_model",
     "list_color_models",

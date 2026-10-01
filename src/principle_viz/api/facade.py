@@ -7,6 +7,12 @@ from principle_viz.core.controls import (
     PriceControlType,
     evaluate_price_control,
 )
+from principle_viz.core.discrete import (
+    DiscreteDemand,
+    DiscreteSupply,
+    EquilibriumPriceRule,
+    solve_discrete_equilibrium,
+)
 from principle_viz.core.elasticity import arc_price_elasticity, point_price_elasticity
 from principle_viz.core.equilibrium import solve_equilibrium
 from principle_viz.core.line import Line
@@ -27,11 +33,9 @@ def line_from_inverse(intercept: float, slope: float) -> Line:
     return Line.from_inverse(intercept, slope)
 
 
-
 def line_from_standard(a: float, b: float, c: float) -> Line:
     """Create line from standard form A*P + B*Q + C = 0."""
     return Line.from_standard(a, b, c)
-
 
 
 def compute_point_elasticity(line: Line, quantity: float) -> float:
@@ -39,11 +43,23 @@ def compute_point_elasticity(line: Line, quantity: float) -> float:
     return point_price_elasticity(line, quantity)
 
 
-
 def compute_arc_elasticity(q0: float, p0: float, q1: float, p1: float) -> float:
     """Compute arc elasticity between two points."""
     return arc_price_elasticity(q0, p0, q1, p1)
 
+
+def solve_discrete_market(
+    demand_values: tuple[float, ...],
+    supply_values: tuple[float, ...],
+    *,
+    price_rule: EquilibriumPriceRule | str = EquilibriumPriceRule.MIDPOINT,
+):
+    """Construct discrete schedules and solve their competitive equilibrium."""
+    return solve_discrete_equilibrium(
+        DiscreteDemand(demand_values),
+        DiscreteSupply(supply_values),
+        price_rule=price_rule,
+    )
 
 
 def compute_surplus_from_prices(
@@ -79,7 +95,6 @@ def compute_surplus_from_prices(
     return _compute_surplus(demand, supply, outcome, baseline_outcome=baseline)
 
 
-
 def compute_surplus(
     demand: Line,
     supply: Line,
@@ -107,6 +122,7 @@ __all__ = [
     "evaluate_price_control",
     "line_from_inverse",
     "line_from_standard",
+    "solve_discrete_market",
     "solve_equilibrium",
     "solve_tax_equilibrium",
 ]

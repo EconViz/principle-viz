@@ -1,5 +1,9 @@
 """Welfare metrics and reporting."""
 
+from principle_viz.welfare.discrete import (
+    DiscreteSurplusResult,
+    compute_discrete_surplus,
+)
 from principle_viz.welfare.layout import (
     LabeledRegion,
     WelfareAnnotationLayout,
@@ -27,6 +31,7 @@ from principle_viz.welfare.surplus import (
 
 __all__ = [
     "DWLScenarioRow",
+    "DiscreteSurplusResult",
     "LabeledRegion",
     "MarketOutcome",
     "SurplusDeltaResult",
@@ -38,6 +43,7 @@ __all__ = [
     "build_labeled_regions",
     "build_welfare_annotation_layout",
     "compare_surplus",
+    "compute_discrete_surplus",
     "compute_surplus",
     "outcome_from_control",
     "outcome_from_equilibrium",

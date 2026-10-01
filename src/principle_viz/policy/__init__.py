@@ -1,5 +1,14 @@
 """Policy scenarios for taxes and incidence."""
 
+from principle_viz.policy.common_resources import (
+    CommonResourceResult,
+    analyze_common_resource,
+)
+from principle_viz.policy.externality import (
+    ExternalityResult,
+    ExternalityScenario,
+    analyze_externality,
+)
 from principle_viz.policy.subsidy import (
     SubsidyComparisonResult,
     SubsidyEquilibriumResult,
@@ -31,6 +40,9 @@ from principle_viz.policy.trade import (
 
 __all__ = [
     "AnchorMode",
+    "CommonResourceResult",
+    "ExternalityResult",
+    "ExternalityScenario",
     "QuotaRentRecipient",
     "SubsidyComparisonResult",
     "SubsidyEquilibriumResult",
@@ -46,6 +58,8 @@ __all__ = [
     "TradeDirection",
     "TradeOutcome",
     "TradeScenario",
+    "analyze_common_resource",
+    "analyze_externality",
     "analyze_trade",
     "build_tax_visual_guide",
     "compare_subsidy_scenario",

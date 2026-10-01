@@ -7,6 +7,11 @@ from principle_viz.visuals.discrete import (
     discrete_schedule_layers,
 )
 from principle_viz.visuals.equilibrium import equilibrium_layers, movement_layers
+from principle_viz.visuals.market_failures import (
+    common_resource_layers,
+    externality_layers,
+    public_good_canvas,
+)
 from principle_viz.visuals.metrics import metrics_layer
 from principle_viz.visuals.policy import (
     price_control_layers,
@@ -42,17 +47,20 @@ __all__ = [
     "NORD_COLOR_MODEL",
     "ColorModel",
     "PlotTheme",
+    "common_resource_layers",
     "curve_layer",
     "discrete_equilibrium_layers",
     "discrete_schedule_layers",
     "elasticity_revenue_canvases",
     "equilibrium_layers",
+    "externality_layers",
     "get_color_model",
     "list_color_models",
     "market_axes_layers",
     "metrics_layer",
     "movement_layers",
     "price_control_layers",
+    "public_good_canvas",
     "segment_layer",
     "subsidy_layers",
     "tax_rotation_layers",

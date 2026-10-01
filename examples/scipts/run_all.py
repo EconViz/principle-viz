@@ -10,6 +10,7 @@ from elasticity_demo import main as elasticity_main
 from elasticity_five_types_centered import main as elasticity_five_main
 from elasticity_total_revenue import main as elasticity_revenue_main
 from international_trade import main as trade_main
+from market_failures import main as market_failures_main
 from price_controls import main as control_main
 from price_controls_welfare import main as control_welfare_main
 from shift_scenarios import main as shift_main
@@ -27,6 +28,7 @@ def main() -> None:
     tax_main()
     subsidy_main()
     trade_main()
+    market_failures_main()
     welfare_main()
     control_main()
     control_welfare_main()

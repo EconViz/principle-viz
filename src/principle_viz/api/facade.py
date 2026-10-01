@@ -16,8 +16,11 @@ from principle_viz.core.discrete import (
 from principle_viz.core.elasticity import arc_price_elasticity, point_price_elasticity
 from principle_viz.core.equilibrium import solve_equilibrium
 from principle_viz.core.line import Line
+from principle_viz.core.public_goods import analyze_public_good
 from principle_viz.core.revenue import elasticity_revenue_schedule
 from principle_viz.core.shifts import ShiftScenario, ShiftSpec, comparative_statics
+from principle_viz.policy.common_resources import analyze_common_resource
+from principle_viz.policy.externality import ExternalityScenario, analyze_externality
 from principle_viz.policy.subsidy import (
     SubsidyScenario,
     compare_subsidy_scenario,
@@ -113,6 +116,7 @@ def compute_surplus(
 
 
 __all__ = [
+    "ExternalityScenario",
     "PriceControlScenario",
     "PriceControlType",
     "ShiftScenario",
@@ -120,6 +124,9 @@ __all__ = [
     "SubsidyScenario",
     "TaxScenario",
     "TradeScenario",
+    "analyze_common_resource",
+    "analyze_externality",
+    "analyze_public_good",
     "analyze_trade",
     "build_dwl_report",
     "build_tax_visual_guide",

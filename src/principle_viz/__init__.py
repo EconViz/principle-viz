@@ -1,6 +1,9 @@
 """Principle-Econ public package interface."""
 
 from principle_viz.api import (
+    analyze_common_resource,
+    analyze_externality,
+    analyze_public_good,
     analyze_trade,
     build_dwl_report,
     build_tax_visual_guide,
@@ -27,6 +30,11 @@ from principle_viz.core.discrete import (
     EquilibriumPriceRule,
     solve_discrete_equilibrium,
 )
+from principle_viz.core.public_goods import (
+    IndividualBenefit,
+    PublicGoodPoint,
+    PublicGoodResult,
+)
 from principle_viz.core.revenue import ElasticityRevenueResult, RevenuePoint
 from principle_viz.plot import (
     BUILTIN_COLOR_MODELS,
@@ -41,6 +49,8 @@ from principle_viz.plot import (
     get_color_model,
     list_color_models,
 )
+from principle_viz.policy.common_resources import CommonResourceResult
+from principle_viz.policy.externality import ExternalityResult, ExternalityScenario
 from principle_viz.policy.subsidy import (
     SubsidyComparisonResult,
     SubsidyEquilibriumResult,
@@ -67,6 +77,7 @@ __all__ = [
     "NORD_COLOR_MODEL",
     "Canvas",
     "ColorModel",
+    "CommonResourceResult",
     "DiscreteDemand",
     "DiscreteEquilibriumResult",
     "DiscreteMarketError",
@@ -74,8 +85,13 @@ __all__ = [
     "DiscreteSurplusResult",
     "ElasticityRevenueResult",
     "EquilibriumPriceRule",
+    "ExternalityResult",
+    "ExternalityScenario",
+    "IndividualBenefit",
     "MarketFigure",
     "PlotTheme",
+    "PublicGoodPoint",
+    "PublicGoodResult",
     "QuotaRentRecipient",
     "RevenuePoint",
     "SubsidyComparisonResult",
@@ -86,6 +102,9 @@ __all__ = [
     "TradeDirection",
     "TradeOutcome",
     "TradeScenario",
+    "analyze_common_resource",
+    "analyze_externality",
+    "analyze_public_good",
     "analyze_trade",
     "build_dwl_report",
     "build_tax_visual_guide",

@@ -17,6 +17,8 @@ from principle_viz.core.equilibrium import EquilibriumResult
 from principle_viz.core.line import Line
 from principle_viz.core.shifts import ComparativeStaticsResult
 from principle_viz.plot.theme import PlotTheme
+from principle_viz.policy.common_resources import CommonResourceResult
+from principle_viz.policy.externality import ExternalityResult
 from principle_viz.policy.subsidy import SubsidyComparisonResult
 from principle_viz.policy.tax import (
     TaxComparisonResult,
@@ -27,10 +29,12 @@ from principle_viz.policy.tax import (
 )
 from principle_viz.policy.trade import TradeComparisonResult
 from principle_viz.visuals import (
+    common_resource_layers,
     curve_layer,
     discrete_equilibrium_layers,
     discrete_schedule_layers,
     equilibrium_layers,
+    externality_layers,
     market_axes_layers,
     metrics_layer,
     movement_layers,
@@ -382,6 +386,12 @@ class MarketFigure:
 
     def add_price_control(self, result: PriceControlResult) -> MarketFigure:
         return self.add_layers(price_control_layers(result, x_max=self.x_max))
+
+    def add_externality(self, result: ExternalityResult) -> MarketFigure:
+        return self.add_layers(externality_layers(result, q_max=self.x_max))
+
+    def add_common_resource(self, result: CommonResourceResult) -> MarketFigure:
+        return self.add_layers(common_resource_layers(result, q_max=self.x_max))
 
     def add_trade(self, result: TradeComparisonResult) -> MarketFigure:
         return self.add_layers(trade_layers(result, x_max=self.x_max))

@@ -27,8 +27,11 @@ from principle_viz.core.elasticity import (
 )
 from principle_viz.core.equilibrium import solve_equilibrium
 from principle_viz.core.line import Line
+from principle_viz.core.public_goods import IndividualBenefit, analyze_public_good
 from principle_viz.core.revenue import elasticity_revenue_schedule
 from principle_viz.core.shifts import ShiftScenario, ShiftSpec, comparative_statics
+from principle_viz.policy.common_resources import analyze_common_resource
+from principle_viz.policy.externality import ExternalityScenario, analyze_externality
 from principle_viz.policy.subsidy import (
     SubsidyScenario,
     SubsidyTo,
@@ -149,6 +152,19 @@ def build_parser() -> argparse.ArgumentParser:
         default=QuotaRentRecipient.DOMESTIC.value,
     )
 
+    externality = sub.add_parser(
+        "externality", help="Compare private and socially efficient outcomes"
+    )
+    add_market_line_args(externality)
+    externality.add_argument("--external-cost", type=float, default=0.0)
+    externality.add_argument("--external-benefit", type=float, default=0.0)
+
+    common = sub.add_parser(
+        "common-resource", help="Analyze open-access common-resource overuse"
+    )
+    add_market_line_args(common)
+    common.add_argument("--congestion-cost", type=float, required=True)
+
     ctl = sub.add_parser("controls", help="Evaluate price control")
     add_market_line_args(ctl)
     ctl.add_argument(
@@ -191,6 +207,18 @@ def build_parser() -> argparse.ArgumentParser:
     revenue.add_argument("--demand-slope", type=float, required=True)
     revenue.add_argument("--samples", type=int, default=101)
     revenue.add_argument("--output", type=str)
+
+    public_good = sub.add_parser(
+        "public-good", help="Vertically sum marginal benefits for a public good"
+    )
+    public_good.add_argument(
+        "--benefit-intercepts", type=float, nargs="+", required=True
+    )
+    public_good.add_argument("--benefit-slopes", type=float, nargs="+", required=True)
+    public_good.add_argument("--cost-intercept", type=float, required=True)
+    public_good.add_argument("--cost-slope", type=float, default=0.0)
+    public_good.add_argument("--samples", type=int, default=101)
+    public_good.add_argument("--output", type=str)
 
     rep = sub.add_parser("report-dwl", help="Generate one-row DWL report for a policy")
     add_market_line_args(rep)
@@ -247,6 +275,26 @@ def main() -> None:
         _dump_result(result, args.output)
         return
 
+    if args.command == "public-good":
+        if len(args.benefit_intercepts) != len(args.benefit_slopes):
+            raise SystemExit("Benefit intercepts and slopes must have equal lengths")
+        individuals = tuple(
+            IndividualBenefit(
+                f"person_{index + 1}",
+                Line.from_inverse(intercept, slope),
+            )
+            for index, (intercept, slope) in enumerate(
+                zip(args.benefit_intercepts, args.benefit_slopes, strict=True)
+            )
+        )
+        result = analyze_public_good(
+            individuals,
+            Line.from_inverse(args.cost_intercept, args.cost_slope),
+            samples=args.samples,
+        )
+        _dump_result(result, args.output)
+        return
+
     demand = _line_from_args(args, "demand")
     supply = _line_from_args(args, "supply")
 
@@ -297,6 +345,27 @@ def main() -> None:
                 import_quota=args.import_quota,
                 quota_rent_recipient=QuotaRentRecipient(args.quota_rent_recipient),
             ),
+        )
+        _dump_result(result, args.output)
+        return
+
+    if args.command == "externality":
+        result = analyze_externality(
+            demand,
+            supply,
+            ExternalityScenario(
+                marginal_external_cost=args.external_cost,
+                marginal_external_benefit=args.external_benefit,
+            ),
+        )
+        _dump_result(result, args.output)
+        return
+
+    if args.command == "common-resource":
+        result = analyze_common_resource(
+            demand,
+            supply,
+            marginal_congestion_cost=args.congestion_cost,
         )
         _dump_result(result, args.output)
         return

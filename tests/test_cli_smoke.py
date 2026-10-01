@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from principle_viz.cli.main import main
 
 
@@ -150,3 +152,49 @@ def test_cli_trade_outputs_json(monkeypatch, capsys) -> None:
     assert payload["policy"]["imports"] == 2
     assert payload["policy"]["government_revenue"] == 4
     assert payload["deadweight_loss"] == 4
+
+
+def test_cli_externality_outputs_json(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "principle-viz",
+            "externality",
+            "--demand-intercept",
+            "12",
+            "--demand-slope",
+            "-1",
+            "--supply-intercept",
+            "2",
+            "--supply-slope",
+            "1",
+            "--external-cost",
+            "2",
+        ],
+    )
+    main()
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["social_equilibrium"]["q_star"] == 4
+    assert payload["corrective_tax"] == 2
+
+
+def test_cli_public_good_outputs_json(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "principle-viz",
+            "public-good",
+            "--benefit-intercepts",
+            "8",
+            "6",
+            "--benefit-slopes",
+            "-1",
+            "-1",
+            "--cost-intercept",
+            "5",
+        ],
+    )
+    main()
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["efficient_quantity"] == pytest.approx(4.5)
+    assert payload["free_rider_gap"] == pytest.approx(1.5)

@@ -21,6 +21,12 @@ from principle_viz.core.elasticity import (
 )
 from principle_viz.core.equilibrium import EquilibriumResult, solve_equilibrium
 from principle_viz.core.line import Line
+from principle_viz.core.public_goods import (
+    IndividualBenefit,
+    PublicGoodPoint,
+    PublicGoodResult,
+    analyze_public_good,
+)
 from principle_viz.core.revenue import (
     ElasticityRevenueResult,
     RevenuePoint,
@@ -44,14 +50,18 @@ __all__ = [
     "ElasticityRevenueResult",
     "EquilibriumPriceRule",
     "EquilibriumResult",
+    "IndividualBenefit",
     "Line",
     "PriceControlResult",
     "PriceControlScenario",
     "PriceControlType",
+    "PublicGoodPoint",
+    "PublicGoodResult",
     "RevenuePoint",
     "ShiftScenario",
     "ShiftSpec",
     "ShiftedMarket",
+    "analyze_public_good",
     "apply_shifts",
     "arc_price_elasticity",
     "classify_elasticity",

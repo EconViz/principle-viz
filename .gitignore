@@ -24,6 +24,7 @@ develop-eggs/
 env/
 venv/
 ENV/
+.worktrees/
 
 .idea/
 .vscode/

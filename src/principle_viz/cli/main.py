@@ -32,6 +32,12 @@ from principle_viz.core.factor_markets import (
     analyze_minimum_wage,
 )
 from principle_viz.core.line import Line
+from principle_viz.core.ppf import (
+    PPFGrowthScenario,
+    ProductionPossibilitiesFrontier,
+    analyze_ppf,
+    analyze_ppf_growth,
+)
 from principle_viz.core.public_goods import IndividualBenefit, analyze_public_good
 from principle_viz.core.revenue import elasticity_revenue_schedule
 from principle_viz.core.shifts import ShiftScenario, ShiftSpec, comparative_statics
@@ -245,6 +251,17 @@ def build_parser() -> argparse.ArgumentParser:
     funds.add_argument("--government-borrowing", type=float, default=0.0)
     funds.add_argument("--output", type=str)
 
+    ppf = sub.add_parser("ppf", help="Analyze a production-possibilities frontier")
+    ppf.add_argument("--x-intercept", type=float, required=True)
+    ppf.add_argument("--y-intercept", type=float, required=True)
+    ppf.add_argument("--curvature", type=float, default=1.0)
+    ppf.add_argument("--x-good", type=str, default="Good X")
+    ppf.add_argument("--y-good", type=str, default="Good Y")
+    ppf.add_argument("--x-growth", type=float, default=0.0)
+    ppf.add_argument("--y-growth", type=float, default=0.0)
+    ppf.add_argument("--samples", type=int, default=101)
+    ppf.add_argument("--output", type=str)
+
     rep = sub.add_parser("report-dwl", help="Generate one-row DWL report for a policy")
     add_market_line_args(rep)
     rep.add_argument("--policy", choices=["tax", "subsidy", "control"], required=True)
@@ -339,6 +356,25 @@ def main() -> None:
                 government_borrowing=args.government_borrowing,
             ),
         )
+        _dump_result(result, args.output)
+        return
+
+    if args.command == "ppf":
+        frontier = ProductionPossibilitiesFrontier(
+            args.x_intercept,
+            args.y_intercept,
+            args.curvature,
+            args.x_good,
+            args.y_good,
+        )
+        if args.x_growth or args.y_growth:
+            result = analyze_ppf_growth(
+                frontier,
+                PPFGrowthScenario(args.x_growth, args.y_growth),
+                samples=args.samples,
+            )
+        else:
+            result = analyze_ppf(frontier, samples=args.samples)
         _dump_result(result, args.output)
         return
 

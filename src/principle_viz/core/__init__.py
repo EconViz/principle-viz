@@ -28,6 +28,19 @@ from principle_viz.core.factor_markets import (
     analyze_minimum_wage,
 )
 from principle_viz.core.line import Line
+from principle_viz.core.ppf import (
+    ComparativeAdvantageResult,
+    PointStatus,
+    PPFAnalysisResult,
+    PPFError,
+    PPFGrowthResult,
+    PPFGrowthScenario,
+    PPFPoint,
+    ProductionPossibilitiesFrontier,
+    analyze_ppf,
+    analyze_ppf_growth,
+    compare_linear_ppfs,
+)
 from principle_viz.core.public_goods import (
     IndividualBenefit,
     PublicGoodPoint,
@@ -49,6 +62,7 @@ from principle_viz.core.shifts import (
 )
 
 __all__ = [
+    "ComparativeAdvantageResult",
     "ComparativeStaticsResult",
     "DiscreteDemand",
     "DiscreteEquilibriumResult",
@@ -62,9 +76,16 @@ __all__ = [
     "LoanableFundsResult",
     "LoanableFundsScenario",
     "MinimumWageResult",
+    "PPFAnalysisResult",
+    "PPFError",
+    "PPFGrowthResult",
+    "PPFGrowthScenario",
+    "PPFPoint",
+    "PointStatus",
     "PriceControlResult",
     "PriceControlScenario",
     "PriceControlType",
+    "ProductionPossibilitiesFrontier",
     "PublicGoodPoint",
     "PublicGoodResult",
     "RevenuePoint",
@@ -73,11 +94,14 @@ __all__ = [
     "ShiftedMarket",
     "analyze_loanable_funds",
     "analyze_minimum_wage",
+    "analyze_ppf",
+    "analyze_ppf_growth",
     "analyze_public_good",
     "apply_shifts",
     "arc_price_elasticity",
     "classify_elasticity",
     "comparative_statics",
+    "compare_linear_ppfs",
     "elasticity_revenue_schedule",
     "evaluate_price_control",
     "point_price_elasticity",

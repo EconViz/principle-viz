@@ -24,6 +24,7 @@ from principle_viz.visuals.policy import (
     tax_shift_layers,
     tax_wedge_layers,
 )
+from principle_viz.visuals.ppf import ppf_canvas, ppf_growth_canvas
 from principle_viz.visuals.revenue import elasticity_revenue_canvases
 from principle_viz.visuals.theme import (
     BUILTIN_COLOR_MODELS,
@@ -65,6 +66,8 @@ __all__ = [
     "metrics_layer",
     "minimum_wage_layers",
     "movement_layers",
+    "ppf_canvas",
+    "ppf_growth_canvas",
     "price_control_layers",
     "public_good_canvas",
     "segment_layer",

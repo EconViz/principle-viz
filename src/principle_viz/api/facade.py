@@ -21,6 +21,7 @@ from principle_viz.core.factor_markets import (
     analyze_minimum_wage,
 )
 from principle_viz.core.line import Line
+from principle_viz.core.ppf import analyze_ppf, analyze_ppf_growth, compare_linear_ppfs
 from principle_viz.core.public_goods import analyze_public_good
 from principle_viz.core.revenue import elasticity_revenue_schedule
 from principle_viz.core.shifts import ShiftScenario, ShiftSpec, comparative_statics
@@ -134,11 +135,14 @@ __all__ = [
     "analyze_externality",
     "analyze_loanable_funds",
     "analyze_minimum_wage",
+    "analyze_ppf",
+    "analyze_ppf_growth",
     "analyze_public_good",
     "analyze_trade",
     "build_dwl_report",
     "build_tax_visual_guide",
     "comparative_statics",
+    "compare_linear_ppfs",
     "compare_subsidy_scenario",
     "compare_tax_scenario",
     "compute_arc_elasticity",

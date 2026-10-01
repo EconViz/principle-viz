@@ -14,6 +14,7 @@ from international_trade import main as trade_main
 from market_failures import main as market_failures_main
 from price_controls import main as control_main
 from price_controls_welfare import main as control_welfare_main
+from production_possibilities import main as ppf_main
 from shift_scenarios import main as shift_main
 from subsidy_welfare import main as subsidy_main
 from tax_comparison import main as tax_main
@@ -32,6 +33,7 @@ def main() -> None:
     market_failures_main()
     welfare_main()
     control_main()
+    ppf_main()
     control_welfare_main()
     elasticity_main()
     elasticity_five_main()

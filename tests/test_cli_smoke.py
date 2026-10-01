@@ -246,3 +246,27 @@ def test_cli_loanable_funds_outputs_json(monkeypatch, capsys) -> None:
     payload = json.loads(capsys.readouterr().out)
     assert payload["shifted_equilibrium"]["p_star"] == 8
     assert payload["crowding_out"] == 2
+
+
+def test_cli_ppf_growth_outputs_json(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "principle-viz",
+            "ppf",
+            "--x-intercept",
+            "10",
+            "--y-intercept",
+            "8",
+            "--curvature",
+            "2",
+            "--x-growth",
+            "0.2",
+            "--y-growth",
+            "0.1",
+        ],
+    )
+    main()
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["shifted"]["x_intercept"] == 12
+    assert payload["shifted"]["y_intercept"] == pytest.approx(8.8)

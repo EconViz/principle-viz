@@ -1,8 +1,11 @@
 """Custom exceptions for principle_viz."""
 
 
-class PrincipleEconError(Exception):
+class PrincipleVizError(Exception):
     """Base exception for package errors."""
+
+
+PrincipleEconError = PrincipleVizError
 
 
 class LineError(PrincipleEconError):

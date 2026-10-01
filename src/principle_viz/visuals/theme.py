@@ -236,6 +236,25 @@ class PlotTheme:
                 fill=Fill(color=c.tax_revenue_color, opacity=0.22),
                 stroke=Stroke(width=0),
             ),
+            "principle.ppf.frontier": StyleBundle(
+                stroke=Stroke(color=c.baseline_color, width=2.2)
+            ),
+            "principle.ppf.shifted": StyleBundle(
+                stroke=Stroke(color=c.shifted_color, width=2.0, dash=dashed)
+            ),
+            "principle.ppf.feasible": StyleBundle(
+                fill=Fill(color=c.cs_color, opacity=0.12),
+                stroke=Stroke(width=0),
+            ),
+            "principle.ppf.efficient": StyleBundle(
+                marker=Marker(color=c.baseline_color, size=self.equilibrium_marker_size)
+            ),
+            "principle.ppf.inefficient": StyleBundle(
+                marker=Marker(color=c.shifted_color, size=self.equilibrium_marker_size)
+            ),
+            "principle.ppf.unattainable": StyleBundle(
+                marker=Marker(color=c.dwl_color, size=self.equilibrium_marker_size)
+            ),
             "principle.welfare.consumer": StyleBundle(
                 fill=Fill(color=c.cs_color, opacity=0.18), stroke=Stroke(width=0)
             ),

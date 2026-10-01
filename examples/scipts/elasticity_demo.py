@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from common import EXAMPLE_PALETTE, ensure_output_dir, themed_output_path
+from mosaickit import Marker, MarkerLayer, TextLayer, TextStyle
 
 from principle_viz.core.elasticity import point_price_elasticity
 from principle_viz.core.line import Line
 from principle_viz.plot.figure import MarketFigure
-from principle_viz.plot.primitives import annotate_text, plot_point
-from principle_viz.plot.renderers import render_curve
+from principle_viz.visuals import curve_layer
 
 THEME = "elasticity"
 
@@ -33,7 +33,16 @@ def main() -> None:
         title="One Demand Line: Five Elasticity Categories",
         palette=EXAMPLE_PALETTE,
     )
-    render_curve(fig.ax, demand, q_min=0.05, q_max=9.95, label="Demand", color=fig.theme.demand_color)
+    fig.add_layer(
+        curve_layer(
+            demand,
+            q_min=0.05,
+            q_max=9.95,
+            layer_id="market.demand",
+            role="principle.market.demand",
+            label="Demand",
+        )
+    )
 
     sample_points = (
         (0.2, "s", (12, 10)),
@@ -42,44 +51,48 @@ def main() -> None:
         (8.0, "D", (12, -10)),
         (9.8, "v", (12, -12)),
     )
-
-    for q, marker, text_offset in sample_points:
+    for index, (q, shape, text_offset) in enumerate(sample_points):
         p = demand.p_at(q)
-        epsilon = point_price_elasticity(demand, q=q)
-        abs_epsilon = abs(epsilon)
-        category = _format_elasticity_label(abs_epsilon)
-
-        plot_point(
-            fig.ax,
-            x=q,
-            y=p,
-            color=fig.theme.baseline_color,
-            marker_size=6.5,
-            marker=marker,
-        )
-        annotate_text(
-            fig.ax,
-            x=q,
-            y=p,
-            text=f"{category}\n|ε|≈{abs_epsilon:.2f}",
-            color=fig.theme.baseline_color,
-            offset=text_offset,
-            curved_arrow=True,
-            curvature=0.2,
+        abs_epsilon = abs(point_price_elasticity(demand, q=q))
+        fig.add_layers(
+            (
+                MarkerLayer(
+                    ((q, p),),
+                    id=f"elasticity.point.{index}",
+                    role="principle.market.equilibrium",
+                    marker=Marker(
+                        color=fig.theme.baseline_color,
+                        edge_color=fig.theme.baseline_color,
+                        edge_width=0,
+                        size=42,
+                        shape=shape,
+                    ),
+                    z_index=6,
+                ),
+                TextLayer(
+                    (q, p),
+                    f"{_format_elasticity_label(abs_epsilon)}\n|ε|≈{abs_epsilon:.2f}",
+                    id=f"elasticity.point.{index}.label",
+                    role="principle.annotation",
+                    style=TextStyle(color=fig.theme.baseline_color),
+                    offset=text_offset,
+                    anchor="left",
+                    z_index=7,
+                ),
+            )
         )
 
     fig.add_metrics(
         {
             "point count": 5,
             "curve": "single demand line",
-            "mapping": "top->bottom: PE, E, U, I, PI",
+            "mapping": "top→bottom: PE, E, U, I, PI",
         },
         title="Classification Points",
         location="upper right",
     )
     fig.finalize(legend=True)
-    fig.save(str(themed_output_path(THEME, "elasticity_demo.png")))
-    fig.close()
+    fig.save(themed_output_path(THEME, "elasticity_demo.png"))
 
 
 if __name__ == "__main__":

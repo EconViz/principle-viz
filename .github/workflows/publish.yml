@@ -27,7 +27,7 @@ jobs:
         run: uv sync --frozen
 
       - name: Run ruff
-        run: uv run ruff check src tests examples/scipts
+        run: uv run ruff check src tests examples/scripts
 
       - name: Run tests
         run: uv run pytest -q

@@ -26,6 +26,11 @@ from principle_viz.core.elasticity import (
     point_price_elasticity,
 )
 from principle_viz.core.equilibrium import solve_equilibrium
+from principle_viz.core.factor_markets import (
+    LoanableFundsScenario,
+    analyze_loanable_funds,
+    analyze_minimum_wage,
+)
 from principle_viz.core.line import Line
 from principle_viz.core.public_goods import IndividualBenefit, analyze_public_good
 from principle_viz.core.revenue import elasticity_revenue_schedule
@@ -220,6 +225,26 @@ def build_parser() -> argparse.ArgumentParser:
     public_good.add_argument("--samples", type=int, default=101)
     public_good.add_argument("--output", type=str)
 
+    labor = sub.add_parser("minimum-wage", help="Analyze a labor-market wage floor")
+    labor.add_argument("--labor-demand-intercept", type=float, required=True)
+    labor.add_argument("--labor-demand-slope", type=float, required=True)
+    labor.add_argument("--labor-supply-intercept", type=float, required=True)
+    labor.add_argument("--labor-supply-slope", type=float, required=True)
+    labor.add_argument("--minimum-wage", type=float, required=True)
+    labor.add_argument("--output", type=str)
+
+    funds = sub.add_parser(
+        "loanable-funds", help="Analyze savings, investment, and crowding out"
+    )
+    funds.add_argument("--savings-intercept", type=float, required=True)
+    funds.add_argument("--savings-slope", type=float, required=True)
+    funds.add_argument("--investment-intercept", type=float, required=True)
+    funds.add_argument("--investment-slope", type=float, required=True)
+    funds.add_argument("--savings-shift", type=float, default=0.0)
+    funds.add_argument("--investment-shift", type=float, default=0.0)
+    funds.add_argument("--government-borrowing", type=float, default=0.0)
+    funds.add_argument("--output", type=str)
+
     rep = sub.add_parser("report-dwl", help="Generate one-row DWL report for a policy")
     add_market_line_args(rep)
     rep.add_argument("--policy", choices=["tax", "subsidy", "control"], required=True)
@@ -291,6 +316,28 @@ def main() -> None:
             individuals,
             Line.from_inverse(args.cost_intercept, args.cost_slope),
             samples=args.samples,
+        )
+        _dump_result(result, args.output)
+        return
+
+    if args.command == "minimum-wage":
+        result = analyze_minimum_wage(
+            Line.from_inverse(args.labor_demand_intercept, args.labor_demand_slope),
+            Line.from_inverse(args.labor_supply_intercept, args.labor_supply_slope),
+            args.minimum_wage,
+        )
+        _dump_result(result, args.output)
+        return
+
+    if args.command == "loanable-funds":
+        result = analyze_loanable_funds(
+            Line.from_inverse(args.savings_intercept, args.savings_slope),
+            Line.from_inverse(args.investment_intercept, args.investment_slope),
+            LoanableFundsScenario(
+                savings_quantity_shift=args.savings_shift,
+                investment_quantity_shift=args.investment_shift,
+                government_borrowing=args.government_borrowing,
+            ),
         )
         _dump_result(result, args.output)
         return

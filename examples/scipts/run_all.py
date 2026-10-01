@@ -9,6 +9,7 @@ from dwl_report import main as report_main
 from elasticity_demo import main as elasticity_main
 from elasticity_five_types_centered import main as elasticity_five_main
 from elasticity_total_revenue import main as elasticity_revenue_main
+from factor_capital_markets import main as factor_markets_main
 from international_trade import main as trade_main
 from market_failures import main as market_failures_main
 from price_controls import main as control_main
@@ -35,6 +36,7 @@ def main() -> None:
     elasticity_main()
     elasticity_five_main()
     elasticity_revenue_main()
+    factor_markets_main()
     report_main()
     remove_non_image_outputs()
 

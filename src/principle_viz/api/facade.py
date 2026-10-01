@@ -15,6 +15,11 @@ from principle_viz.core.discrete import (
 )
 from principle_viz.core.elasticity import arc_price_elasticity, point_price_elasticity
 from principle_viz.core.equilibrium import solve_equilibrium
+from principle_viz.core.factor_markets import (
+    LoanableFundsScenario,
+    analyze_loanable_funds,
+    analyze_minimum_wage,
+)
 from principle_viz.core.line import Line
 from principle_viz.core.public_goods import analyze_public_good
 from principle_viz.core.revenue import elasticity_revenue_schedule
@@ -117,6 +122,7 @@ def compute_surplus(
 
 __all__ = [
     "ExternalityScenario",
+    "LoanableFundsScenario",
     "PriceControlScenario",
     "PriceControlType",
     "ShiftScenario",
@@ -126,6 +132,8 @@ __all__ = [
     "TradeScenario",
     "analyze_common_resource",
     "analyze_externality",
+    "analyze_loanable_funds",
+    "analyze_minimum_wage",
     "analyze_public_good",
     "analyze_trade",
     "build_dwl_report",

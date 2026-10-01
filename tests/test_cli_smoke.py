@@ -198,3 +198,51 @@ def test_cli_public_good_outputs_json(monkeypatch, capsys) -> None:
     payload = json.loads(capsys.readouterr().out)
     assert payload["efficient_quantity"] == pytest.approx(4.5)
     assert payload["free_rider_gap"] == pytest.approx(1.5)
+
+
+def test_cli_minimum_wage_outputs_json(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "principle-viz",
+            "minimum-wage",
+            "--labor-demand-intercept",
+            "12",
+            "--labor-demand-slope",
+            "-1",
+            "--labor-supply-intercept",
+            "2",
+            "--labor-supply-slope",
+            "1",
+            "--minimum-wage",
+            "9",
+        ],
+    )
+    main()
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["employment"] == 3
+    assert payload["unemployment"] == 4
+
+
+def test_cli_loanable_funds_outputs_json(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "principle-viz",
+            "loanable-funds",
+            "--savings-intercept",
+            "2",
+            "--savings-slope",
+            "0.5",
+            "--investment-intercept",
+            "12",
+            "--investment-slope",
+            "-0.5",
+            "--government-borrowing",
+            "4",
+        ],
+    )
+    main()
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["shifted_equilibrium"]["p_star"] == 8
+    assert payload["crowding_out"] == 2

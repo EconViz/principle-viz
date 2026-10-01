@@ -1,6 +1,6 @@
 [project]
 name = "principle-viz"
-version = "0.7.0"
+version = "0.8.0"
 description = "Principles of Economics toolkit for demand/supply analytics and diagrams."
 readme = "README.md"
 authors = [{ name = "Anthony Sung", email = "sungpinyue@gmail.com" }]

@@ -20,6 +20,13 @@ from principle_viz.core.elasticity import (
     point_price_elasticity,
 )
 from principle_viz.core.equilibrium import EquilibriumResult, solve_equilibrium
+from principle_viz.core.factor_markets import (
+    LoanableFundsResult,
+    LoanableFundsScenario,
+    MinimumWageResult,
+    analyze_loanable_funds,
+    analyze_minimum_wage,
+)
 from principle_viz.core.line import Line
 from principle_viz.core.public_goods import (
     IndividualBenefit,
@@ -52,6 +59,9 @@ __all__ = [
     "EquilibriumResult",
     "IndividualBenefit",
     "Line",
+    "LoanableFundsResult",
+    "LoanableFundsScenario",
+    "MinimumWageResult",
     "PriceControlResult",
     "PriceControlScenario",
     "PriceControlType",
@@ -61,6 +71,8 @@ __all__ = [
     "ShiftScenario",
     "ShiftSpec",
     "ShiftedMarket",
+    "analyze_loanable_funds",
+    "analyze_minimum_wage",
     "analyze_public_good",
     "apply_shifts",
     "arc_price_elasticity",

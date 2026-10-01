@@ -7,6 +7,10 @@ from principle_viz.visuals.discrete import (
     discrete_schedule_layers,
 )
 from principle_viz.visuals.equilibrium import equilibrium_layers, movement_layers
+from principle_viz.visuals.factor_markets import (
+    loanable_funds_layers,
+    minimum_wage_layers,
+)
 from principle_viz.visuals.market_failures import (
     common_resource_layers,
     externality_layers,
@@ -56,8 +60,10 @@ __all__ = [
     "externality_layers",
     "get_color_model",
     "list_color_models",
+    "loanable_funds_layers",
     "market_axes_layers",
     "metrics_layer",
+    "minimum_wage_layers",
     "movement_layers",
     "price_control_layers",
     "public_good_canvas",

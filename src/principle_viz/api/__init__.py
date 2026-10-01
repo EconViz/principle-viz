@@ -3,6 +3,8 @@
 from principle_viz.api.facade import (
     analyze_common_resource,
     analyze_externality,
+    analyze_loanable_funds,
+    analyze_minimum_wage,
     analyze_public_good,
     analyze_trade,
     build_dwl_report,
@@ -26,6 +28,8 @@ from principle_viz.api.facade import (
 __all__ = [
     "analyze_common_resource",
     "analyze_externality",
+    "analyze_loanable_funds",
+    "analyze_minimum_wage",
     "analyze_public_good",
     "analyze_trade",
     "build_dwl_report",

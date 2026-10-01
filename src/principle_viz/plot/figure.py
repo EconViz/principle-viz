@@ -14,6 +14,7 @@ from principle_viz.core.discrete import (
     DiscreteSupply,
 )
 from principle_viz.core.equilibrium import EquilibriumResult
+from principle_viz.core.factor_markets import LoanableFundsResult, MinimumWageResult
 from principle_viz.core.line import Line
 from principle_viz.core.shifts import ComparativeStaticsResult
 from principle_viz.plot.theme import PlotTheme
@@ -35,8 +36,10 @@ from principle_viz.visuals import (
     discrete_schedule_layers,
     equilibrium_layers,
     externality_layers,
+    loanable_funds_layers,
     market_axes_layers,
     metrics_layer,
+    minimum_wage_layers,
     movement_layers,
     price_control_layers,
     segment_layer,
@@ -386,6 +389,12 @@ class MarketFigure:
 
     def add_price_control(self, result: PriceControlResult) -> MarketFigure:
         return self.add_layers(price_control_layers(result, x_max=self.x_max))
+
+    def add_minimum_wage(self, result: MinimumWageResult) -> MarketFigure:
+        return self.add_layers(minimum_wage_layers(result, x_max=self.x_max))
+
+    def add_loanable_funds(self, result: LoanableFundsResult) -> MarketFigure:
+        return self.add_layers(loanable_funds_layers(result, q_max=self.x_max))
 
     def add_externality(self, result: ExternalityResult) -> MarketFigure:
         return self.add_layers(externality_layers(result, q_max=self.x_max))

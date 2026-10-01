@@ -3,6 +3,8 @@
 from principle_viz.api import (
     analyze_common_resource,
     analyze_externality,
+    analyze_loanable_funds,
+    analyze_minimum_wage,
     analyze_public_good,
     analyze_trade,
     build_dwl_report,
@@ -29,6 +31,11 @@ from principle_viz.core.discrete import (
     DiscreteSupply,
     EquilibriumPriceRule,
     solve_discrete_equilibrium,
+)
+from principle_viz.core.factor_markets import (
+    LoanableFundsResult,
+    LoanableFundsScenario,
+    MinimumWageResult,
 )
 from principle_viz.core.public_goods import (
     IndividualBenefit,
@@ -88,7 +95,10 @@ __all__ = [
     "ExternalityResult",
     "ExternalityScenario",
     "IndividualBenefit",
+    "LoanableFundsResult",
+    "LoanableFundsScenario",
     "MarketFigure",
+    "MinimumWageResult",
     "PlotTheme",
     "PublicGoodPoint",
     "PublicGoodResult",
@@ -104,6 +114,8 @@ __all__ = [
     "TradeScenario",
     "analyze_common_resource",
     "analyze_externality",
+    "analyze_loanable_funds",
+    "analyze_minimum_wage",
     "analyze_public_good",
     "analyze_trade",
     "build_dwl_report",

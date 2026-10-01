@@ -13,7 +13,7 @@ uv sync
 Run checks before opening a PR:
 
 ```bash
-uv run ruff check src tests examples/scipts
+uv run ruff check src tests examples/scripts
 uv run pytest -q
 ```
 

@@ -25,7 +25,7 @@ All notable changes to this project are documented in this file.
   - ad valorem proportional rotation overlays
 - Add welfare transition overlays with baseline/policy guide lines and labeled regions (`A/B/C/...`).
 - Add monochrome palette and support for `default`, `colorblind`, `nord`, and `monochrome` models.
-- Add classroom examples grouped by topic under `examples/scipts/`.
+- Add classroom examples grouped by topic under `examples/scripts/`.
 
 ### Tests
 

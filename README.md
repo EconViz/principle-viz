@@ -94,7 +94,7 @@ principle-viz tax \
 Run all examples:
 
 ```bash
-uv run python examples/scipts/run_all.py
+uv run python examples/scripts/run_all.py
 ```
 
 Generated images are grouped by topic under `examples/output/`:
@@ -120,7 +120,7 @@ Generated images are grouped by topic under `examples/output/`:
 ## Development
 
 ```bash
-uv run ruff check src tests examples/scipts
+uv run ruff check src tests examples/scripts
 uv run pytest -q
 uv build
 ```

@@ -73,7 +73,7 @@ create_pr_body() {
 - run lint/tests/build for release readiness
 
 ## Validation
-- uv run ruff check src tests examples/scipts
+- uv run ruff check src tests examples/scripts
 - uv run pytest -q
 - uv build
 EOF_BODY
@@ -93,7 +93,7 @@ prepare_release() {
 
   bump_version "$version"
 
-  run uv run ruff check src tests examples/scipts
+  run uv run ruff check src tests examples/scripts
   run uv run pytest -q
   run uv build
 

@@ -1,6 +1,6 @@
 [project]
 name = "principle-viz"
-version = "0.9.1"
+version = "0.9.2"
 description = "Principles of Economics toolkit for demand/supply analytics and diagrams."
 readme = "README.md"
 authors = [{ name = "Anthony Sung", email = "sungpinyue@gmail.com" }]
@@ -49,3 +49,4 @@ source = ["principle_viz"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
+fail_under = 90

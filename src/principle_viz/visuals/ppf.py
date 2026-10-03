@@ -6,8 +6,6 @@ from mosaickit import (
     Canvas,
     CanvasSpec,
     FillLayer,
-    LegendLayer,
-    LegendStyle,
     MarkerLayer,
     PathLayer,
     TextLayer,
@@ -15,6 +13,7 @@ from mosaickit import (
 
 from principle_viz.core.ppf import PointStatus, PPFAnalysisResult, PPFGrowthResult
 from principle_viz.visuals.axes import market_axes_layers
+from principle_viz.visuals.direct_labels import curve_label_layer, curve_label_layers
 from principle_viz.visuals.theme import PlotTheme
 
 _STATUS_ROLES = {
@@ -50,6 +49,13 @@ def ppf_canvas(
             y_label=frontier.y_good,
         )
     )
+    curve = PathLayer(
+        result.frontier_points,
+        id="ppf.frontier",
+        role="principle.ppf.frontier",
+        legend="PPF",
+        z_index=2,
+    )
     canvas.extend(
         (
             FillLayer(
@@ -59,16 +65,10 @@ def ppf_canvas(
                 legend="Feasible set",
                 z_index=0,
             ),
-            PathLayer(
-                result.frontier_points,
-                id="ppf.frontier",
-                role="principle.ppf.frontier",
-                legend="PPF",
-                z_index=2,
-            ),
+            curve,
+            curve_label_layer(curve, x_range=(0, x_max), y_range=(0, y_max)),
         )
     )
-    legend_entries = ["ppf.feasible_set", "ppf.frontier"]
     for index, point in enumerate(result.assessed_points):
         layer_id = f"ppf.point.{index}"
         canvas.extend(
@@ -91,18 +91,6 @@ def ppf_canvas(
                 ),
             )
         )
-        if not any(
-            result.assessed_points[previous].status == point.status
-            for previous in range(index)
-        ):
-            legend_entries.append(layer_id)
-    canvas.add(
-        LegendLayer(
-            entries=tuple(legend_entries),
-            id="ppf.legend",
-            style=LegendStyle(visible=True, location="best", frame=False),
-        )
-    )
     return canvas
 
 
@@ -120,7 +108,7 @@ def ppf_growth_canvas(
             y_range=(0, y_max),
             x_label=result.baseline.x_good,
             y_label=result.baseline.y_good,
-            title="Economic Growth and the PPF",
+            title="Economic Growth",
         ),
         theme=selected.to_mosaickit(),
     ).extend(
@@ -131,27 +119,22 @@ def ppf_growth_canvas(
             y_label=result.baseline.y_good,
         )
     )
-    canvas.extend(
-        (
-            PathLayer(
-                result.baseline_points,
-                id="ppf.growth.baseline",
-                role="principle.ppf.frontier",
-                legend="Initial PPF",
-            ),
-            PathLayer(
-                result.shifted_points,
-                id="ppf.growth.shifted",
-                role="principle.ppf.shifted",
-                legend="PPF after growth",
-            ),
-            LegendLayer(
-                entries=("ppf.growth.baseline", "ppf.growth.shifted"),
-                id="ppf.growth.legend",
-                style=LegendStyle(visible=True, location="best", frame=False),
-            ),
-        )
+    curves = (
+        PathLayer(
+            result.baseline_points,
+            id="ppf.growth.baseline",
+            role="principle.ppf.frontier",
+            legend="PPF₀",
+        ),
+        PathLayer(
+            result.shifted_points,
+            id="ppf.growth.shifted",
+            role="principle.ppf.shifted",
+            legend="PPF₁",
+        ),
     )
+    canvas.extend(curves)
+    canvas.extend(curve_label_layers(curves, x_range=(0, x_max), y_range=(0, y_max)))
     return canvas
 
 

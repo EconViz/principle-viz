@@ -9,10 +9,11 @@ from principle_viz.welfare.surplus import MarketOutcome, SurplusResult
 
 @dataclass(frozen=True)
 class LabeledRegion:
-    """Polygon region with a compact letter marker."""
+    """Welfare polygon named in words, with a short name for tight spaces."""
 
-    letter: str
+    key: str
     label: str
+    short_label: str
     points: tuple[tuple[float, float], ...]
     centroid: tuple[float, float]
 
@@ -45,30 +46,25 @@ def _polygon_centroid(points: tuple[tuple[float, float], ...]) -> tuple[float, f
 
 
 def build_labeled_regions(surplus: SurplusResult) -> tuple[LabeledRegion, ...]:
-    """Build compact A/B/C... region markers from welfare polygons."""
-    raw_regions: tuple[tuple[str, tuple[tuple[float, float], ...]], ...] = (
-        ("Consumer Surplus", surplus.polygons.consumer_surplus),
-        ("Producer Surplus", surplus.polygons.producer_surplus),
-        ("Tax Revenue", surplus.polygons.tax_revenue),
-        ("Deadweight Loss", surplus.polygons.lost_surplus),
+    """Name each non-empty welfare polygon (full name and short name)."""
+    polygons = surplus.polygons
+    raw_regions = (
+        ("cs", "Consumer surplus", "CS", polygons.consumer_surplus),
+        ("ps", "Producer surplus", "PS", polygons.producer_surplus),
+        ("tax_revenue", "Tax revenue", "Tax", polygons.tax_revenue),
+        ("dwl", "Deadweight loss", "DWL", polygons.lost_surplus),
     )
-
-    regions: list[LabeledRegion] = []
-    next_letter = ord("A")
-    for label, points in raw_regions:
-        if not points:
-            continue
-        letter = chr(next_letter)
-        next_letter += 1
-        regions.append(
-            LabeledRegion(
-                letter=letter,
-                label=label,
-                points=points,
-                centroid=_polygon_centroid(points),
-            )
+    return tuple(
+        LabeledRegion(
+            key=key,
+            label=label,
+            short_label=short,
+            points=points,
+            centroid=_polygon_centroid(points),
         )
-    return tuple(regions)
+        for key, label, short, points in raw_regions
+        if len(points) >= 3
+    )
 
 
 def build_welfare_annotation_layout(

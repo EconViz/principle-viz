@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from mosaickit import TextLayer
+from mosaickit import RegionLabelLayer, TextLayer
 
 from principle_viz.core.equilibrium import solve_equilibrium
 from principle_viz.core.line import Line
@@ -116,7 +116,12 @@ def test_market_figure_welfare_transition_smoke(tmp_path) -> None:
     labels = _texts(figure)
     assert r"$Q_0$" in labels
     assert r"$Q_1$" in labels
-    assert any(letter in labels for letter in ("A", "B", "C"))
+    region_names = {
+        layer.text
+        for layer in figure.scene.layers
+        if isinstance(layer, RegionLabelLayer)
+    }
+    assert {"Consumer surplus", "Producer surplus"} <= region_names
     output = tmp_path / "smoke_welfare_transition.png"
     figure.save(output)
     assert output.exists()

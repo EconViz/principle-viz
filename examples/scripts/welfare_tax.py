@@ -43,11 +43,11 @@ def main() -> None:
         TaxScenario(tax_type=TaxType.PER_UNIT_TAX, amount=1.0, tax_on=TaxOn.PRODUCER),
     )
 
-    # Raw welfare shading (no region letters).
+    # Welfare regions, each named inside or by callout.
     fig_raw = MarketFigure(
         x_max=12,
         y_max=12,
-        title="Welfare with Tax (Raw Regions)",
+        title="Welfare Under a Tax",
         palette=EXAMPLE_PALETTE,
     )
     fig_raw.add_curves(demand, supply, q_max=10)
@@ -57,11 +57,11 @@ def main() -> None:
     fig_raw.save(str(themed_output_path(THEME, "welfare_tax_raw.png")))
     fig_raw.close()
 
-    # Annotated welfare regions with baseline/policy reference guides.
+    # The same regions with baseline/policy reference guides.
     fig = MarketFigure(
         x_max=12,
         y_max=12,
-        title="Welfare with Tax (Region Labels)",
+        title="Welfare Change from a Tax",
         palette=EXAMPLE_PALETTE,
     )
     fig.add_curves(demand, supply, q_max=10)

@@ -1,10 +1,19 @@
 """Policy-result visual layers."""
 
-from mosaickit import ArrowLayer, DashStyle, FillLayer, PathLayer, Stroke, TextLayer
+from mosaickit import (
+    ArrowLayer,
+    DashStyle,
+    FillLayer,
+    Layer,
+    PathLayer,
+    Stroke,
+    TextLayer,
+)
 
 from principle_viz.core.controls import PriceControlResult
 from principle_viz.core.line import Line
 from principle_viz.policy.subsidy import SubsidyComparisonResult
+from principle_viz.visuals.direct_labels import region_label_layer
 
 
 def price_control_layers(
@@ -126,7 +135,7 @@ def tax_rotation_layers(
 
 def subsidy_layers(
     result: SubsidyComparisonResult,
-) -> tuple[FillLayer | PathLayer | TextLayer, ...]:
+) -> tuple[Layer, ...]:
     """Render the producer-consumer subsidy wedge at the policy quantity."""
     post = result.post_subsidy
     midpoint = 0.5 * (post.consumer_price + post.producer_price)
@@ -140,7 +149,7 @@ def subsidy_layers(
             ),
             id="market.subsidy.expenditure",
             role="principle.welfare.subsidy",
-            legend="Government expenditure",
+            legend="Subsidy cost",
             z_index=0.5,
         ),
         PathLayer(
@@ -158,4 +167,5 @@ def subsidy_layers(
             anchor="left",
             z_index=6,
         ),
+        region_label_layer("market.subsidy.expenditure", "Subsidy cost", "Cost"),
     )

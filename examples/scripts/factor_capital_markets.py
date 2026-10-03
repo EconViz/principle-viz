@@ -22,8 +22,8 @@ def main() -> None:
     figure = MarketFigure(
         x_max=11,
         y_max=14,
-        x_label="Labor (L)",
-        y_label="Wage (w)",
+        x_label="L",
+        y_label="w",
         title="Binding Minimum Wage",
         palette=EXAMPLE_PALETTE,
     )
@@ -49,8 +49,7 @@ def main() -> None:
     figure = MarketFigure(
         x_max=18,
         y_max=14,
-        x_label="Funds (Q)",
-        y_label="Interest rate (r)",
+        y_label="r",
         title="Government Borrowing",
         palette=EXAMPLE_PALETTE,
     )
@@ -58,8 +57,8 @@ def main() -> None:
         investment,
         savings,
         q_max=17,
-        demand_label="Private investment demand",
-        supply_label="National saving",
+        demand_label="D₀",
+        supply_label="S₀",
     )
     figure.add_loanable_funds(funds)
     figure.finalize()

@@ -2,6 +2,11 @@
 
 from principle_viz.visuals.axes import market_axes_layers
 from principle_viz.visuals.curves import curve_layer, segment_layer
+from principle_viz.visuals.direct_labels import (
+    curve_label_layer,
+    curve_label_layers,
+    region_label_layer,
+)
 from principle_viz.visuals.discrete import (
     discrete_equilibrium_layers,
     discrete_schedule_layers,
@@ -53,6 +58,8 @@ __all__ = [
     "ColorModel",
     "PlotTheme",
     "common_resource_layers",
+    "curve_label_layer",
+    "curve_label_layers",
     "curve_layer",
     "discrete_equilibrium_layers",
     "discrete_schedule_layers",
@@ -70,6 +77,7 @@ __all__ = [
     "ppf_growth_canvas",
     "price_control_layers",
     "public_good_canvas",
+    "region_label_layer",
     "segment_layer",
     "subsidy_layers",
     "tax_rotation_layers",

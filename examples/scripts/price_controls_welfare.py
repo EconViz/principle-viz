@@ -37,11 +37,11 @@ def main() -> None:
 
     delta = compare_surplus(demand, supply, baseline_outcome, control_outcome)
 
-    # Raw welfare shading (no letters).
+    # Welfare regions, each named inside or by callout.
     fig_raw = MarketFigure(
         x_max=12,
         y_max=12,
-        title="Price Ceiling Welfare (Raw Regions)",
+        title="Price Ceiling Welfare",
         palette=EXAMPLE_PALETTE,
     )
     fig_raw.add_curves(demand, supply, q_max=10)
@@ -51,11 +51,11 @@ def main() -> None:
     fig_raw.save(str(themed_output_path(THEME, "price_controls_welfare_raw.png")))
     fig_raw.close()
 
-    # Annotated welfare regions with baseline/policy guides.
+    # The same regions with baseline/policy reference guides.
     fig = MarketFigure(
         x_max=12,
         y_max=12,
-        title="Price Ceiling Welfare (Region Labels)",
+        title="Welfare Change from a Ceiling",
         palette=EXAMPLE_PALETTE,
     )
     fig.add_curves(demand, supply, q_max=10)

@@ -15,22 +15,22 @@ THEME = "elasticity"
 
 def _format_elasticity_label(abs_epsilon: float) -> str:
     if abs_epsilon >= 20.0:
-        return "Perfectly Elastic (limit)"
+        return "Perfectly Elastic\n(limit)"
     if abs(abs_epsilon - 1.0) <= 1e-9:
         return "Unit Elastic"
     if abs_epsilon > 1.0:
         return "Elastic"
     if abs_epsilon <= 0.05:
-        return "Perfectly Inelastic (limit)"
+        return "Perfectly Inelastic\n(limit)"
     return "Inelastic"
 
 
 def main() -> None:
     demand = Line.from_inverse(10.0, -1.0)
     fig = MarketFigure(
-        x_max=10.2,
-        y_max=10.2,
-        title="One Demand Line: Five Elasticity Categories",
+        x_max=12,
+        y_max=11.5,
+        title="Elasticity Along Demand",
         palette=EXAMPLE_PALETTE,
     )
     fig.add_layer(
@@ -49,7 +49,7 @@ def main() -> None:
         (2.0, "o", (12, 8)),
         (5.0, "^", (12, 10)),
         (8.0, "D", (12, -10)),
-        (9.8, "v", (12, -12)),
+        (9.8, "v", (12, 14)),
     )
     for index, (q, shape, text_offset) in enumerate(sample_points):
         p = demand.p_at(q)

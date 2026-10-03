@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from aggregation_demand import main as aggregation_demand_main
+from aggregation_discrete_demand import main as aggregation_discrete_demand_main
+from aggregation_discrete_supply import main as aggregation_discrete_supply_main
+from aggregation_supply import main as aggregation_supply_main
 from basic_equilibrium import main as basic_main
 from common import clear_all_outputs, remove_non_image_outputs
 from discrete_market import main as discrete_main
@@ -40,6 +44,10 @@ def main() -> None:
     elasticity_revenue_main()
     factor_markets_main()
     report_main()
+    aggregation_demand_main()
+    aggregation_supply_main()
+    aggregation_discrete_demand_main()
+    aggregation_discrete_supply_main()
     remove_non_image_outputs()
 
 

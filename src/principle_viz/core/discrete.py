@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from enum import Enum
-from itertools import pairwise
+from itertools import chain, pairwise
 
 from principle_viz.exceptions import EquilibriumError, PrincipleEconError
 
@@ -29,6 +29,15 @@ def _values(raw: tuple[float, ...]) -> tuple[float, ...]:
     return values
 
 
+def _combined(cls: type, schedules: tuple[object, ...], *, descending: bool):
+    if not schedules:
+        raise DiscreteMarketError("combine() needs at least one schedule.")
+    if any(not isinstance(schedule, cls) for schedule in schedules):
+        raise DiscreteMarketError(f"combine() only accepts {cls.__name__} schedules.")
+    values = chain.from_iterable(schedule.values for schedule in schedules)
+    return cls(tuple(sorted(values, reverse=descending)))
+
+
 @dataclass(frozen=True, slots=True)
 class DiscreteDemand:
     """Marginal willingness-to-pay values ordered from first to last unit."""
@@ -41,9 +50,18 @@ class DiscreteDemand:
             raise DiscreteMarketError("Demand values must be weakly decreasing.")
         object.__setattr__(self, "values", values)
 
+    @classmethod
+    def combine(cls, *schedules: DiscreteDemand) -> DiscreteDemand:
+        """Market demand: every buyer's units, highest reservation price first."""
+        return _combined(cls, schedules, descending=True)
+
     @property
     def unit_count(self) -> int:
         return len(self.values)
+
+    def quantity_at(self, price: float) -> int:
+        """Units demanded at ``price``; a buyer indifferent at the price buys."""
+        return sum(value >= price for value in self.values)
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,9 +76,18 @@ class DiscreteSupply:
             raise DiscreteMarketError("Supply values must be weakly increasing.")
         object.__setattr__(self, "values", values)
 
+    @classmethod
+    def combine(cls, *schedules: DiscreteSupply) -> DiscreteSupply:
+        """Market supply: every seller's units, lowest unit cost first."""
+        return _combined(cls, schedules, descending=False)
+
     @property
     def unit_count(self) -> int:
         return len(self.values)
+
+    def quantity_at(self, price: float) -> int:
+        """Units supplied at ``price``; a seller indifferent at the price sells."""
+        return sum(value <= price for value in self.values)
 
 
 @dataclass(frozen=True, slots=True)

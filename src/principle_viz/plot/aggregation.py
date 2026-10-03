@@ -1,0 +1,346 @@
+"""Individual | individual | market figures for horizontal summation."""
+
+from __future__ import annotations
+
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass
+from pathlib import Path
+
+from mosaickit import Canvas, CanvasGrid, Layer
+
+from principle_viz.core.aggregation import (
+    AggregationError,
+    market_demand,
+    market_supply,
+)
+from principle_viz.core.discrete import DiscreteDemand, DiscreteSupply
+from principle_viz.core.line import Line
+from principle_viz.visuals.aggregation import (
+    aggregation_panel,
+    named_path_layers,
+    named_schedule_layers,
+    quantity_guide_layers,
+)
+from principle_viz.visuals.theme import PlotTheme
+
+MARGIN = 1.15
+"""Room past the largest quantity and price, for arrows and curve names."""
+
+HOLE = 0.035
+"""Half-gap, as a share of the price axis, where a guide passes a step endpoint."""
+
+STEP_ROOM = 0.03
+"""Room left of the price axis, as a share of Q, for steps starting on it."""
+
+DEMAND_ROLE = "principle.market.demand"
+SUPPLY_ROLE = "principle.market.supply"
+
+
+@dataclass(frozen=True)
+class AggregationFigure:
+    """Side-by-side panels: one per individual, then the market."""
+
+    panels: tuple[Canvas, ...]
+
+    @property
+    def grid(self) -> CanvasGrid:
+        return CanvasGrid(self.panels, rows=1)
+
+    def save(self, path: str | Path) -> Path:
+        target = Path(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        self.grid.save(target)
+        return target
+
+
+@dataclass(frozen=True)
+class _Panel:
+    panel_id: str
+    title: str
+    quantity: float
+    quantity_label: str
+    x_max: float
+    draw: Callable[[Canvas], tuple[Layer, ...]]
+    holes: tuple[float, ...] = ()
+    x_min: float = 0.0
+
+
+def _check(individuals: Mapping[str, object]) -> None:
+    if not individuals:
+        raise AggregationError("An aggregation figure needs at least one individual.")
+
+
+def _theme(theme: PlotTheme | None, palette: str | None) -> PlotTheme:
+    return theme or PlotTheme.from_palette(palette or "default")
+
+
+def _sub(symbol: str, name: str) -> str:
+    """LaTeX subscript, braced when the name is longer than one character."""
+    return f"{symbol}_{name}" if len(name) == 1 else f"{symbol}_{{{name}}}"
+
+
+def _sum_label(names: list[str]) -> str:
+    return "$" + " + ".join(_sub("Q", name) for name in names) + " = Q$"
+
+
+def _build(
+    panels: list[_Panel],
+    *,
+    y_max: float,
+    price: float,
+    price_label: str,
+    theme: PlotTheme,
+    point: bool,
+) -> AggregationFigure:
+    canvases: list[Canvas] = []
+    for panel in panels:
+        canvas = aggregation_panel(
+            title=panel.title,
+            x_min=panel.x_min,
+            x_max=panel.x_max,
+            y_max=y_max,
+            theme=theme,
+        )
+        canvas.extend(panel.draw(canvas))
+        canvas.extend(
+            quantity_guide_layers(
+                panel_id=panel.panel_id,
+                price=price,
+                quantity=panel.quantity,
+                price_label=price_label,
+                quantity_label=panel.quantity_label,
+                point=point,
+                holes=panel.holes,
+                hole=HOLE * y_max,
+            )
+        )
+        canvases.append(canvas)
+    return AggregationFigure(tuple(canvases))
+
+
+def _line_panels(
+    individuals: Mapping[str, Line],
+    market_points: tuple[tuple[float, float], ...],
+    *,
+    ends: Mapping[str, tuple[tuple[float, float], tuple[float, float]]],
+    price: float,
+    symbol: str,
+    role: str,
+) -> list[_Panel]:
+    names = list(individuals)
+    panels: list[_Panel] = []
+    for name, line in individuals.items():
+        start, end = ends[name]
+        panels.append(
+            _Panel(
+                panel_id=name,
+                title=f"Individual {name}",
+                quantity=max(0.0, line.q_at(price)),
+                quantity_label=f"${_sub('Q', name)}$",
+                x_max=end[0] * MARGIN,
+                draw=lambda canvas, n=name, s=start, e=end: named_path_layers(
+                    canvas, (s, e), panel_id=n, role=role, label=f"${_sub(symbol, n)}$"
+                ),
+            )
+        )
+    market_q = sum(panel.quantity for panel in panels)
+    panels.append(
+        _Panel(
+            panel_id="market",
+            title="Market",
+            quantity=market_q,
+            quantity_label=_sum_label(names),
+            x_max=market_points[-1][0] * MARGIN,
+            draw=lambda canvas: named_path_layers(
+                canvas,
+                market_points,
+                panel_id="market",
+                role=role,
+                label=f"${symbol}$",
+            ),
+        )
+    )
+    return panels
+
+
+def demand_aggregation_figure(
+    individuals: Mapping[str, Line],
+    *,
+    price: float,
+    price_label: str = "$p_1$",
+    theme: PlotTheme | None = None,
+    palette: str | None = None,
+) -> AggregationFigure:
+    """Individual demands, their horizontal sum, and the quantities at ``price``."""
+    _check(individuals)
+    market = market_demand(individuals.values())
+    top = market.price_range[1]
+    if not 0 < price < top:
+        raise AggregationError(
+            f"price must lie strictly between 0 and the highest choke price ({top:g})."
+        )
+    ends = {
+        name: ((0.0, line.p_intercept()), (line.q_intercept(), 0.0))
+        for name, line in individuals.items()
+    }
+    panels = _line_panels(
+        individuals,
+        market.points,
+        ends=ends,
+        price=price,
+        symbol="D",
+        role=DEMAND_ROLE,
+    )
+    return _build(
+        panels,
+        y_max=top * MARGIN,
+        price=price,
+        price_label=price_label,
+        theme=_theme(theme, palette),
+        point=True,
+    )
+
+
+def supply_aggregation_figure(
+    individuals: Mapping[str, Line],
+    *,
+    price: float,
+    p_max: float,
+    price_label: str = "$p_1$",
+    theme: PlotTheme | None = None,
+    palette: str | None = None,
+) -> AggregationFigure:
+    """Individual supplies up to ``p_max``, their sum, and quantities at ``price``."""
+    _check(individuals)
+    market = market_supply(individuals.values(), p_max=p_max)
+    bottom = market.price_range[0]
+    if not bottom < price <= p_max:
+        raise AggregationError(
+            f"price must lie above the lowest minimum price ({bottom:g}) "
+            f"and at most p_max ({p_max:g})."
+        )
+    ends = {
+        name: ((0.0, line.p_intercept()), (line.q_at(p_max), float(p_max)))
+        for name, line in individuals.items()
+    }
+    panels = _line_panels(
+        individuals,
+        market.points,
+        ends=ends,
+        price=price,
+        symbol="S",
+        role=SUPPLY_ROLE,
+    )
+    return _build(
+        panels,
+        y_max=p_max * MARGIN,
+        price=price,
+        price_label=price_label,
+        theme=_theme(theme, palette),
+        point=True,
+    )
+
+
+def _discrete_figure(
+    individuals: Mapping[str, DiscreteDemand | DiscreteSupply],
+    market: DiscreteDemand | DiscreteSupply,
+    *,
+    price: float,
+    price_label: str,
+    symbol: str,
+    role: str,
+    theme: PlotTheme,
+) -> AggregationFigure:
+    if price <= 0:
+        raise AggregationError("price must be positive.")
+    color = theme.demand_color if role == DEMAND_ROLE else theme.supply_color
+    names = list(individuals)
+    schedules = [*individuals.items(), ("market", market)]
+    panels: list[_Panel] = []
+    for name, schedule in schedules:
+        is_market = name == "market"
+        label = f"${symbol}$" if is_market else f"${_sub(symbol, name)}$"
+        quantity = schedule.quantity_at(price)
+        # Step endpoints at Q: the end of unit Q and the start of unit Q + 1.
+        values = schedule.values
+        x_max = schedule.unit_count * MARGIN + 0.6
+        holes = tuple(
+            values[i] for i in (quantity - 1, quantity) if 0 <= i < len(values)
+        )
+        panels.append(
+            _Panel(
+                panel_id=name,
+                title="Market" if is_market else f"Individual {name}",
+                quantity=float(quantity),
+                holes=holes,
+                quantity_label=_sum_label(names)
+                if is_market
+                else f"${_sub('Q', name)}$",
+                x_max=x_max,
+                x_min=-STEP_ROOM * x_max,
+                draw=lambda canvas, n=name, s=schedule, lab=label: (
+                    named_schedule_layers(
+                        canvas, s, panel_id=n, role=role, color=color, label=lab
+                    )
+                ),
+            )
+        )
+    return _build(
+        panels,
+        y_max=max(max(s.values) for _, s in schedules) * MARGIN,
+        price=price,
+        price_label=price_label,
+        theme=theme,
+        point=False,
+    )
+
+
+def discrete_demand_aggregation_figure(
+    individuals: Mapping[str, DiscreteDemand],
+    *,
+    price: float,
+    price_label: str = "$p_1$",
+    theme: PlotTheme | None = None,
+    palette: str | None = None,
+) -> AggregationFigure:
+    """Individual unit demands, the combined market schedule, and units at ``price``."""
+    _check(individuals)
+    return _discrete_figure(
+        individuals,
+        DiscreteDemand.combine(*individuals.values()),
+        price=price,
+        price_label=price_label,
+        symbol="D",
+        role=DEMAND_ROLE,
+        theme=_theme(theme, palette),
+    )
+
+
+def discrete_supply_aggregation_figure(
+    individuals: Mapping[str, DiscreteSupply],
+    *,
+    price: float,
+    price_label: str = "$p_1$",
+    theme: PlotTheme | None = None,
+    palette: str | None = None,
+) -> AggregationFigure:
+    """Individual unit costs, the combined market schedule, and units at ``price``."""
+    _check(individuals)
+    return _discrete_figure(
+        individuals,
+        DiscreteSupply.combine(*individuals.values()),
+        price=price,
+        price_label=price_label,
+        symbol="S",
+        role=SUPPLY_ROLE,
+        theme=_theme(theme, palette),
+    )
+
+
+__all__ = [
+    "AggregationFigure",
+    "demand_aggregation_figure",
+    "discrete_demand_aggregation_figure",
+    "discrete_supply_aggregation_figure",
+    "supply_aggregation_figure",
+]

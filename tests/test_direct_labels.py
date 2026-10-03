@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import warnings
+
 import pytest
 from mosaickit import (
     FillLayer,
+    LayoutWarning,
     LegendLayer,
     PathLayer,
     PointLabelLayer,
@@ -309,7 +312,7 @@ def test_curves_ending_at_the_same_point_get_separate_labels(tmp_path) -> None:
         tax_type=TaxType.AD_VALOREM_TAX, amount=0.2, tax_on=TaxOn.CONSUMER
     )
     figure = (
-        MarketFigure(x_max=11, y_max=11)
+        MarketFigure(x_max=12, y_max=12)
         .add_curves(DEMAND, SUPPLY, q_max=10)
         .add_tax_transform(DEMAND, SUPPLY, scenario, q_max=10)
     )
@@ -317,7 +320,9 @@ def test_curves_ending_at_the_same_point_get_separate_labels(tmp_path) -> None:
     taxed = _label(figure, "market.demand.taxed")
     assert taxed.text == "$D - t$"
     assert taxed.point == pytest.approx(base.point)
-    result = figure.canvas.render()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", LayoutWarning)
+        result = figure.canvas.render()
     try:
         renderer = result.figure.canvas.get_renderer()
         boxes = {

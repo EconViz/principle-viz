@@ -41,8 +41,8 @@ def main() -> None:
 
     public_good = analyze_public_good(
         (
-            IndividualBenefit("Person A", Line.from_inverse(8, -1)),
-            IndividualBenefit("Person B", Line.from_inverse(6, -1)),
+            IndividualBenefit("$MB_A$", Line.from_inverse(8, -1)),
+            IndividualBenefit("$MB_B$", Line.from_inverse(6, -1)),
         ),
         Line.from_inverse(5, 0),
     )

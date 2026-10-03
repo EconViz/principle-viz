@@ -33,7 +33,7 @@ def main() -> None:
     tax_cases = (
         (TaxType.FIXED_TAX, 2.0, "fixed"),
         (TaxType.PER_UNIT_TAX, 2.5, "per_unit"),
-        (TaxType.AD_VALOREM_TAX, 0.2, "ad_valorem"),
+        (TaxType.AD_VALOREM_TAX, 0.35, "ad_valorem"),
     )
     incidences = (
         (TaxOn.CONSUMER, "consumer"),

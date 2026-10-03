@@ -16,7 +16,7 @@ def elasticity_revenue_canvases(
     theme: PlotTheme | None = None,
 ) -> tuple[Canvas, Canvas]:
     selected = theme or PlotTheme()
-    q_max = result.choke_quantity * 1.05
+    q_max = result.choke_quantity * 1.2
     demand_canvas = Canvas(
         CanvasSpec(
             **FIGURE_SIZE,
@@ -39,12 +39,10 @@ def elasticity_revenue_canvases(
     demand_canvas.extend(
         (
             demand_curve,
-            # Named where it starts: its other end sits on the axis, in the corner.
             curve_label_layer(
                 demand_curve,
                 x_range=demand_canvas.spec.x_range,
                 y_range=demand_canvas.spec.y_range,
-                at="start",
             ),
         )
     )

@@ -66,5 +66,5 @@ def test_default_theme_welfare_opacities_and_background() -> None:
     assert roles["principle.welfare.loss"].fill.opacity == 0.45
     assert roles["principle.welfare.revenue"].fill.opacity == 0  # labelled, not filled
     assert roles["canvas"].fill.opacity == 1
-    assert roles["principle.market.demand"].stroke.width == 2.6
-    assert roles["principle.market.supply"].stroke.width == 2.6
+    assert roles["principle.market.demand"].stroke.width == 3.5
+    assert roles["principle.market.supply"].stroke.width == 3.5

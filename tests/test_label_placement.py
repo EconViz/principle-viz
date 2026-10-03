@@ -15,6 +15,7 @@ from mosaickit import (
     Config,
     Palette,
     PointLabelLayer,
+    SpanBraceLayer,
     TextLayer,
     use_config,
 )
@@ -28,7 +29,6 @@ from principle_viz.core.equilibrium import solve_equilibrium
 from principle_viz.core.factor_markets import (
     LoanableFundsScenario,
     analyze_loanable_funds,
-    analyze_minimum_wage,
 )
 from principle_viz.core.line import Line
 from principle_viz.core.shifts import ShiftScenario, ShiftSpec, comparative_statics
@@ -124,7 +124,7 @@ def test_curve_labels_are_point_labels_at_the_curve_end() -> None:
                 )
             ),
             "market.externality.corrective_wedge.label",
-            "Corrective tax = ",
+            "$t = ",
         ),
         (
             lambda f: f.add_common_resource(
@@ -132,11 +132,6 @@ def test_curve_labels_are_point_labels_at_the_curve_end() -> None:
             ),
             "market.common_resource.fee.label",
             "Fee = ",
-        ),
-        (
-            lambda f: f.add_minimum_wage(analyze_minimum_wage(DEMAND, SUPPLY, 8)),
-            "labor.unemployment.label",
-            "Unemployment = ",
         ),
         (
             lambda f: f.add_subsidy_comparison(
@@ -334,14 +329,14 @@ def test_trade_volume_is_a_brace_on_the_quantity_axis(
 
 
 @pytest.mark.parametrize(
-    "control,price,name,gap",
+    "control,price,name,gap,side",
     [
-        (PriceControlType.CEILING, 4.0, "Price ceiling", "Shortage"),
-        (PriceControlType.FLOOR, 8.0, "Price floor", "Surplus"),
+        (PriceControlType.CEILING, 4.0, "Price ceiling", "Shortage", "below"),
+        (PriceControlType.FLOOR, 8.0, "Price floor", "Surplus", "above"),
     ],
 )
-def test_binding_price_control_marks_the_gap_with_a_brace(
-    control: PriceControlType, price: float, name: str, gap: str
+def test_binding_price_control_braces_the_gap_on_the_control_line(
+    control: PriceControlType, price: float, name: str, gap: str, side: str
 ) -> None:
     result = evaluate_price_control(
         DEMAND, SUPPLY, PriceControlScenario(control, price)
@@ -355,11 +350,24 @@ def test_binding_price_control_marks_the_gap_with_a_brace(
     q_d, q_s = DEMAND.q_at(price), SUPPLY.q_at(price)
     marks = _marks(figure, "x")
     assert (marks["Q_d"], marks["Q_s"]) == pytest.approx((q_d, q_s))
-    brace = next(
-        layer for layer in figure.scene.layers if isinstance(layer, BraceLayer)
+    brace = layers["market.control.gap"]
+    assert isinstance(brace, SpanBraceLayer)
+    assert (brace.label, brace.side, brace.role) == (gap, side, "axes")
+    low, high = sorted((q_d, q_s))
+    assert brace.start == pytest.approx((low, price))
+    assert brace.end == pytest.approx((high, price))
+
+
+def test_price_control_gap_can_be_braced_on_the_quantity_axis() -> None:
+    result = evaluate_price_control(
+        DEMAND, SUPPLY, PriceControlScenario(PriceControlType.CEILING, 4.0)
     )
-    assert (brace.axis, brace.label) == ("x", gap)
-    assert (brace.start, brace.end) == pytest.approx(tuple(sorted((q_d, q_s))))
+    figure = MarketFigure(x_max=12, y_max=12).add_price_control(
+        result, gap_brace="axis"
+    )
+    brace = {layer.id: layer for layer in figure.scene.layers}["market.control.gap"]
+    assert isinstance(brace, BraceLayer)
+    assert (brace.axis, brace.label, brace.role) == ("x", "Shortage", "axes")
 
 
 def test_non_binding_price_control_has_no_gap_brace() -> None:
@@ -367,7 +375,9 @@ def test_non_binding_price_control_has_no_gap_brace() -> None:
         DEMAND, SUPPLY, PriceControlScenario(PriceControlType.CEILING, 9.0)
     )
     figure = MarketFigure(x_max=12, y_max=12).add_price_control(result)
-    assert not any(isinstance(layer, BraceLayer) for layer in figure.scene.layers)
+    assert not any(
+        isinstance(layer, (BraceLayer, SpanBraceLayer)) for layer in figure.scene.layers
+    )
 
 
 def test_externality_quantities_are_axis_marks_not_point_labels() -> None:
@@ -390,11 +400,13 @@ def test_common_resource_quantities_are_axis_marks_not_point_labels() -> None:
     result = analyze_common_resource(DEMAND, SUPPLY, marginal_congestion_cost=2)
     figure = MarketFigure(x_max=12, y_max=14).add_common_resource(result)
     marks = _marks(figure, "x")
-    assert marks["Q_{open}"] == pytest.approx(result.open_access_equilibrium.q_star)
+    assert marks[r"Q_{\mathrm{open}}"] == pytest.approx(
+        result.open_access_equilibrium.q_star
+    )
     assert marks["Q^*"] == pytest.approx(result.efficient_equilibrium.q_star)
     point_texts = {
         layer.text
         for layer in figure.scene.layers
         if isinstance(layer, PointLabelLayer)
     }
-    assert not point_texts & {"$Q_{open}$", "$Q^*$"}
+    assert not point_texts & {r"$Q_{\mathrm{open}}$", "$Q^*$"}

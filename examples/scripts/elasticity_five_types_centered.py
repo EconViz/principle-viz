@@ -13,7 +13,7 @@ Q0 = 5.0
 P0 = 5.0
 Q_MIN = 0.0
 Q_MAX = 10.0
-Y_MIN = 0.0
+Y_MIN = 0.8  # sloped lines stop just above the Q axis, leaving room for names
 Y_MAX = 10.0
 # The axes run past the lines so each line is named beside its end.
 AXIS_MAX = 12.0
@@ -38,11 +38,11 @@ def _plot_types(kind: str, slopes: tuple[float, float, float], filename: str) ->
         palette=EXAMPLE_PALETTE,
     )
     specs = (
-        ("Perfectly Elastic", ((Q_MIN, P0), (Q_MAX, P0)), DashStyle.SOLID),
+        ("Perfectly elastic", ((Q_MIN, P0), (Q_MAX, P0)), DashStyle.SOLID),
         ("Elastic", _line_points(slopes[0]), DashStyle.DASHED),
-        ("Unit Elastic", _line_points(slopes[1]), DashStyle.DASHDOT),
+        ("Unit elastic", _line_points(slopes[1]), DashStyle.DASHDOT),
         ("Inelastic", _line_points(slopes[2]), DashStyle.DOTTED),
-        ("Perfectly Inelastic", ((Q0, Y_MIN), (Q0, Y_MAX + 1)), DashStyle.SOLID),
+        ("Perfectly inelastic", ((Q0, 0.0), (Q0, Y_MAX + 1)), DashStyle.SOLID),
     )
     curves = tuple(
         PathLayer(

@@ -162,12 +162,12 @@ class PlotTheme:
     """Compatibility settings compiled into a MosaicKit theme."""
 
     color_model: ColorModel = field(default_factory=lambda: DEFAULT_COLOR_MODEL)
-    demand_linewidth: float = 2.6
-    supply_linewidth: float = 2.6
-    shifted_linewidth: float = 2.6
-    tax_linewidth: float = 2.6
+    demand_linewidth: float = 3.5
+    supply_linewidth: float = 3.5
+    shifted_linewidth: float = 3.5
+    tax_linewidth: float = 3.5
     arrow_linewidth: float = 1.6
-    equilibrium_marker_size: float = 36.0
+    equilibrium_marker_size: float = 42.25  # 6.5 pt across
     show_grid: bool = False
     show_ticks: bool = False
     show_axis_arrows: bool = True

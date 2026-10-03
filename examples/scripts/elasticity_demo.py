@@ -15,13 +15,13 @@ THEME = "elasticity"
 
 def _format_elasticity_label(abs_epsilon: float) -> str:
     if abs_epsilon >= 20.0:
-        return "Perfectly elastic"
+        return "Perfectly\nelastic"
     if abs(abs_epsilon - 1.0) <= 1e-9:
-        return "Unit Elastic"
+        return "Unit elastic"
     if abs_epsilon > 1.0:
         return "Elastic"
     if abs_epsilon <= 0.05:
-        return "Perfectly inelastic"
+        return "Perfectly\ninelastic"
     return "Inelastic"
 
 
@@ -45,7 +45,7 @@ def main() -> None:
         )
     )
 
-    sample_points = ((0.2, "s"), (2.0, "o"), (5.0, "^"), (8.0, "D"), (9.6, "v"))
+    sample_points = ((0.2, "o"), (2.0, "o"), (5.0, "o"), (8.0, "o"), (9.6, "o"))
     for index, (q, shape) in enumerate(sample_points):
         p = demand.p_at(q)
         abs_epsilon = abs(point_price_elasticity(demand, q=q))

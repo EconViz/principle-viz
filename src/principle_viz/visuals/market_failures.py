@@ -93,12 +93,11 @@ def externality_layers(result: ExternalityResult, *, q_max: float) -> tuple[Laye
             if result.corrective_tax
             else "principle.policy.subsidy"
         )
+        text = f"${'t' if result.corrective_tax else 's'} = {wedge:g}$"
         quantity = result.social_equilibrium.q_star
-        lower = min(
-            result.social_demand.p_at(quantity),
-            result.social_supply.p_at(quantity),
-            result.private_equilibrium.p_star,
-        )
+        # The wedge spans the gap between the private and social curve at Q^*.
+        social = result.social_supply if result.corrective_tax else result.social_demand
+        lower = social.p_at(quantity) - wedge
         layers.extend(
             (
                 PathLayer(
@@ -107,9 +106,11 @@ def externality_layers(result: ExternalityResult, *, q_max: float) -> tuple[Laye
                     role=role,
                     z_index=5,
                 ),
+                # Short, as on the tax diagrams: the wedge is a narrow pocket
+                # between two parallel curves.
                 PointLabelLayer(
                     (quantity, lower + 0.5 * wedge),
-                    f"Corrective {'tax' if result.corrective_tax else 'subsidy'} = {wedge:g}",
+                    text,
                     id="market.externality.corrective_wedge.label",
                     role=role,
                     z_index=6,
@@ -135,7 +136,7 @@ def common_resource_layers(
         ),
         *quantity_mark_layers(
             open_access,
-            "Q_{open}",
+            r"Q_{\mathrm{open}}",
             layer_id="market.common_resource.open_access",
         ),
         *quantity_mark_layers(

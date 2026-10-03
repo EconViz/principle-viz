@@ -64,6 +64,7 @@ from principle_viz.visuals import (
 )
 from principle_viz.visuals.axes import FIGURE_SIZE
 from principle_viz.visuals.direct_labels import fit_curve
+from principle_viz.visuals.policy import GapBrace
 from principle_viz.visuals.welfare import guides_through_regions
 from principle_viz.welfare.surplus import MarketOutcome, SurplusResult
 
@@ -481,11 +482,19 @@ class MarketFigure:
             )
         return self._add_named_curves(layers)
 
-    def add_price_control(self, result: PriceControlResult) -> MarketFigure:
-        return self.add_layers(price_control_layers(result, x_max=self.x_max))
+    def add_price_control(
+        self, result: PriceControlResult, *, gap_brace: GapBrace = "line"
+    ) -> MarketFigure:
+        return self.add_layers(
+            price_control_layers(result, x_max=self.x_max, gap_brace=gap_brace)
+        )
 
-    def add_minimum_wage(self, result: MinimumWageResult) -> MarketFigure:
-        return self.add_layers(minimum_wage_layers(result, x_max=self.x_max))
+    def add_minimum_wage(
+        self, result: MinimumWageResult, *, gap_brace: GapBrace = "line"
+    ) -> MarketFigure:
+        return self.add_layers(
+            minimum_wage_layers(result, x_max=self.x_max, gap_brace=gap_brace)
+        )
 
     def add_loanable_funds(self, result: LoanableFundsResult) -> MarketFigure:
         return self._add_named_curves(loanable_funds_layers(result, q_max=self.x_max))

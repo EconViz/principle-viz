@@ -865,7 +865,7 @@ wheels = [
 
 [[package]]
 name = "mosaickit"
-version = "0.3.2"
+version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "matplotlib", version = "3.10.9", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -875,9 +875,9 @@ dependencies = [
     { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/14/dd/297e4ce540db6f70bf019f880e32c312fb624dc1b008d19c17d2d7a47b07/mosaickit-0.3.2.tar.gz", hash = "sha256:a0a1103f0583854b6214ef61537daab77b84c68f95705663196ac64f09eb71b0", size = 227979, upload-time = "2026-10-03T08:30:56.254Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/01/bc/0e85f052ce004f8fe91d0658244132e1cfe16a1081b82e46f431a5a2a21c/mosaickit-0.4.0.tar.gz", hash = "sha256:a4ab89f99ce28928fb43ada754aea5eaa58195d49e283bba88d1dfec02def4b8", size = 231450, upload-time = "2026-10-03T08:59:49.794Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/47/ad/b74be33a76d03f8ae22762f396930eaa5ded397fd3674ab0228319d483bb/mosaickit-0.3.2-py3-none-any.whl", hash = "sha256:424b50e07dcfd004cac9aa0c27ec912634de7a4e996aacbdf7201f0b3159ff8b", size = 84664, upload-time = "2026-10-03T08:30:54.759Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/58/7223702f2f1e002eb1ce1a4b6e968fb8a43cb8d93ff3f3bf02306af113b7/mosaickit-0.4.0-py3-none-any.whl", hash = "sha256:a61d45fc03d29e55f62257676d893ca4d6046bea2cf2c1e4e5859ddb911ebaf3", size = 89467, upload-time = "2026-10-03T08:59:48.459Z" },
 ]
 
 [[package]]
@@ -1231,7 +1231,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "mosaickit", specifier = ">=0.3.2,<0.4.0" }]
+requires-dist = [{ name = "mosaickit", specifier = ">=0.4.0,<0.5.0" }]
 
 [package.metadata.requires-dev]
 dev = [

@@ -107,6 +107,5 @@ def _volume_layers(outcome: TradeOutcome) -> tuple[Layer, ...]:
             "Imports" if imports else "Exports",
             side="outside",
             id="market.trade.volume",
-            role="principle.trade.flow",
         ),
     )

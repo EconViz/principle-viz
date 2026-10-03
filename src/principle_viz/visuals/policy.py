@@ -1,5 +1,7 @@
 """Policy-result visual layers."""
 
+from typing import Literal
+
 from mosaickit import (
     ArrowLayer,
     AxisMarkLayer,
@@ -10,6 +12,7 @@ from mosaickit import (
     Layer,
     PathLayer,
     PointLabelLayer,
+    SpanBraceLayer,
     Stroke,
 )
 
@@ -18,22 +21,40 @@ from principle_viz.core.line import Line
 from principle_viz.policy.subsidy import SubsidyComparisonResult
 from principle_viz.visuals.direct_labels import region_label_layer
 
+GapBrace = Literal["line", "axis"]
+"""Where a quantity gap is braced: on the price line itself or on the quantity axis."""
 
-def line_label_anchor(
-    level: float, crossings: tuple[float, ...], x_max: float
-) -> tuple[float, float]:
-    """A point on a horizontal line at ``level`` to hang its label on: halfway
-    between the right-most curve crossing and the end of the line."""
-    right = max((q for q in crossings if 0.0 <= q <= x_max), default=0.0)
-    return (0.5 * (right + x_max), level)
+
+def gap_brace_layer(
+    low: float,
+    high: float,
+    price: float,
+    label: str,
+    *,
+    side: str,
+    layer_id: str,
+    where: GapBrace = "line",
+) -> SpanBraceLayer | BraceLayer:
+    """A brace over the quantities ``low``..``high`` left open at ``price``.
+
+    ``where="line"`` braces them on the price line, on ``side`` (``"above"`` or
+    ``"below"``), as textbooks mark a shortage or surplus; ``where="axis"`` braces
+    them under the quantity axis instead.
+    """
+    if where == "axis":
+        return BraceLayer("x", low, high, label, side="outside", id=layer_id)
+    if where != "line":
+        raise ValueError(f"gap brace must be 'line' or 'axis', got {where!r}")
+    return SpanBraceLayer((low, price), (high, price), label, side=side, id=layer_id)
 
 
 def price_control_layers(
-    result: PriceControlResult, *, x_max: float
+    result: PriceControlResult, *, x_max: float, gap_brace: GapBrace = "line"
 ) -> tuple[Layer, ...]:
     """The control line, named directly, with ``p_c`` on the price axis. A binding
     control also marks ``Q_d`` and ``Q_s`` with guides and braces the gap between
-    them on the quantity axis: "Shortage" under a ceiling, "Surplus" over a floor."""
+    them: "Shortage" below a ceiling, "Surplus" above a floor (``gap_brace="axis"``
+    braces it on the quantity axis instead)."""
     role = "principle.policy.control"
     ceiling = result.control_type == PriceControlType.CEILING
     name = "Price ceiling" if ceiling else "Price floor"
@@ -78,14 +99,14 @@ def price_control_layers(
             ),
             AxisMarkLayer("x", q_d, "Q_d", math=True, id="market.control.mark.q_d"),
             AxisMarkLayer("x", q_s, "Q_s", math=True, id="market.control.mark.q_s"),
-            BraceLayer(
-                "x",
+            gap_brace_layer(
                 q_short,
                 q_long,
+                price,
                 "Shortage" if ceiling else "Surplus",
-                side="outside",
-                id="market.control.gap",
-                role=role,
+                side="below" if ceiling else "above",
+                layer_id="market.control.gap",
+                where=gap_brace,
             ),
         )
     )
@@ -240,8 +261,9 @@ def tax_rotation_layers(
     role = "principle.policy.tax"
     return (
         ArrowLayer(start, end, id=layer_id, role=role, z_index=5),
+        # Named at its tail, outside the narrow wedge between the two curves.
         PointLabelLayer(
-            ((start[0] + end[0]) / 2, (start[1] + end[1]) / 2),
+            start,
             label,
             id=f"{layer_id}.label",
             role=role,

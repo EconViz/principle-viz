@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 
 from mosaickit import (
@@ -162,6 +163,8 @@ class PlotTheme:
     """Compatibility settings compiled into a MosaicKit theme."""
 
     color_model: ColorModel = field(default_factory=lambda: DEFAULT_COLOR_MODEL)
+    font_family: str = "DejaVu Sans"
+    font_families: Mapping[str, str] = field(default_factory=dict)
     demand_linewidth: float = 3.5
     supply_linewidth: float = 3.5
     shifted_linewidth: float = 3.5
@@ -322,7 +325,15 @@ class PlotTheme:
                 text=TextStyle(color=c.label_color, size=12, weight="normal")
             ),
         }
-        return Theme(f"principle-{c.name}", roles)
+        for role, family in self.font_families.items():
+            roles[role] = StyleBundle(
+                text=TextStyle(family=family)
+            ).merged_over(roles.get(role, StyleBundle()))
+        return Theme(
+            f"principle-{c.name}",
+            roles,
+            defaults=StyleBundle(text=TextStyle(family=self.font_family)),
+        )
 
     def __getattr__(self, name: str) -> str:
         if name.endswith("_color"):

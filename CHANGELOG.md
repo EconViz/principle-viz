@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## Unreleased
+
+### Features
+
+- `PlotTheme(font_family=...)` sets the default font for the complete figure.
+  `font_families` maps semantic roles such as `title`, `axes`, or
+  `principle.market.demand` to specific families for per-label typography.
+
 ## v0.10.0 (2026-10-03)
 
 ### Features

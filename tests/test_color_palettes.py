@@ -34,6 +34,40 @@ def test_plot_theme_from_palette() -> None:
     assert theme.axis_color == "#2E3440"
 
 
+def test_plot_theme_applies_one_font_family_to_all_text_roles() -> None:
+    theme = PlotTheme(font_family="Noto Sans TC").to_mosaickit()
+
+    assert theme.resolve("title", fallback_category="text").text.family == "Noto Sans TC"
+    assert theme.resolve("axes.note", fallback_category="axes").text.family == "Noto Sans TC"
+    assert (
+        theme.resolve("principle.annotation", fallback_category="text").text.family
+        == "Noto Sans TC"
+    )
+
+
+def test_plot_theme_keeps_dejavu_sans_as_default_font() -> None:
+    theme = PlotTheme().to_mosaickit()
+
+    assert theme.resolve("title", fallback_category="text").text.family == "DejaVu Sans"
+
+
+def test_plot_theme_can_override_font_by_semantic_role() -> None:
+    theme = PlotTheme(
+        font_family="Noto Sans TC",
+        font_families={
+            "title": "Noto Serif TC",
+            "principle.market.demand": "Noto Serif TC",
+        },
+    ).to_mosaickit()
+
+    assert theme.resolve("title", fallback_category="text").text.family == "Noto Serif TC"
+    assert (
+        theme.resolve("principle.market.demand", fallback_category="primary").text.family
+        == "Noto Serif TC"
+    )
+    assert theme.resolve("axes", fallback_category="axes").text.family == "Noto Sans TC"
+
+
 def test_market_figure_accepts_palette_name() -> None:
     fig = MarketFigure(title="Palette", palette="colorblind")
     assert fig.theme.color_model.name == "colorblind"

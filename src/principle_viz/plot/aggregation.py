@@ -161,12 +161,17 @@ def _line_panels(
             )
         )
     market_q = sum(panel.quantity for panel in panels)
+    active_names = [
+        name
+        for name, panel in zip(names, panels, strict=True)
+        if panel.quantity > 0
+    ]
     panels.append(
         _Panel(
             panel_id="market",
             title="Market",
             quantity=market_q,
-            quantity_label=_sum_label(names),
+            quantity_label=_sum_label(active_names),
             x_max=market_points[-1][0] * MARGIN,
             draw=lambda canvas: named_path_layers(
                 canvas,

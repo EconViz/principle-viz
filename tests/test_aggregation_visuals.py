@@ -206,6 +206,7 @@ def test_linked_demand_can_mark_an_individual_choke_price_and_market_kink() -> N
     assert _layers(market)["aggregation.market.point"].points == ((2.0, 6.0),)
     assert _layers(market)["aggregation.market.curve"].path[1] == (2.0, 6.0)
     assert "$p_B$" in _texts(a)
+    assert "$Q_A = Q$" in _texts(market)
 
 
 def test_price_line_is_not_linked_by_default() -> None:

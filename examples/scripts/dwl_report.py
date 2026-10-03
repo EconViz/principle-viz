@@ -70,8 +70,8 @@ def main() -> None:
                 (float(index), 0.0),
                 label,
                 id=f"dwl.label.{index}",
-                offset=(0, -12),
-                anchor="bottom",
+                offset=(0, -4),
+                anchor="top",
             )
         )
         canvas.add(
@@ -79,8 +79,8 @@ def main() -> None:
                 (float(index), value),
                 f"{value:.3f}",
                 id=f"dwl.value.{index}",
-                offset=(0, 8),
-                anchor="top",
+                offset=(0, 4),
+                anchor="bottom",
             )
         )
     canvas.save(themed_output_path(THEME, "dwl_report.png"))

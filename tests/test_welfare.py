@@ -67,7 +67,7 @@ def test_dwl_report_has_expected_columns() -> None:
     assert report[0].scenario == "tax"
 
 
-def test_welfare_annotation_layout_builds_reference_and_lettered_regions() -> None:
+def test_welfare_annotation_layout_builds_reference_and_named_regions() -> None:
     demand = Line.from_inverse(10.0, -1.0)
     supply = Line.from_inverse(2.0, 1.0)
     baseline_eq = solve_equilibrium(demand, supply)
@@ -90,4 +90,9 @@ def test_welfare_annotation_layout_builds_reference_and_lettered_regions() -> No
     assert layout.reference.baseline_quantity == baseline_outcome.quantity
     assert layout.reference.policy_quantity == policy_outcome.quantity
     assert len(layout.regions) >= 3
-    assert layout.regions[0].letter == "A"
+    assert [(r.key, r.label, r.short_label) for r in layout.regions] == [
+        ("cs", "Consumer surplus", "CS"),
+        ("ps", "Producer surplus", "PS"),
+        ("tax_revenue", "Tax revenue", "Tax"),
+        ("dwl", "Deadweight loss", "DWL"),
+    ]

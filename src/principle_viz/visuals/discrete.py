@@ -98,7 +98,7 @@ def discrete_equilibrium_layers(
                 ),
                 TextLayer(
                     (0.0, equilibrium.price_high),
-                    f"P∈[{equilibrium.price_low:g}, {equilibrium.price_high:g}]",
+                    f"p∈[{equilibrium.price_low:g}, {equilibrium.price_high:g}]",
                     id="market.discrete.equilibrium.price_interval.label",
                     role="principle.annotation",
                     offset=(8, 8),
@@ -127,7 +127,7 @@ def discrete_equilibrium_layers(
             ),
             TextLayer(
                 (float(equilibrium.q_star), equilibrium.price),
-                f"Q*={equilibrium.q_star}, P*={equilibrium.price:g}",
+                f"Q*={equilibrium.q_star}, p*={equilibrium.price:g}",
                 id="market.discrete.equilibrium.label",
                 role="principle.market.equilibrium",
                 offset=(12, 12),

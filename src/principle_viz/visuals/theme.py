@@ -181,15 +181,18 @@ class PlotTheme:
                 stroke=Stroke(color=c.axis_color, width=1.0),
                 text=TextStyle(color=c.label_color, size=11),
             ),
+            # Text styles here colour the direct curve labels (shifted roles inherit).
             "principle.market.demand": StyleBundle(
                 stroke=Stroke(
                     color=c.demand_color, width=self.demand_linewidth, dash=solid
-                )
+                ),
+                text=TextStyle(color=c.demand_color, size=11),
             ),
             "principle.market.supply": StyleBundle(
                 stroke=Stroke(
                     color=c.supply_color, width=self.supply_linewidth, dash=solid
-                )
+                ),
+                text=TextStyle(color=c.supply_color, size=11),
             ),
             "principle.market.demand.shifted": StyleBundle(
                 stroke=Stroke(
@@ -256,10 +259,12 @@ class PlotTheme:
                 stroke=Stroke(width=0),
             ),
             "principle.ppf.frontier": StyleBundle(
-                stroke=Stroke(color=c.baseline_color, width=2.2)
+                stroke=Stroke(color=c.baseline_color, width=2.2),
+                text=TextStyle(color=c.baseline_color, size=11),
             ),
             "principle.ppf.shifted": StyleBundle(
-                stroke=Stroke(color=c.shifted_color, width=2.0, dash=dashed)
+                stroke=Stroke(color=c.shifted_color, width=2.0, dash=dashed),
+                text=TextStyle(color=c.shifted_color, size=11),
             ),
             "principle.ppf.feasible": StyleBundle(
                 fill=Fill(color=c.cs_color, opacity=0.12),
@@ -303,7 +308,7 @@ class PlotTheme:
             ),
             "canvas": StyleBundle(fill=Fill(color="#FFFFFF", opacity=1)),
             "title": StyleBundle(
-                text=TextStyle(color=c.label_color, size=12, weight="bold")
+                text=TextStyle(color=c.label_color, size=12, weight="normal")
             ),
         }
         return Theme(f"principle-{c.name}", roles)

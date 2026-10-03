@@ -7,8 +7,6 @@ from mosaickit import (
     CanvasSpec,
     FillLayer,
     Layer,
-    LegendLayer,
-    LegendStyle,
     MarkerLayer,
     PathLayer,
     TextLayer,
@@ -20,6 +18,11 @@ from principle_viz.policy.common_resources import CommonResourceResult
 from principle_viz.policy.externality import ExternalityResult
 from principle_viz.visuals.axes import market_axes_layers
 from principle_viz.visuals.curves import curve_layer
+from principle_viz.visuals.direct_labels import (
+    curve_label_layer,
+    curve_label_layers,
+    region_label_layer,
+)
 from principle_viz.visuals.equilibrium import equilibrium_layers
 from principle_viz.visuals.theme import PlotTheme
 
@@ -34,7 +37,7 @@ def externality_layers(result: ExternalityResult, *, q_max: float) -> tuple[Laye
                 q_max=q_max,
                 layer_id="market.externality.social_cost",
                 role="principle.market.supply.shifted",
-                label="Social marginal cost",
+                label="MSC",
             )
         )
     if result.corrective_subsidy > 0:
@@ -45,7 +48,7 @@ def externality_layers(result: ExternalityResult, *, q_max: float) -> tuple[Laye
                 q_max=q_max,
                 layer_id="market.externality.social_benefit",
                 role="principle.market.demand.shifted",
-                label="Social marginal benefit",
+                label="MSB",
             )
         )
     layers.extend(
@@ -80,6 +83,9 @@ def externality_layers(result: ExternalityResult, *, q_max: float) -> tuple[Laye
                 legend="Deadweight loss",
                 z_index=1,
             )
+        )
+        layers.append(
+            region_label_layer("market.externality.dwl", "Deadweight loss", "DWL")
         )
     wedge = result.corrective_tax or result.corrective_subsidy
     if wedge > 0:
@@ -128,7 +134,7 @@ def common_resource_layers(
             q_max=q_max,
             layer_id="market.common_resource.social_cost",
             role="principle.market.supply.shifted",
-            label="Social marginal cost",
+            label="MSC",
         ),
         *equilibrium_layers(
             open_access,
@@ -158,6 +164,7 @@ def common_resource_layers(
             legend="Deadweight loss",
             z_index=1,
         ),
+        region_label_layer("market.common_resource.dwl", "Deadweight loss", "DWL"),
         PathLayer(
             (
                 (efficient.q_star, result.private_cost.p_at(efficient.q_star)),
@@ -193,7 +200,7 @@ def public_good_canvas(
     theme: PlotTheme | None = None,
 ) -> Canvas:
     selected = theme or PlotTheme()
-    q_max = result.points[-1].quantity * 1.05
+    q_max = result.points[-1].quantity * 1.2
     y_max = (
         max(
             max(point.social_marginal_benefit, point.marginal_cost)
@@ -207,12 +214,13 @@ def public_good_canvas(
             y_range=(0, y_max),
             x_label="Q",
             y_label="Marginal value / cost",
-            title="Public Good: Vertical Summation",
+            title="Public Good",
         ),
         theme=selected.to_mosaickit(),
     ).extend(market_axes_layers(q_max, y_max, x_label="Q", y_label="MB, MC"))
+    curves: list[PathLayer] = []
     for index, individual in enumerate(result.individuals):
-        canvas.add(
+        curves.append(
             PathLayer(
                 tuple(
                     (point.quantity, point.individual_benefits[index])
@@ -220,10 +228,10 @@ def public_good_canvas(
                 ),
                 id=f"public_good.individual.{index}",
                 role="principle.market.demand.shifted",
-                legend=f"MB: {individual.name}",
+                legend=individual.name,
             )
         )
-    canvas.extend(
+    curves.extend(
         (
             PathLayer(
                 tuple(
@@ -232,14 +240,24 @@ def public_good_canvas(
                 ),
                 id="public_good.social_benefit",
                 role="principle.market.demand",
-                legend="Σ marginal benefit",
+                legend="ΣMB",
             ),
             PathLayer(
                 tuple((point.quantity, point.marginal_cost) for point in result.points),
                 id="public_good.marginal_cost",
                 role="principle.market.supply",
-                legend="Marginal cost",
+                legend="MC",
             ),
+        )
+    )
+    canvas.extend(curves)
+    # Beyond its kink the sum runs along the largest individual curve, so it is
+    # named where it starts, on the price axis.
+    bounds = {"x_range": (0, q_max), "y_range": (0, y_max)}
+    canvas.extend(curve_label_layers(curves[:-2] + curves[-1:], **bounds))
+    canvas.add(curve_label_layer(curves[-2], at="start", **bounds))
+    canvas.extend(
+        (
             MarkerLayer(
                 ((result.efficient_quantity, result.efficient_marginal_value),),
                 id="public_good.efficient",
@@ -274,19 +292,6 @@ def public_good_canvas(
                 offset=(-8, -14),
                 anchor="right",
             ),
-        )
-    )
-    canvas.add(
-        LegendLayer(
-            entries=tuple(
-                [
-                    f"public_good.individual.{index}"
-                    for index in range(len(result.individuals))
-                ]
-                + ["public_good.social_benefit", "public_good.marginal_cost"]
-            ),
-            id="public_good.legend",
-            style=LegendStyle(visible=True, location="best", frame=False),
         )
     )
     return canvas

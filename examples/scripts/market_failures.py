@@ -29,12 +29,12 @@ def _externality(name: str, filename: str, scenario: ExternalityScenario) -> Non
 
 def main() -> None:
     _externality(
-        "Negative Production Externality",
+        "Negative Externality",
         "negative_externality.png",
         ExternalityScenario(marginal_external_cost=2),
     )
     _externality(
-        "Positive Consumption Externality",
+        "Positive Externality",
         "positive_externality.png",
         ExternalityScenario(marginal_external_benefit=2),
     )
@@ -61,15 +61,15 @@ def main() -> None:
     figure = MarketFigure(
         x_max=11,
         y_max=14,
-        title="Common Resource Overuse",
+        title="Common Resource",
         palette=EXAMPLE_PALETTE,
     )
     figure.add_curves(
         benefit,
         private_cost,
         q_max=10,
-        demand_label="Marginal benefit",
-        supply_label="Private marginal cost",
+        demand_label="MB",
+        supply_label="MPC",
     )
     figure.add_common_resource(common)
     figure.finalize()

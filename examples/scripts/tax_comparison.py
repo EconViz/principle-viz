@@ -31,7 +31,7 @@ def _plot_tax_case(name: str, scenario: TaxScenario, filename: str) -> None:
 
 def main() -> None:
     tax_cases = (
-        (TaxType.FIXED_TAX, 1.2, "fixed"),
+        (TaxType.FIXED_TAX, 2.0, "fixed"),
         (TaxType.PER_UNIT_TAX, 1.5, "per_unit"),
         (TaxType.AD_VALOREM_TAX, 0.2, "ad_valorem"),
     )
@@ -40,14 +40,15 @@ def main() -> None:
         (TaxOn.PRODUCER, "producer"),
     )
 
+    names = {
+        TaxType.FIXED_TAX: "Fixed Tax",
+        TaxType.PER_UNIT_TAX: "Per-Unit Tax",
+        TaxType.AD_VALOREM_TAX: "Ad Valorem Tax",
+    }
     for tax_type, amount, slug in tax_cases:
         for tax_on, incidence_slug in incidences:
-            if tax_type == TaxType.AD_VALOREM_TAX:
-                title_suffix = "Proportional Rotation"
-            else:
-                title_suffix = "Anchored Tax Shift Arrow"
             _plot_tax_case(
-                name=f"{tax_type.value.replace('_', ' ').title()} Tax ({tax_on.value.title()}) - {title_suffix}",
+                name=f"{names[tax_type]} on {tax_on.value.title()}s",
                 scenario=TaxScenario(tax_type=tax_type, amount=amount, tax_on=tax_on),
                 filename=f"tax_{slug}_{incidence_slug}.png",
             )

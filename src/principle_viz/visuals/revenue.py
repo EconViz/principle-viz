@@ -5,6 +5,7 @@ from mosaickit import Canvas, CanvasSpec, MarkerLayer, PathLayer, TextLayer
 from principle_viz.core.line import Line
 from principle_viz.core.revenue import ElasticityRevenueResult
 from principle_viz.visuals.axes import market_axes_layers
+from principle_viz.visuals.direct_labels import curve_label_layer
 from principle_viz.visuals.theme import PlotTheme
 
 
@@ -21,19 +22,27 @@ def elasticity_revenue_canvases(
             x_range=(0, q_max),
             y_range=(0, result.choke_price * 1.05),
             x_label="Q",
-            y_label="P",
+            y_label="p",
             title="Demand and Elasticity",
         ),
         theme=selected.to_mosaickit(),
     ).extend(
-        market_axes_layers(q_max, result.choke_price * 1.05, x_label="Q", y_label="P")
+        market_axes_layers(q_max, result.choke_price * 1.05, x_label="Q", y_label="p")
     )
-    demand_canvas.add(
-        PathLayer(
-            ((0, demand.p_at(0)), (result.choke_quantity, 0)),
-            id="elasticity.demand",
-            role="principle.market.demand",
-            legend="Demand",
+    demand_curve = PathLayer(
+        ((0, demand.p_at(0)), (result.choke_quantity, 0)),
+        id="elasticity.demand",
+        role="principle.market.demand",
+        legend="Demand",
+    )
+    demand_canvas.extend(
+        (
+            demand_curve,
+            curve_label_layer(
+                demand_curve,
+                x_range=demand_canvas.spec.x_range,
+                y_range=demand_canvas.spec.y_range,
+            ),
         )
     )
     demand_canvas.add(

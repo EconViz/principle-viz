@@ -24,7 +24,7 @@ def main() -> None:
     fig = MarketFigure(
         x_max=12, y_max=12, title="Comparative Statics", palette=EXAMPLE_PALETTE
     )
-    fig.add_curves(demand, supply, q_max=10)
+    fig.add_curves(demand, supply, q_max=10, demand_label="D₀", supply_label="S₀")
     fig.add_comparative_statics(result, q_max=10)
     fig.finalize()
     fig.save(str(themed_output_path(THEME, "comparative_statics.png")))

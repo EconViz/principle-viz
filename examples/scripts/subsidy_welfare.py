@@ -36,7 +36,7 @@ def main() -> None:
     figure = MarketFigure(
         x_max=12,
         y_max=13,
-        title="Per-Unit Subsidy: Incidence and Welfare",
+        title="Per-Unit Subsidy",
         palette=EXAMPLE_PALETTE,
     )
     figure.add_curves(demand, supply, q_max=11)

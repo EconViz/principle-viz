@@ -72,7 +72,7 @@ def loanable_funds_layers(
                 q_max=q_max,
                 layer_id="loanable.savings.shifted",
                 role="principle.market.supply.shifted",
-                label="Savings (shifted)",
+                label="S₁",
             )
         )
     if (
@@ -86,7 +86,7 @@ def loanable_funds_layers(
                 q_max=q_max,
                 layer_id="loanable.investment.shifted",
                 role="principle.market.demand.shifted",
-                label="Investment + borrowing",
+                label="D₁",
             )
         )
     layers.extend(

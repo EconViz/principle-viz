@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from dataclasses import replace
 from pathlib import Path
 
 from mosaickit import Canvas, CanvasSpec, Layer, LegendLayer, LegendStyle, Scene
@@ -31,6 +32,7 @@ from principle_viz.policy.tax import (
 from principle_viz.policy.trade import TradeComparisonResult
 from principle_viz.visuals import (
     common_resource_layers,
+    curve_label_layers,
     curve_layer,
     discrete_equilibrium_layers,
     discrete_schedule_layers,
@@ -62,7 +64,7 @@ class MarketFigure:
         x_max: float = 20.0,
         y_max: float = 20.0,
         x_label: str = "Q",
-        y_label: str = "P",
+        y_label: str = "p",
         title: str = "Market Diagram",
         theme: PlotTheme | None = None,
         palette: str | None = None,
@@ -106,6 +108,17 @@ class MarketFigure:
         self.canvas.extend(layers)
         return self
 
+    def _add_named_curves(self, layers: Iterable[Layer]) -> MarketFigure:
+        """Add layers and name each core curve beside its visible end."""
+        layers = tuple(layers)
+        labels = curve_label_layers(
+            layers,
+            x_range=(0.0, self.x_max),
+            y_range=(0.0, self.y_max),
+            placed=self.scene.layers,
+        )
+        return self.add_layers(layers + labels)
+
     def add_curves(
         self,
         demand: Line,
@@ -114,7 +127,7 @@ class MarketFigure:
         demand_label: str = "Demand",
         supply_label: str = "Supply",
     ) -> MarketFigure:
-        return self.add_layers(
+        return self._add_named_curves(
             (
                 curve_layer(
                     demand,
@@ -152,7 +165,7 @@ class MarketFigure:
                 label=demand_label,
             )
         )
-        return self.add_layers(
+        self.add_layers(
             discrete_schedule_layers(
                 supply,
                 schedule_id="market.discrete.supply",
@@ -161,6 +174,21 @@ class MarketFigure:
                 label=supply_label,
             )
         )
+        # Name each schedule at its last step.
+        steps = {layer.id: layer for layer in self.scene.layers}
+        for schedule_id, schedule, label in (
+            ("market.discrete.demand", demand, demand_label),
+            ("market.discrete.supply", supply, supply_label),
+        ):
+            last = steps[f"{schedule_id}.step.{len(schedule.values) - 1}"]
+            self.add_layers(
+                curve_label_layers(
+                    (replace(last, id=schedule_id, legend=label),),
+                    x_range=(0.0, self.x_max),
+                    y_range=(0.0, self.y_max),
+                )
+            )
+        return self
 
     def add_discrete_equilibrium(
         self, equilibrium: DiscreteEquilibriumResult
@@ -189,8 +217,21 @@ class MarketFigure:
         )
 
     def add_comparative_statics(
-        self, result: ComparativeStaticsResult, q_max: float
+        self,
+        result: ComparativeStaticsResult,
+        q_max: float,
+        *,
+        demand_label: str = "D₁",
+        supply_label: str = "S₁",
     ) -> MarketFigure:
+        market = result.shifted_market
+        # A curve that did not move is drawn but not named a second time.
+        demand_moved = (
+            market.shifted_demand.as_tuple() != market.baseline_demand.as_tuple()
+        )
+        supply_moved = (
+            market.shifted_supply.as_tuple() != market.baseline_supply.as_tuple()
+        )
         layers: list[Layer] = [
             curve_layer(
                 result.shifted_market.shifted_demand,
@@ -198,7 +239,7 @@ class MarketFigure:
                 q_max=q_max,
                 layer_id="market.demand.shifted",
                 role="principle.market.demand.shifted",
-                label="Demand (shifted)",
+                label=demand_label if demand_moved else None,
             ),
             curve_layer(
                 result.shifted_market.shifted_supply,
@@ -206,7 +247,7 @@ class MarketFigure:
                 q_max=q_max,
                 layer_id="market.supply.shifted",
                 role="principle.market.supply.shifted",
-                label="Supply (shifted)",
+                label=supply_label if supply_moved else None,
             ),
         ]
         layers.extend(
@@ -229,7 +270,7 @@ class MarketFigure:
         layers.extend(
             movement_layers(result.baseline_equilibrium, result.shifted_equilibrium)
         )
-        return self.add_layers(layers)
+        return self._add_named_curves(layers)
 
     def add_tax_comparison(self, result: TaxComparisonResult) -> MarketFigure:
         post_eq = EquilibriumResult(
@@ -307,7 +348,7 @@ class MarketFigure:
                 q_max=q_max,
                 layer_id=f"market.{guide.curve_role}.taxed",
                 role=f"principle.market.{guide.curve_role}.shifted",
-                label=f"{guide.curve_role.title()} (taxed)",
+                label="S + t" if guide.curve_role == "supply" else "D − t",
             )
         ]
         anchor_q = guide.baseline_equilibrium.q_star
@@ -385,7 +426,7 @@ class MarketFigure:
                     label_offset=(14, -14),
                 )
             )
-        return self.add_layers(layers)
+        return self._add_named_curves(layers)
 
     def add_price_control(self, result: PriceControlResult) -> MarketFigure:
         return self.add_layers(price_control_layers(result, x_max=self.x_max))
@@ -394,19 +435,22 @@ class MarketFigure:
         return self.add_layers(minimum_wage_layers(result, x_max=self.x_max))
 
     def add_loanable_funds(self, result: LoanableFundsResult) -> MarketFigure:
-        return self.add_layers(loanable_funds_layers(result, q_max=self.x_max))
+        return self._add_named_curves(loanable_funds_layers(result, q_max=self.x_max))
 
     def add_externality(self, result: ExternalityResult) -> MarketFigure:
-        return self.add_layers(externality_layers(result, q_max=self.x_max))
+        return self._add_named_curves(externality_layers(result, q_max=self.x_max))
 
     def add_common_resource(self, result: CommonResourceResult) -> MarketFigure:
-        return self.add_layers(common_resource_layers(result, q_max=self.x_max))
+        return self._add_named_curves(common_resource_layers(result, q_max=self.x_max))
 
     def add_trade(self, result: TradeComparisonResult) -> MarketFigure:
-        return self.add_layers(trade_layers(result, x_max=self.x_max))
+        return self._add_named_curves(trade_layers(result, x_max=self.x_max))
 
-    def add_welfare(self, surplus: SurplusResult) -> MarketFigure:
-        return self.add_layers(welfare_layers(surplus))
+    def add_welfare(
+        self, surplus: SurplusResult, *, labels: bool = True
+    ) -> MarketFigure:
+        """Shade the welfare regions and, unless ``labels`` is off, name each one."""
+        return self.add_layers(welfare_layers(surplus, labels=labels))
 
     def add_welfare_transition(
         self,

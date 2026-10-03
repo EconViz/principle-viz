@@ -5,6 +5,7 @@ from __future__ import annotations
 from mosaickit import ArrowLayer, FillLayer, Layer, PathLayer, TextLayer
 
 from principle_viz.policy.trade import TradeComparisonResult, TradeDirection
+from principle_viz.visuals.direct_labels import region_label_layer
 
 
 def trade_layers(result: TradeComparisonResult, *, x_max: float) -> tuple[Layer, ...]:
@@ -20,8 +21,8 @@ def trade_layers(result: TradeComparisonResult, *, x_max: float) -> tuple[Layer,
         ),
         TextLayer(
             (0.02 * x_max, free.domestic_price),
-            r"$P_w$",
-            id="market.trade.world_price.label",
+            r"$p_w$",
+            id="market.trade.world_price.mark",
             role="principle.trade.world",
             offset=(0, -14),
             anchor="left",
@@ -40,8 +41,8 @@ def trade_layers(result: TradeComparisonResult, *, x_max: float) -> tuple[Layer,
                 ),
                 TextLayer(
                     (0.02 * x_max, policy.domestic_price),
-                    r"$P_{policy}$",
-                    id="market.trade.policy_price.label",
+                    r"$p_{policy}$",
+                    id="market.trade.policy_price.mark",
                     role="principle.trade.policy",
                     offset=(0, 8),
                     anchor="left",
@@ -88,6 +89,10 @@ def trade_layers(result: TradeComparisonResult, *, x_max: float) -> tuple[Layer,
 
     rent = outcome.government_revenue + outcome.national_quota_rent
     if rent > 1e-9 and outcome.imports > 1e-9:
+        if outcome.government_revenue > 1e-9:
+            name, short = "Tariff revenue", "Revenue"
+        else:
+            name, short = "Quota rent", "Rent"
         layers.append(
             FillLayer(
                 (
@@ -98,10 +103,11 @@ def trade_layers(result: TradeComparisonResult, *, x_max: float) -> tuple[Layer,
                 ),
                 id="market.trade.policy_rent",
                 role="principle.trade.rent",
-                legend="Tariff revenue / quota rent",
+                legend=name,
                 z_index=1,
             )
         )
+        layers.append(region_label_layer("market.trade.policy_rent", name, short))
     return tuple(layers)
 
 

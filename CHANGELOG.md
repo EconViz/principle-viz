@@ -2,10 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
-## v0.2.0 (unreleased)
+## v0.10.0 (unreleased)
 
 ### Changed
 
+- Depend on `mosaickit>=0.2.0,<0.3.0`.
+- `MarketFigure.finalize()` no longer adds a legend by default. Pass `finalize(legend=True)` to keep the previous behaviour.
+- The `default` palette now takes its hues from MosaicKit's `DEFAULT_PALETTE`: demand blue, supply red, deadweight loss teal. Consumer and producer surplus reuse the demand and supply hues at 15% opacity, deadweight loss is 45%, and tax revenue is labelled rather than shaded. Core curves are 2.6 pt wide and figures have an opaque white background.
+- Official examples use the `default` palette and no longer show legends or metric boxes. Example output always goes to `examples/output`, whichever directory the scripts run from.
 - Renamed the project from `principle-econ` to `principle-viz`, joining the EconViz family alongside `utility-viz` (the renamed `econ-viz`). The Python package is now `principle_viz`; the `principle-econ` PyPI distribution stops receiving updates as of v0.1.0.
 - Switched project tooling from Poetry to uv (`pyproject.toml` now PEP 621 + `uv_build`, `uv.lock` replaces `poetry.lock`, CI and `scripts/release.sh` use `uv run`/`uv build`).
 

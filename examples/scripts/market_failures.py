@@ -22,18 +22,7 @@ def _externality(name: str, filename: str, scenario: ExternalityScenario) -> Non
     figure = MarketFigure(x_max=11, y_max=14, title=name, palette=EXAMPLE_PALETTE)
     figure.add_curves(demand, supply, q_max=10)
     figure.add_externality(result)
-    figure.add_metrics(
-        {
-            "Q market": result.private_equilibrium.q_star,
-            "Q efficient": result.social_equilibrium.q_star,
-            "corrective tax": result.corrective_tax,
-            "corrective subsidy": result.corrective_subsidy,
-            "DWL": result.deadweight_loss,
-        },
-        title="Externality",
-        location="upper right",
-    )
-    figure.finalize(legend=True)
+    figure.finalize()
     figure.save(str(themed_output_path(THEME, filename)))
     figure.close()
 
@@ -83,18 +72,7 @@ def main() -> None:
         supply_label="Private marginal cost",
     )
     figure.add_common_resource(common)
-    figure.add_metrics(
-        {
-            "Q open access": common.open_access_equilibrium.q_star,
-            "Q efficient": common.efficient_equilibrium.q_star,
-            "overuse": common.overuse,
-            "corrective fee": common.corrective_fee,
-            "DWL": common.deadweight_loss,
-        },
-        title="Common Resource",
-        location="upper right",
-    )
-    figure.finalize(legend=True)
+    figure.finalize()
     figure.save(str(themed_output_path(THEME, "common_resource.png")))
     figure.close()
 

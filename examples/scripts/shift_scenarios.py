@@ -26,16 +26,6 @@ def main() -> None:
     )
     fig.add_curves(demand, supply, q_max=10)
     fig.add_comparative_statics(result, q_max=10)
-    fig.add_metrics(
-        {
-            "ΔQ": result.delta_q,
-            "ΔP": result.delta_p,
-            "Q direction": result.direction_q,
-            "P direction": result.direction_p,
-        },
-        title="Shift Result",
-        location="upper right",
-    )
     fig.finalize()
     fig.save(str(themed_output_path(THEME, "comparative_statics.png")))
     fig.close()

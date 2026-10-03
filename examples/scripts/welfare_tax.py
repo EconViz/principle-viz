@@ -71,18 +71,6 @@ def main() -> None:
         surplus=delta.policy,
     )
     fig.add_tax_comparison(tax_comparison)
-    fig.add_metrics(
-        {
-            "Q0": baseline_outcome.quantity,
-            "Q1": policy_outcome.quantity,
-            "P0": baseline_outcome.consumer_price,
-            "Pc1": policy_outcome.consumer_price,
-            "Pp1": policy_outcome.producer_price,
-            "DWL": delta.deadweight_loss,
-        },
-        title="Baseline vs Policy",
-        location="upper left",
-    )
     fig.finalize()
     fig.save(str(themed_output_path(THEME, "welfare_tax.png")))
     fig.close()

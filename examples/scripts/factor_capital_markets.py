@@ -35,17 +35,7 @@ def main() -> None:
         supply_label="Labor supply",
     )
     figure.add_minimum_wage(labor)
-    figure.add_metrics(
-        {
-            "labor demanded": labor.labor_demanded,
-            "labor supplied": labor.labor_supplied,
-            "employment": labor.employment,
-            "unemployment": labor.unemployment,
-        },
-        title="Wage Floor",
-        location="upper right",
-    )
-    figure.finalize(legend=True)
+    figure.finalize()
     figure.save(str(themed_output_path(THEME, "minimum_wage.png")))
     figure.close()
 
@@ -72,17 +62,7 @@ def main() -> None:
         supply_label="National saving",
     )
     figure.add_loanable_funds(funds)
-    figure.add_metrics(
-        {
-            "r0": funds.baseline_equilibrium.p_star,
-            "r1": funds.shifted_equilibrium.p_star,
-            "private I after": funds.private_investment_after,
-            "crowding out": funds.crowding_out,
-        },
-        title="Loanable Funds",
-        location="upper right",
-    )
-    figure.finalize(legend=True)
+    figure.finalize()
     figure.save(str(themed_output_path(THEME, "loanable_funds_crowding_out.png")))
     figure.close()
 

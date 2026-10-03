@@ -1,4 +1,4 @@
-"""Price control welfare example with CS/PS/TS/DWL in-figure metrics."""
+"""Price control welfare examples with labelled surplus and deadweight-loss regions."""
 
 from __future__ import annotations
 
@@ -14,7 +14,6 @@ from principle_viz.core.line import Line
 from principle_viz.plot.figure import MarketFigure
 from principle_viz.welfare.surplus import (
     compare_surplus,
-    compute_surplus,
     outcome_from_control,
     outcome_from_equilibrium,
 )
@@ -28,7 +27,6 @@ def main() -> None:
 
     baseline_eq = solve_equilibrium(demand, supply)
     baseline_outcome = outcome_from_equilibrium(baseline_eq)
-    baseline_surplus = compute_surplus(demand, supply, baseline_outcome)
 
     control_result = evaluate_price_control(
         demand,
@@ -49,7 +47,7 @@ def main() -> None:
     fig_raw.add_curves(demand, supply, q_max=10)
     fig_raw.add_price_control(control_result)
     fig_raw.add_welfare(delta.policy)
-    fig_raw.finalize(legend=True)
+    fig_raw.finalize()
     fig_raw.save(str(themed_output_path(THEME, "price_controls_welfare_raw.png")))
     fig_raw.close()
 
@@ -67,29 +65,7 @@ def main() -> None:
         policy_outcome=control_outcome,
         surplus=delta.policy,
     )
-    fig.add_metrics(
-        {
-            "Q0": baseline_outcome.quantity,
-            "Q1": control_outcome.quantity,
-            "P0": baseline_outcome.consumer_price,
-            "P1": control_outcome.consumer_price,
-            "DWL": delta.policy.deadweight_loss,
-        },
-        title="Baseline vs Policy",
-        location="upper right",
-    )
-    fig.add_metrics(
-        {
-            "ΔCS": delta.delta_consumer_surplus,
-            "ΔPS": delta.delta_producer_surplus,
-            "ΔTS": delta.delta_total_surplus,
-            "TS0": baseline_surplus.total_surplus,
-            "Q traded": control_result.traded_quantity,
-        },
-        title="Change vs Baseline",
-        location="upper left",
-    )
-    fig.finalize(legend=True)
+    fig.finalize()
     fig.save(str(themed_output_path(THEME, "price_controls_welfare.png")))
     fig.close()
 

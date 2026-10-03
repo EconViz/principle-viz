@@ -28,9 +28,9 @@ def test_market_figure_smoke_save_all_static_formats(tmp_path) -> None:
     figure.add_curves(demand, supply, q_max=10).add_equilibrium(eq).finalize()
 
     assert r"$e^{*}$" in _texts(figure)
-    assert {layer.id for layer in figure.scene.layers}.issuperset(
-        {"market.demand", "market.supply", "market.equilibrium", "market.legend"}
-    )
+    layer_ids = {layer.id for layer in figure.scene.layers}
+    assert layer_ids.issuperset({"market.demand", "market.supply", "market.equilibrium"})
+    assert "market.legend" not in layer_ids
     for suffix in ("png", "svg", "pdf"):
         output = tmp_path / f"smoke_basic.{suffix}"
         figure.save(output)

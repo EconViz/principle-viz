@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from mosaickit import DEFAULT_PALETTE as _P
 from mosaickit import (
     DashStyle,
     Fill,
@@ -72,7 +73,25 @@ _COLORBLIND = {
     "arrow_color": "#111111",
 }
 
-DEFAULT_COLOR_MODEL = ColorModel(name="default", **_COLORBLIND)
+# Default: MosaicKit's palette. Demand is blue and supply red; consumer and
+# producer surplus reuse those hues, and deadweight loss gets its own (teal).
+_DEFAULT = {
+    "axis_color": _P["grey-800"].to_hex(),
+    "label_color": _P["grey-900"].to_hex(),
+    "demand_color": _P["blue"].to_hex(),
+    "supply_color": _P["red"].to_hex(),
+    "baseline_color": _P["grey-900"].to_hex(),
+    "shifted_color": _P["grey-600"].to_hex(),
+    "tax_color": _P["red"].to_hex(),
+    "control_color": _P["teal"].to_hex(),
+    "cs_color": _P["blue"].to_hex(),
+    "ps_color": _P["red"].to_hex(),
+    "tax_revenue_color": _P["grey-400"].to_hex(),
+    "dwl_color": _P["teal"].to_hex(),
+    "arrow_color": _P["grey-900"].to_hex(),
+}
+
+DEFAULT_COLOR_MODEL = ColorModel(name="default", **_DEFAULT)
 COLORBLIND_COLOR_MODEL = ColorModel(name="colorblind", **_COLORBLIND)
 NORD_COLOR_MODEL = ColorModel(
     name="nord",
@@ -137,10 +156,10 @@ class PlotTheme:
     """Compatibility settings compiled into a MosaicKit theme."""
 
     color_model: ColorModel = field(default_factory=lambda: DEFAULT_COLOR_MODEL)
-    demand_linewidth: float = 2.0
-    supply_linewidth: float = 2.0
-    shifted_linewidth: float = 1.8
-    tax_linewidth: float = 2.0
+    demand_linewidth: float = 2.6
+    supply_linewidth: float = 2.6
+    shifted_linewidth: float = 2.6
+    tax_linewidth: float = 2.6
     arrow_linewidth: float = 1.6
     equilibrium_marker_size: float = 36.0
     show_grid: bool = False
@@ -256,13 +275,14 @@ class PlotTheme:
                 marker=Marker(color=c.dwl_color, size=self.equilibrium_marker_size)
             ),
             "principle.welfare.consumer": StyleBundle(
-                fill=Fill(color=c.cs_color, opacity=0.18), stroke=Stroke(width=0)
+                fill=Fill(color=c.cs_color, opacity=0.15), stroke=Stroke(width=0)
             ),
             "principle.welfare.producer": StyleBundle(
-                fill=Fill(color=c.ps_color, opacity=0.18), stroke=Stroke(width=0)
+                fill=Fill(color=c.ps_color, opacity=0.15), stroke=Stroke(width=0)
             ),
+            # Tax revenue is named by its label, not shaded.
             "principle.welfare.revenue": StyleBundle(
-                fill=Fill(color=c.tax_revenue_color, opacity=0.22),
+                fill=Fill(color=c.tax_revenue_color, opacity=0),
                 stroke=Stroke(width=0),
             ),
             "principle.welfare.subsidy": StyleBundle(
@@ -270,7 +290,7 @@ class PlotTheme:
                 stroke=Stroke(width=0),
             ),
             "principle.welfare.loss": StyleBundle(
-                fill=Fill(color=c.dwl_color, opacity=0.22), stroke=Stroke(width=0)
+                fill=Fill(color=c.dwl_color, opacity=0.45), stroke=Stroke(width=0)
             ),
             "principle.annotation": StyleBundle(
                 text=TextStyle(color=c.label_color, size=10)
@@ -281,7 +301,7 @@ class PlotTheme:
             "legend": StyleBundle(
                 legend=LegendStyle(visible=True, frame=False, size=10)
             ),
-            "canvas": StyleBundle(fill=Fill(color="#FFFFFF", opacity=0)),
+            "canvas": StyleBundle(fill=Fill(color="#FFFFFF", opacity=1)),
             "title": StyleBundle(
                 text=TextStyle(color=c.label_color, size=12, weight="bold")
             ),

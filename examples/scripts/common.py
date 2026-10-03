@@ -5,8 +5,9 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-OUTPUT_DIR = Path("examples/output")
-EXAMPLE_PALETTE = "monochrome"
+# Always examples/output, whichever directory the scripts are run from.
+OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output"
+EXAMPLE_PALETTE = "default"
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".svg", ".pdf"}
 
 

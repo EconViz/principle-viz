@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from common import ensure_output_dir, themed_output_path
+from common import EXAMPLE_PALETTE, ensure_output_dir, themed_output_path
 from mosaickit import Canvas, CanvasSpec, Fill, FillLayer, TextLayer, quadrant_axes
 
 from principle_viz.core.equilibrium import solve_equilibrium
@@ -49,7 +49,7 @@ def main() -> None:
             y_label="Value",
             title="Deadweight Loss Summary",
         ),
-        theme=PlotTheme.from_palette("monochrome").to_mosaickit(),
+        theme=PlotTheme.from_palette(EXAMPLE_PALETTE).to_mosaickit(),
     ).extend(quadrant_axes(4.0, y_max))
     for index, (label, value, color) in enumerate(zip(labels, values, colors), start=1):
         canvas.add(

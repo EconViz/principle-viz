@@ -77,7 +77,7 @@ def _plot_types(kind: str, slopes: tuple[float, float, float], filename: str) ->
             )
         )
     _add_center_point(fig)
-    fig.finalize(legend=True)
+    fig.finalize()
     fig.save(themed_output_path(THEME, filename))
 
 

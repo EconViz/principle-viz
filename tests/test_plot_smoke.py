@@ -172,3 +172,25 @@ def test_movement_arrows_are_thin_black_and_dashed() -> None:
         quantity=4, base_price=6, taxed_price=8, label="$t = 2$", layer_id="tax"
     )
     assert arrow.role == label.role == MOVEMENT_ROLE
+
+
+def test_every_dashed_semantic_role_uses_the_thin_width() -> None:
+    from mosaickit import DashStyle
+
+    theme = PlotTheme()
+    roles = theme.to_mosaickit().roles
+    dashed_roles = {
+        "principle.market.demand.shifted": theme.shifted_linewidth,
+        "principle.market.supply.shifted": theme.shifted_linewidth,
+        "principle.market.movement": theme.arrow_linewidth,
+        "principle.policy.control": theme.dashed_linewidth,
+        "principle.policy.tax": theme.tax_linewidth,
+        "principle.policy.subsidy": theme.tax_linewidth,
+        "principle.trade.world": theme.dashed_linewidth,
+        "principle.trade.policy": theme.dashed_linewidth,
+        "principle.ppf.shifted": theme.dashed_linewidth,
+    }
+
+    for role, expected_width in dashed_roles.items():
+        assert roles[role].stroke.dash == DashStyle.DASHED
+        assert roles[role].stroke.width == expected_width == 1.0

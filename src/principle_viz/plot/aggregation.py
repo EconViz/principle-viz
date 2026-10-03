@@ -16,6 +16,7 @@ from principle_viz.core.aggregation import (
 )
 from principle_viz.core.discrete import DiscreteDemand, DiscreteSupply
 from principle_viz.core.line import Line
+from principle_viz.plot.label import Label
 from principle_viz.visuals.aggregation import (
     aggregation_panel,
     named_path_layers,
@@ -50,6 +51,60 @@ class AggregationFigure:
         target.parent.mkdir(parents=True, exist_ok=True)
         self.grid.save(target)
         return target
+
+    @property
+    def layer_ids(self) -> tuple[str, ...]:
+        return tuple(dict.fromkeys(id_ for panel in self.panels for id_ in panel.layer_ids))
+
+    @property
+    def label_ids(self) -> tuple[str, ...]:
+        return tuple(dict.fromkeys(id_ for panel in self.panels for id_ in panel.label_ids))
+
+    def hide(self, *layer_ids: str) -> AggregationFigure:
+        return self._set_visibility(layer_ids, visible=False)
+
+    def show(self, *layer_ids: str) -> AggregationFigure:
+        return self._set_visibility(layer_ids, visible=True)
+
+    def _set_visibility(
+        self,
+        layer_ids: tuple[str, ...],
+        *,
+        visible: bool,
+    ) -> AggregationFigure:
+        for layer_id in layer_ids:
+            matched = False
+            for panel in self.panels:
+                if layer_id in panel.layer_ids:
+                    panel.configure_layer(layer_id, visible=visible)
+                    matched = True
+            if not matched:
+                raise KeyError(f"Unknown aggregation layer {layer_id!r}")
+        return self
+
+    def configure_label(
+        self,
+        layer_id: str,
+        label: Label | None = None,
+        *,
+        text: str | None = None,
+        visible: bool | None = None,
+        offset: tuple[float, float] | None = None,
+    ) -> AggregationFigure:
+        matched = False
+        for panel in self.panels:
+            if layer_id in panel.label_ids or f"{layer_id}.label" in panel.label_ids:
+                panel.configure_label(
+                    layer_id,
+                    label,
+                    text=text,
+                    visible=visible,
+                    offset=offset,
+                )
+                matched = True
+        if not matched:
+            raise KeyError(f"Unknown aggregation label {layer_id!r}")
+        return self
 
 
 @dataclass(frozen=True)
@@ -90,6 +145,8 @@ def _build(
     theme: PlotTheme,
     point: bool,
     link_price: bool = False,
+    labels: Mapping[str, Label] | None = None,
+    visibility: Mapping[str, bool] | None = None,
 ) -> AggregationFigure:
     """Draw the panels; ``link_price`` runs the price guide across every panel
     and the gaps between them, marking the price on the first panel only."""
@@ -100,6 +157,8 @@ def _build(
             x_max=panel.x_max,
             y_max=y_max,
             theme=theme,
+            labels=labels,
+            visibility=visibility,
         )
         canvas.extend(panel.draw(canvas))
         canvas.extend(
@@ -125,7 +184,7 @@ def _build(
                 index + 1,
                 (0.0, price),
                 role="principle.market.guide",
-                stroke=Stroke(dash=DashStyle.DASHED),
+                stroke=Stroke(width=1.0, dash=DashStyle.DASHED),
             )
             for index, (left, _) in enumerate(pairwise(panels))
         )
@@ -161,12 +220,17 @@ def _line_panels(
             )
         )
     market_q = sum(panel.quantity for panel in panels)
+    active_names = [
+        name
+        for name, panel in zip(names, panels, strict=True)
+        if panel.quantity > 0
+    ]
     panels.append(
         _Panel(
             panel_id="market",
             title="Market",
             quantity=market_q,
-            quantity_label=_sum_label(names),
+            quantity_label=_sum_label(active_names),
             x_max=market_points[-1][0] * MARGIN,
             draw=lambda canvas: named_path_layers(
                 canvas,
@@ -188,6 +252,8 @@ def demand_aggregation_figure(
     theme: PlotTheme | None = None,
     palette: str | None = None,
     link_price: bool = False,
+    labels: Mapping[str, Label] | None = None,
+    visibility: Mapping[str, bool] | None = None,
 ) -> AggregationFigure:
     """Individual demands, their horizontal sum, and the quantities at ``price``.
 
@@ -221,6 +287,8 @@ def demand_aggregation_figure(
         theme=_theme(theme, palette),
         point=True,
         link_price=link_price,
+        labels=labels,
+        visibility=visibility,
     )
 
 
@@ -233,6 +301,8 @@ def supply_aggregation_figure(
     theme: PlotTheme | None = None,
     palette: str | None = None,
     link_price: bool = False,
+    labels: Mapping[str, Label] | None = None,
+    visibility: Mapping[str, bool] | None = None,
 ) -> AggregationFigure:
     """Individual supplies up to ``p_max``, their sum, and quantities at ``price``.
 
@@ -267,6 +337,8 @@ def supply_aggregation_figure(
         theme=_theme(theme, palette),
         point=True,
         link_price=link_price,
+        labels=labels,
+        visibility=visibility,
     )
 
 
@@ -280,6 +352,8 @@ def _discrete_figure(
     role: str,
     theme: PlotTheme,
     link_price: bool,
+    labels: Mapping[str, Label] | None,
+    visibility: Mapping[str, bool] | None,
 ) -> AggregationFigure:
     if price <= 0:
         raise AggregationError("price must be positive.")
@@ -322,6 +396,8 @@ def _discrete_figure(
         theme=theme,
         point=False,
         link_price=link_price,
+        labels=labels,
+        visibility=visibility,
     )
 
 
@@ -333,6 +409,8 @@ def discrete_demand_aggregation_figure(
     theme: PlotTheme | None = None,
     palette: str | None = None,
     link_price: bool = False,
+    labels: Mapping[str, Label] | None = None,
+    visibility: Mapping[str, bool] | None = None,
 ) -> AggregationFigure:
     """Individual unit demands, the combined market schedule, and units at ``price``.
 
@@ -349,6 +427,8 @@ def discrete_demand_aggregation_figure(
         role=DEMAND_ROLE,
         theme=_theme(theme, palette),
         link_price=link_price,
+        labels=labels,
+        visibility=visibility,
     )
 
 
@@ -360,6 +440,8 @@ def discrete_supply_aggregation_figure(
     theme: PlotTheme | None = None,
     palette: str | None = None,
     link_price: bool = False,
+    labels: Mapping[str, Label] | None = None,
+    visibility: Mapping[str, bool] | None = None,
 ) -> AggregationFigure:
     """Individual unit costs, the combined market schedule, and units at ``price``.
 
@@ -376,6 +458,8 @@ def discrete_supply_aggregation_figure(
         role=SUPPLY_ROLE,
         theme=_theme(theme, palette),
         link_price=link_price,
+        labels=labels,
+        visibility=visibility,
     )
 
 

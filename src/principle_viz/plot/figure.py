@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import replace
 from pathlib import Path
 
 from mosaickit import (
     AxisMarkLayer,
-    Canvas,
     CanvasSpec,
     Layer,
     LegendLayer,
@@ -27,6 +26,8 @@ from principle_viz.core.equilibrium import EquilibriumResult
 from principle_viz.core.factor_markets import LoanableFundsResult, MinimumWageResult
 from principle_viz.core.line import Line
 from principle_viz.core.shifts import ComparativeStaticsResult
+from principle_viz.plot.canvas import Canvas
+from principle_viz.plot.label import Label
 from principle_viz.plot.theme import PlotTheme
 from principle_viz.policy.common_resources import CommonResourceResult
 from principle_viz.policy.externality import ExternalityResult
@@ -81,6 +82,8 @@ class MarketFigure:
         title: str = "Market Diagram",
         theme: PlotTheme | None = None,
         palette: str | None = None,
+        labels: Mapping[str, Label] | None = None,
+        visibility: Mapping[str, bool] | None = None,
     ) -> None:
         self.theme = theme or PlotTheme.from_palette(palette or "default")
         self.x_max = float(x_max)
@@ -95,8 +98,10 @@ class MarketFigure:
                 title=title,
             ),
             theme=self.theme.to_mosaickit(),
+            labels=labels,
+            visibility=visibility,
         )
-        self.canvas.extend(
+        self.add_layers(
             market_axes_layers(
                 self.x_max,
                 self.y_max,
@@ -112,8 +117,7 @@ class MarketFigure:
         return self.canvas.snapshot()
 
     def add_layer(self, layer: Layer) -> MarketFigure:
-        self.canvas.add(layer)
-        return self
+        return self.add_layers((layer,))
 
     def add_layers(self, layers: Iterable[Layer]) -> MarketFigure:
         """Add layers; an axis mark replaces any earlier mark at the same value."""
@@ -128,6 +132,56 @@ class MarketFigure:
                     ):
                         self.canvas.remove(old.id)
         self.canvas.extend(layers)
+        return self
+
+    @property
+    def layer_ids(self) -> tuple[str, ...]:
+        """Stable ids of all layers currently supplied by the figure."""
+        return self.canvas.layer_ids
+
+    def configure_layer(self, layer_id: str, *, visible: bool) -> MarketFigure:
+        """Show or hide any supplied line, point, region, or annotation."""
+        self.canvas.configure_layer(layer_id, visible=visible)
+        return self
+
+    def hide(self, *layer_ids: str) -> MarketFigure:
+        """Hide supplied layers by stable id."""
+        for layer_id in layer_ids:
+            self.configure_layer(layer_id, visible=False)
+        return self
+
+    def show(self, *layer_ids: str) -> MarketFigure:
+        """Show supplied layers by stable id."""
+        for layer_id in layer_ids:
+            self.configure_layer(layer_id, visible=True)
+        return self
+
+    @property
+    def label_ids(self) -> tuple[str, ...]:
+        """Stable ids of every built-in label currently provided by the figure."""
+        return self.canvas.label_ids
+
+    def configure_label(
+        self,
+        layer_id: str,
+        label: Label | None = None,
+        *,
+        text: str | None = None,
+        visible: bool | None = None,
+        offset: tuple[float, float] | None = None,
+    ) -> MarketFigure:
+        """Show, hide, rename, or move one built-in label.
+
+        ``layer_id`` may be the label id returned by :attr:`label_ids` or the id
+        without its final ``".label"``. Offsets are in points.
+        """
+        self.canvas.configure_label(
+            layer_id,
+            label,
+            text=text,
+            visible=visible,
+            offset=offset,
+        )
         return self
 
     def _add_named_curves(self, layers: Iterable[Layer]) -> MarketFigure:
@@ -151,8 +205,8 @@ class MarketFigure:
         demand: Line,
         supply: Line,
         q_max: float,
-        demand_label: str = "Demand",
-        supply_label: str = "Supply",
+        demand_label: str = "$D$",
+        supply_label: str = "$S$",
     ) -> MarketFigure:
         return self._add_named_curves(
             (
@@ -180,8 +234,8 @@ class MarketFigure:
         demand: DiscreteDemand | None = None,
         supply: DiscreteSupply | None = None,
         *,
-        demand_label: str = "Demand",
-        supply_label: str = "Supply",
+        demand_label: str = "$D$",
+        supply_label: str = "$S$",
     ) -> MarketFigure:
         """Step schedules, each named at its last step; pass one or both."""
         schedules = [
@@ -321,8 +375,8 @@ class MarketFigure:
         "Tax" brace over ``p_s``..``p_d``, ``"outside"`` the axis (default) or
         ``"inside"`` the plot. ``notes=True`` explains each mark beside the axis.
 
-        The wedge itself is named "Tax wedge" unless the figure already names the
-        tax revenue region, which then says the same thing.
+        The wedge itself is named ``t`` unless the figure already names the tax
+        revenue region.
         """
         names_revenue = any(
             layer.id == "market.welfare.tax_revenue" for layer in self.scene.layers
@@ -356,7 +410,7 @@ class MarketFigure:
                 producer_price=result.post_tax.producer_price,
                 baseline_quantity=result.baseline_equilibrium.q_star,
                 baseline_price=result.baseline_equilibrium.p_star,
-                label=None if names_revenue else "Tax wedge",
+                label=None if names_revenue else f"$t = {result.post_tax.tax_wedge:g}$",
                 brace_side=brace_side,
                 notes=notes,
             )
@@ -573,11 +627,11 @@ class MarketFigure:
         )
 
     def finalize(self, legend: bool = False) -> MarketFigure:
-        """Finish the figure: drop guide lines that would cut a shaded welfare
+        """Finish the figure: hide guide lines that would cut a shaded welfare
         region in two (its axis mark still names the value), and add a legend only
         when ``legend`` is on."""
         for guide_id in guides_through_regions(self.scene.layers):
-            self.canvas.remove(guide_id)
+            self.canvas.hide(guide_id)
         if any(layer.id == "market.legend" for layer in self.scene.layers):
             self.canvas.remove("market.legend")
         if legend:

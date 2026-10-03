@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import replace
 
 from mosaickit import (
     AxisMarkLayer,
-    Canvas,
     CanvasSpec,
     DashStyle,
     Layer,
@@ -17,6 +16,8 @@ from mosaickit import (
 )
 
 from principle_viz.core.discrete import DiscreteDemand, DiscreteSupply
+from principle_viz.plot.canvas import Canvas
+from principle_viz.plot.label import Label
 from principle_viz.visuals.axes import market_axes_layers
 from principle_viz.visuals.direct_labels import curve_label_layer
 from principle_viz.visuals.discrete import discrete_schedule_layers
@@ -34,6 +35,8 @@ def aggregation_panel(
     x_max: float,
     y_max: float,
     theme: PlotTheme,
+    labels: Mapping[str, Label] | None = None,
+    visibility: Mapping[str, bool] | None = None,
 ) -> Canvas:
     """An empty p/Q panel with arrowed axes at the origin."""
     return Canvas(
@@ -48,6 +51,8 @@ def aggregation_panel(
             title=title,
         ),
         theme=theme.to_mosaickit(),
+        labels=labels,
+        visibility=visibility,
     ).extend(
         market_axes_layers(
             x_max,
@@ -149,7 +154,7 @@ def quantity_guide_layers(
     endpoint, or a step's own riser on the guide), so it never runs through a
     marker or over another line.
     """
-    dashed = Stroke(dash=DashStyle.DASHED)
+    dashed = Stroke(width=1.0, dash=DashStyle.DASHED)
     layers: list[Layer] = []
     if price_mark:
         layers.append(

@@ -57,7 +57,8 @@ def price_control_layers(
     braces it on the quantity axis instead)."""
     role = "principle.policy.control"
     ceiling = result.control_type == PriceControlType.CEILING
-    name = "Price ceiling" if ceiling else "Price floor"
+    symbol = "p_c" if ceiling else "p_f"
+    name = f"${symbol}$"
     price = result.control_price
     layers: list[Layer] = [
         PathLayer(
@@ -75,7 +76,13 @@ def price_control_layers(
             role=role,
             z_index=4,
         ),
-        AxisMarkLayer("y", price, "p_c", math=True, id="market.control.mark.p_c"),
+        AxisMarkLayer(
+            "y",
+            price,
+            symbol,
+            math=True,
+            id=f"market.control.mark.{symbol}",
+        ),
     ]
     if not result.is_binding:
         return tuple(layers)
@@ -128,7 +135,7 @@ def tax_wedge_layers(
     producer_price: float,
     baseline_quantity: float | None = None,
     baseline_price: float | None = None,
-    label: str | None = "Tax wedge",
+    label: str | None = "$t$",
     layer_id: str = "market.tax.wedge",
     brace_side: str = "outside",
     notes: bool = False,
@@ -149,7 +156,7 @@ def tax_wedge_layers(
             ((quantity, producer_price), (quantity, consumer_price)),
             id=layer_id,
             role=role,
-            stroke=Stroke(dash=DashStyle.DASHED),
+            stroke=Stroke(width=1.0, dash=DashStyle.DASHED),
             z_index=5,
         ),
         PathLayer(

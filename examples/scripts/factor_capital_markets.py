@@ -31,8 +31,8 @@ def main() -> None:
         labor_demand,
         labor_supply,
         q_max=10,
-        demand_label="Labor demand",
-        supply_label="Labor supply",
+        demand_label="$D_L$",
+        supply_label="$S_L$",
     )
     figure.add_minimum_wage(labor)
     figure.finalize()

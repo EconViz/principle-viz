@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from mosaickit import (
     AxisMarkLayer,
-    Canvas,
     CanvasSpec,
     FillLayer,
     Layer,
@@ -15,6 +16,8 @@ from mosaickit import (
 
 from principle_viz.core.equilibrium import EquilibriumResult
 from principle_viz.core.public_goods import PublicGoodResult
+from principle_viz.plot.canvas import Canvas
+from principle_viz.plot.label import Label
 from principle_viz.policy.common_resources import CommonResourceResult
 from principle_viz.policy.externality import ExternalityResult
 from principle_viz.visuals.axes import FIGURE_SIZE, market_axes_layers
@@ -181,7 +184,7 @@ def common_resource_layers(
                     + result.social_cost.p_at(efficient.q_star)
                 ),
             ),
-            f"Fee = {result.corrective_fee:g}",
+            f"$f = {result.corrective_fee:g}$",
             id="market.common_resource.fee.label",
             role="principle.policy.tax",
             z_index=6,
@@ -194,6 +197,8 @@ def public_good_canvas(
     result: PublicGoodResult,
     *,
     theme: PlotTheme | None = None,
+    labels: Mapping[str, Label] | None = None,
+    visibility: Mapping[str, bool] | None = None,
 ) -> Canvas:
     selected = theme or PlotTheme()
     q_max = result.points[-1].quantity * 1.08
@@ -214,6 +219,8 @@ def public_good_canvas(
             title="Public Good",
         ),
         theme=selected.to_mosaickit(),
+        labels=labels,
+        visibility=visibility,
     ).extend(market_axes_layers(q_max, y_max, x_label="Q", y_label="$MB$, $MC$"))
     curves: list[PathLayer] = []
     for index, individual in enumerate(result.individuals):

@@ -100,7 +100,7 @@ def test_comparative_statics_labels_are_point_labels() -> None:
 def test_curve_labels_are_point_labels_at_the_curve_end() -> None:
     figure = MarketFigure(x_max=12, y_max=12).add_curves(DEMAND, SUPPLY, q_max=11)
     demand = _point_label(figure, "market.demand.label")
-    assert demand.text == "Demand"
+    assert demand.text == "$D$"
     assert demand.point == pytest.approx((10.0, 0.0))
 
 
@@ -110,7 +110,7 @@ def test_curve_labels_are_point_labels_at_the_curve_end() -> None:
         (
             lambda f: f.add_tax_comparison(compare_tax_scenario(DEMAND, SUPPLY, TAX)),
             "market.tax.wedge.label",
-            "Tax wedge",
+            "$t = ",
         ),
         (
             lambda f: f.add_tax_transform(DEMAND, SUPPLY, TAX, q_max=10),
@@ -131,7 +131,7 @@ def test_curve_labels_are_point_labels_at_the_curve_end() -> None:
                 analyze_common_resource(DEMAND, SUPPLY, marginal_congestion_cost=2)
             ),
             "market.common_resource.fee.label",
-            "Fee = ",
+            "$f = ",
         ),
         (
             lambda f: f.add_subsidy_comparison(
@@ -147,6 +147,20 @@ def test_curve_labels_are_point_labels_at_the_curve_end() -> None:
 def test_policy_annotations_are_point_labels(build, label_id, prefix) -> None:
     figure = build(MarketFigure(x_max=12, y_max=14))
     assert _point_label(figure, label_id).text.startswith(prefix)
+
+
+def test_tax_wedge_is_a_thin_dashed_line() -> None:
+    from mosaickit import DashStyle, PathLayer
+
+    figure = MarketFigure(x_max=12, y_max=14).add_tax_comparison(
+        compare_tax_scenario(DEMAND, SUPPLY, TAX)
+    )
+    wedge = _layers(figure)["market.tax.wedge"]
+
+    assert isinstance(wedge, PathLayer)
+    assert wedge.stroke is not None
+    assert wedge.stroke.width == 1.0
+    assert wedge.stroke.dash == DashStyle.DASHED
 
 
 def test_no_text_layer_is_placed_by_a_hard_coded_offset() -> None:
@@ -331,8 +345,8 @@ def test_trade_volume_is_a_brace_on_the_quantity_axis(
 @pytest.mark.parametrize(
     "control,price,name,gap,side",
     [
-        (PriceControlType.CEILING, 4.0, "Price ceiling", "Shortage", "below"),
-        (PriceControlType.FLOOR, 8.0, "Price floor", "Surplus", "above"),
+        (PriceControlType.CEILING, 4.0, "$p_c$", "Shortage", "below"),
+        (PriceControlType.FLOOR, 8.0, "$p_f$", "Surplus", "above"),
     ],
 )
 def test_binding_price_control_braces_the_gap_on_the_control_line(
@@ -346,7 +360,8 @@ def test_binding_price_control_braces_the_gap_on_the_control_line(
     assert layers["market.control.price"].legend == name
     assert isinstance(layers["market.control.price.label"], PointLabelLayer)
     assert layers["market.control.price.label"].text == name
-    assert _marks(figure, "y")["p_c"] == pytest.approx(price)
+    symbol = "p_c" if control == PriceControlType.CEILING else "p_f"
+    assert _marks(figure, "y")[symbol] == pytest.approx(price)
     q_d, q_s = DEMAND.q_at(price), SUPPLY.q_at(price)
     marks = _marks(figure, "x")
     assert (marks["Q_d"], marks["Q_s"]) == pytest.approx((q_d, q_s))

@@ -39,3 +39,25 @@ def test_revenue_visuals_are_mosaickit_canvases() -> None:
     assert "elasticity.revenue.maximum" in {
         layer.id for layer in revenue_canvas.snapshot().layers
     }
+
+
+def test_revenue_layers_and_text_are_user_configurable() -> None:
+    from principle_viz import Label
+
+    demand = Line.from_inverse(12, -1)
+    result = elasticity_revenue_schedule(demand)
+    demand_canvas, revenue_canvas = elasticity_revenue_canvases(
+        demand,
+        result,
+        visibility={"elasticity.unit.point": False},
+        labels={"elasticity.revenue.maximum": Label(text="$TR_{max}$")},
+    )
+    demand_layers = {
+        layer.id: layer for layer in demand_canvas.snapshot().layers
+    }
+    revenue_layers = {
+        layer.id: layer for layer in revenue_canvas.snapshot().layers
+    }
+
+    assert not demand_layers["elasticity.unit.point"].visible
+    assert revenue_layers["elasticity.revenue.maximum.label"].text == "$TR_{max}$"

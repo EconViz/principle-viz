@@ -77,3 +77,23 @@ def test_ppf_visual_canvases_have_semantic_layers() -> None:
     growth_ids = {layer.id for layer in ppf_growth_canvas(growth).snapshot().layers}
     assert "ppf.growth.baseline" in growth_ids
     assert "ppf.growth.shifted" in growth_ids
+
+
+def test_ppf_layers_and_labels_are_user_configurable() -> None:
+    from principle_viz import Label
+
+    frontier = ProductionPossibilitiesFrontier(10, 8, curvature=2)
+    analysis = analyze_ppf(frontier, ((4, 3, "B"),))
+    canvas = ppf_canvas(
+        analysis,
+        visibility={"ppf.feasible_set": False},
+        labels={"ppf.frontier": Label(text="$F$")},
+    )
+    layers = {layer.id: layer for layer in canvas.snapshot().layers}
+
+    assert not layers["ppf.feasible_set"].visible
+    assert layers["ppf.frontier.label"].text == "$F$"
+    canvas.hide("ppf.point.0").configure_label("ppf.point.0", text="A")
+    layers = {layer.id: layer for layer in canvas.snapshot().layers}
+    assert not layers["ppf.point.0"].visible
+    assert layers["ppf.point.0.label"].text == "A"

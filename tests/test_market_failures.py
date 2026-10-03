@@ -136,3 +136,26 @@ def test_public_good_marks_private_and_efficient_quantity_on_the_axis() -> None:
     assert not any("Efficient" in t or "Private" in t for t in texts)
     # The quantity axis ends just past the curves instead of leaving empty space.
     assert canvas.spec.x_range[1] <= 1.1 * result.points[-1].quantity
+
+
+def test_public_good_layers_and_labels_are_user_configurable() -> None:
+    from principle_viz import Label
+
+    result = analyze_public_good(
+        (IndividualBenefit("A", Line.from_inverse(8, -1)),),
+        Line.from_inverse(5, 0),
+    )
+    canvas = public_good_canvas(
+        result,
+        visibility={"public_good.private_provision": False},
+        labels={"public_good.social_benefit": Label(text="$MB$")},
+    )
+    layers = {layer.id: layer for layer in canvas.snapshot().layers}
+
+    assert not layers["public_good.private_provision"].visible
+    assert layers["public_good.social_benefit.label"].text == "$MB$"
+    canvas.hide("public_good.efficient.guide")
+    canvas.configure_label("public_good.efficient.mark", text="Q_e")
+    layers = {layer.id: layer for layer in canvas.snapshot().layers}
+    assert not layers["public_good.efficient.guide"].visible
+    assert layers["public_good.efficient.mark"].label == "Q_e"

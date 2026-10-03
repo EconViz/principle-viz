@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from mosaickit import (
-    Canvas,
     CanvasSpec,
     FillLayer,
     MarkerLayer,
@@ -12,6 +13,8 @@ from mosaickit import (
 )
 
 from principle_viz.core.ppf import PointStatus, PPFAnalysisResult, PPFGrowthResult
+from principle_viz.plot.canvas import Canvas
+from principle_viz.plot.label import Label
 from principle_viz.visuals.axes import FIGURE_SIZE, market_axes_layers
 from principle_viz.visuals.direct_labels import curve_label_layer, curve_label_layers
 from principle_viz.visuals.theme import PlotTheme
@@ -27,6 +30,8 @@ def ppf_canvas(
     result: PPFAnalysisResult,
     *,
     theme: PlotTheme | None = None,
+    labels: Mapping[str, Label] | None = None,
+    visibility: Mapping[str, bool] | None = None,
 ) -> Canvas:
     frontier = result.frontier
     selected = theme or PlotTheme()
@@ -42,6 +47,8 @@ def ppf_canvas(
             title="Production Possibilities Frontier",
         ),
         theme=selected.to_mosaickit(),
+        labels=labels,
+        visibility=visibility,
     ).extend(
         market_axes_layers(
             x_max,
@@ -97,6 +104,8 @@ def ppf_growth_canvas(
     result: PPFGrowthResult,
     *,
     theme: PlotTheme | None = None,
+    labels: Mapping[str, Label] | None = None,
+    visibility: Mapping[str, bool] | None = None,
 ) -> Canvas:
     selected = theme or PlotTheme()
     x_max = max(result.baseline.x_intercept, result.shifted.x_intercept) * 1.1
@@ -111,6 +120,8 @@ def ppf_growth_canvas(
             title="Economic Growth",
         ),
         theme=selected.to_mosaickit(),
+        labels=labels,
+        visibility=visibility,
     ).extend(
         market_axes_layers(
             x_max,

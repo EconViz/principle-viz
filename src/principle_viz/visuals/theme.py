@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from mosaickit import DEFAULT_PALETTE as _P
 from mosaickit import (
     DashStyle,
     Fill,
@@ -39,7 +38,11 @@ _BLUE, _ORANGE, _GREEN, _, _, _PURPLE, _, _RED, _ = COLORBLIND_CYCLE_HEX
 
 @dataclass(frozen=True)
 class ColorModel:
-    """Named economics color roles retained for API compatibility."""
+    """Named economics color roles retained for API compatibility.
+
+    Each field is a ``"#hex"`` value or a MosaicKit palette name such as ``"blue"``,
+    resolved against the active palette when a canvas renders.
+    """
 
     name: str
     axis_color: str = "#222222"
@@ -73,22 +76,25 @@ _COLORBLIND = {
     "arrow_color": "#111111",
 }
 
-# Default: MosaicKit's palette. Demand is blue and supply red; consumer and
-# producer surplus reuse those hues, and deadweight loss gets its own (teal).
+# Default: colours named from the active MosaicKit palette (``DEFAULT_PALETTE``
+# unless ``Config(palette=...)`` or a TOML ``[palette]`` table overrides it), so
+# redefining "blue" there recolours demand, consumer surplus, and everything else
+# that names it. Demand is blue and supply red; consumer and producer surplus
+# reuse those hues, and deadweight loss gets its own (teal).
 _DEFAULT = {
-    "axis_color": _P["grey-800"].to_hex(),
-    "label_color": _P["grey-900"].to_hex(),
-    "demand_color": _P["blue"].to_hex(),
-    "supply_color": _P["red"].to_hex(),
-    "baseline_color": _P["grey-900"].to_hex(),
-    "shifted_color": _P["grey-600"].to_hex(),
-    "tax_color": _P["red"].to_hex(),
-    "control_color": _P["teal"].to_hex(),
-    "cs_color": _P["blue"].to_hex(),
-    "ps_color": _P["red"].to_hex(),
-    "tax_revenue_color": _P["grey-400"].to_hex(),
-    "dwl_color": _P["teal"].to_hex(),
-    "arrow_color": _P["grey-900"].to_hex(),
+    "axis_color": "grey-800",
+    "label_color": "grey-900",
+    "demand_color": "blue",
+    "supply_color": "red",
+    "baseline_color": "grey-900",
+    "shifted_color": "grey-600",
+    "tax_color": "red",
+    "control_color": "teal",
+    "cs_color": "blue",
+    "ps_color": "red",
+    "tax_revenue_color": "grey-400",
+    "dwl_color": "teal",
+    "arrow_color": "grey-900",
 }
 
 DEFAULT_COLOR_MODEL = ColorModel(name="default", **_DEFAULT)

@@ -1,10 +1,10 @@
 """MosaicKit canvases for elasticity and total revenue."""
 
-from mosaickit import Canvas, CanvasSpec, MarkerLayer, PathLayer, TextLayer
+from mosaickit import Canvas, CanvasSpec, MarkerLayer, PathLayer, PointLabelLayer
 
 from principle_viz.core.line import Line
 from principle_viz.core.revenue import ElasticityRevenueResult
-from principle_viz.visuals.axes import market_axes_layers
+from principle_viz.visuals.axes import FIGURE_SIZE, market_axes_layers
 from principle_viz.visuals.direct_labels import curve_label_layer
 from principle_viz.visuals.theme import PlotTheme
 
@@ -19,6 +19,7 @@ def elasticity_revenue_canvases(
     q_max = result.choke_quantity * 1.05
     demand_canvas = Canvas(
         CanvasSpec(
+            **FIGURE_SIZE,
             x_range=(0, q_max),
             y_range=(0, result.choke_price * 1.05),
             x_label="Q",
@@ -70,27 +71,22 @@ def elasticity_revenue_canvases(
         ),
     ):
         demand_canvas.add(
-            TextLayer(
-                position,
-                text,
-                id=f"elasticity.label.{layer_id}",
-                offset=(8, 8),
-                anchor="left",
-            )
+            PointLabelLayer(position, text, id=f"elasticity.label.{layer_id}")
         )
 
     revenue_canvas = Canvas(
         CanvasSpec(
+            **FIGURE_SIZE,
             x_range=(0, q_max),
             y_range=(0, result.maximum_revenue * 1.15),
             x_label="Q",
-            y_label="TR",
+            y_label="$TR$",
             title="Total Revenue",
         ),
         theme=selected.to_mosaickit(),
     ).extend(
         market_axes_layers(
-            q_max, result.maximum_revenue * 1.15, x_label="Q", y_label="TR"
+            q_max, result.maximum_revenue * 1.15, x_label="Q", y_label="$TR$"
         )
     )
     revenue_canvas.add(
@@ -109,12 +105,10 @@ def elasticity_revenue_canvases(
         )
     )
     revenue_canvas.add(
-        TextLayer(
+        PointLabelLayer(
             (result.unit_elastic_quantity, result.maximum_revenue),
-            "Maximum TR at |ε|=1",
+            r"Maximum $TR$ at $|\varepsilon| = 1$",
             id="elasticity.revenue.maximum.label",
-            offset=(8, 8),
-            anchor="left",
         )
     )
     return demand_canvas, revenue_canvas

@@ -31,7 +31,7 @@ def main() -> None:
     tax_eq = solve_tax_equilibrium(
         demand,
         supply,
-        TaxScenario(tax_type=TaxType.PER_UNIT_TAX, amount=1.0, tax_on=TaxOn.PRODUCER),
+        TaxScenario(tax_type=TaxType.PER_UNIT_TAX, amount=3.0, tax_on=TaxOn.PRODUCER),
     )
 
     baseline_outcome = outcome_from_equilibrium(baseline_eq)
@@ -40,7 +40,7 @@ def main() -> None:
     tax_comparison = compare_tax_scenario(
         demand,
         supply,
-        TaxScenario(tax_type=TaxType.PER_UNIT_TAX, amount=1.0, tax_on=TaxOn.PRODUCER),
+        TaxScenario(tax_type=TaxType.PER_UNIT_TAX, amount=3.0, tax_on=TaxOn.PRODUCER),
     )
 
     # Welfare regions, each named inside or by callout.

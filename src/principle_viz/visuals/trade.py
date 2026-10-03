@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
-from mosaickit import ArrowLayer, FillLayer, Layer, PathLayer, TextLayer
+from mosaickit import (
+    ArrowLayer,
+    AxisMarkLayer,
+    FillLayer,
+    Layer,
+    PathLayer,
+    PointLabelLayer,
+)
 
 from principle_viz.policy.trade import TradeComparisonResult, TradeDirection
 from principle_viz.visuals.direct_labels import region_label_layer
@@ -19,14 +26,12 @@ def trade_layers(result: TradeComparisonResult, *, x_max: float) -> tuple[Layer,
             legend="World price",
             z_index=2,
         ),
-        TextLayer(
-            (0.02 * x_max, free.domestic_price),
-            r"$p_w$",
+        AxisMarkLayer(
+            "y",
+            free.domestic_price,
+            "p_w",
+            math=True,
             id="market.trade.world_price.mark",
-            role="principle.trade.world",
-            offset=(0, -14),
-            anchor="left",
-            z_index=4,
         ),
     ]
     if policy.domestic_price > free.domestic_price + 1e-9:
@@ -39,14 +44,12 @@ def trade_layers(result: TradeComparisonResult, *, x_max: float) -> tuple[Layer,
                     legend="Domestic policy price",
                     z_index=2,
                 ),
-                TextLayer(
-                    (0.02 * x_max, policy.domestic_price),
-                    r"$p_{policy}$",
+                AxisMarkLayer(
+                    "y",
+                    policy.domestic_price,
+                    "p_w + t" if policy.government_revenue > 1e-9 else "p_q",
+                    math=True,
                     id="market.trade.policy_price.mark",
-                    role="principle.trade.policy",
-                    offset=(0, 8),
-                    anchor="left",
-                    z_index=4,
                 ),
             )
         )
@@ -75,13 +78,11 @@ def trade_layers(result: TradeComparisonResult, *, x_max: float) -> tuple[Layer,
                     role="principle.trade.flow",
                     z_index=5,
                 ),
-                TextLayer(
+                PointLabelLayer(
                     midpoint,
                     label,
                     id="market.trade.volume.label",
                     role="principle.trade.flow",
-                    offset=(0, 10),
-                    anchor="bottom",
                     z_index=6,
                 ),
             )

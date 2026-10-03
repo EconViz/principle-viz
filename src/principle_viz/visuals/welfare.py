@@ -1,6 +1,6 @@
 """Welfare regions and annotations as MosaicKit layers."""
 
-from mosaickit import FillLayer, Layer, PathLayer, TextLayer
+from mosaickit import AxisMarkLayer, FillLayer, Layer, PathLayer
 
 from principle_viz.visuals.direct_labels import region_label_layer
 from principle_viz.welfare.layout import (
@@ -95,41 +95,33 @@ def welfare_overlay_layers(
             role=role,
             z_index=3,
         ),
-        TextLayer(
-            (ref.baseline_quantity, 0.0),
-            r"$Q_0$",
+        AxisMarkLayer(
+            "x",
+            ref.baseline_quantity,
+            "Q_0",
+            math=True,
             id="market.welfare.label.q0",
-            role="principle.annotation",
-            offset=(0, -12),
-            anchor="bottom",
-            z_index=4,
         ),
-        TextLayer(
-            (ref.policy_quantity, 0.0),
-            r"$Q_1$",
+        AxisMarkLayer(
+            "x",
+            ref.policy_quantity,
+            "Q_1",
+            math=True,
             id="market.welfare.label.q1",
-            role="principle.annotation",
-            offset=(0, -12),
-            anchor="bottom",
-            z_index=4,
         ),
-        TextLayer(
-            (0.0, ref.baseline_price),
-            r"$p_0$",
+        AxisMarkLayer(
+            "y",
+            ref.baseline_price,
+            "p_0",
+            math=True,
             id="market.welfare.label.p0",
-            role="principle.annotation",
-            offset=(-12, 0),
-            anchor="right",
-            z_index=4,
         ),
-        TextLayer(
-            (0.0, ref.policy_consumer_price),
-            r"$p_1^c$",
+        AxisMarkLayer(
+            "y",
+            ref.policy_consumer_price,
+            "p_1^c",
+            math=True,
             id="market.welfare.label.p1c",
-            role="principle.annotation",
-            offset=(-12, 0),
-            anchor="right",
-            z_index=4,
         ),
     ]
     if abs(ref.policy_consumer_price - ref.policy_producer_price) > 1e-9:
@@ -144,14 +136,12 @@ def welfare_overlay_layers(
                     role=role,
                     z_index=3,
                 ),
-                TextLayer(
-                    (0.0, ref.policy_producer_price),
-                    r"$p_1^p$",
+                AxisMarkLayer(
+                    "y",
+                    ref.policy_producer_price,
+                    "p_1^p",
+                    math=True,
                     id="market.welfare.label.p1p",
-                    role="principle.annotation",
-                    offset=(-12, 0),
-                    anchor="right",
-                    z_index=4,
                 ),
             )
         )

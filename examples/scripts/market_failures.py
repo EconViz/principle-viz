@@ -68,8 +68,8 @@ def main() -> None:
         benefit,
         private_cost,
         q_max=10,
-        demand_label="MB",
-        supply_label="MPC",
+        demand_label="$MB$",
+        supply_label="$MPC$",
     )
     figure.add_common_resource(common)
     figure.finalize()

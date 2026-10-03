@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from mosaickit import ArrowLayer, Layer, PathLayer, TextLayer
+from mosaickit import ArrowLayer, Layer, PathLayer, PointLabelLayer
 
 from principle_viz.core.factor_markets import LoanableFundsResult, MinimumWageResult
 from principle_viz.visuals.curves import curve_layer
 from principle_viz.visuals.equilibrium import equilibrium_layers, movement_layers
+from principle_viz.visuals.policy import line_label_anchor
 
 
 def minimum_wage_layers(
@@ -20,13 +21,15 @@ def minimum_wage_layers(
             legend="Minimum wage",
             z_index=3,
         ),
-        TextLayer(
-            (0.02 * x_max, result.minimum_wage),
+        PointLabelLayer(
+            line_label_anchor(
+                result.minimum_wage,
+                (result.labor_demanded, result.labor_supplied),
+                x_max,
+            ),
             f"Minimum wage = {result.minimum_wage:g}",
             id="labor.minimum_wage.label",
             role="principle.policy.control",
-            offset=(0, 8),
-            anchor="left",
             z_index=4,
         ),
         *equilibrium_layers(
@@ -46,13 +49,11 @@ def minimum_wage_layers(
                     role="principle.policy.control",
                     z_index=5,
                 ),
-                TextLayer(
+                PointLabelLayer(
                     (midpoint, result.minimum_wage),
                     f"Unemployment = {result.unemployment:g}",
                     id="labor.unemployment.label",
                     role="principle.policy.control",
-                    offset=(0, 10),
-                    anchor="bottom",
                     z_index=6,
                 ),
             )
@@ -72,7 +73,7 @@ def loanable_funds_layers(
                 q_max=q_max,
                 layer_id="loanable.savings.shifted",
                 role="principle.market.supply.shifted",
-                label="S₁",
+                label="$S_1$",
             )
         )
     if (
@@ -86,7 +87,7 @@ def loanable_funds_layers(
                 q_max=q_max,
                 layer_id="loanable.investment.shifted",
                 role="principle.market.demand.shifted",
-                label="D₁",
+                label="$D_1$",
             )
         )
     layers.extend(

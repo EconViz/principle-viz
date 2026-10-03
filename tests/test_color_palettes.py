@@ -49,15 +49,20 @@ def test_unknown_palette_raises() -> None:
         get_color_model("not-a-palette")
 
 
-def test_default_palette_takes_its_hues_from_mosaickit() -> None:
+def test_default_palette_names_mosaickit_palette_colours() -> None:
     from mosaickit import DEFAULT_PALETTE as P
 
     default = get_color_model("default")
-    assert default.demand_color == P["blue"].to_hex()
-    assert default.supply_color == P["red"].to_hex()
+    assert default.demand_color == "blue"
+    assert default.supply_color == "red"
     assert default.cs_color == default.demand_color
     assert default.ps_color == default.supply_color
-    assert default.dwl_color == P["teal"].to_hex()
+    assert default.dwl_color == "teal"
+    assert all(
+        getattr(default, name) in P
+        for name in vars(default)
+        if name.endswith("_color")
+    )
 
 
 def test_default_theme_welfare_opacities_and_background() -> None:

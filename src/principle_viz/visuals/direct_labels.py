@@ -2,21 +2,13 @@
 
 from __future__ import annotations
 
-import math
 from collections.abc import Iterable
-from dataclasses import replace
 from itertools import pairwise
 
-from mosaickit import Layer, PathLayer, RegionLabelLayer, TextLayer
+from mosaickit import Layer, PathLayer, PointLabelLayer, RegionLabelLayer
 
 Point = tuple[float, float]
 Range = tuple[float, float]
-
-OFFSET_PT = 4.0
-"""Gap between the curve end and the text box, in points."""
-
-LINE_PT = 13.0
-"""Line step used to stack labels of curves that end at the same point."""
 
 CURVE_ROLES = (
     "principle.market.demand",
@@ -85,49 +77,26 @@ def _visible_end(
     return pick(first, last, key=lambda pair: (pair[0][0], pair[0][1]))
 
 
-def _anchor(end: Point, neighbour: Point, x_range: Range, y_range: Range) -> str:
-    """Compound anchor that puts the text off the curve and inside the figure.
-
-    Text runs rightwards unless the curve leaves through the right edge. A curve that
-    leaves through the top is named just above its exit point, the free space past the
-    end (as with the axis titles); one resting on the quantity axis is named above it.
-    Otherwise the text goes to the side the curve turns away from.
-    """
-    tol_x = 1e-6 * (x_range[1] - x_range[0])
-    tol_y = 1e-6 * (y_range[1] - y_range[0])
-    extends_left = end[0] >= x_range[1] - tol_x
-    at_top = end[1] >= y_range[1] - tol_y
-    at_bottom = end[1] <= y_range[0] + tol_y
-    falls_back = neighbour[1] <= end[1]  # walking back along the curve goes down
-    up = at_top or (at_bottom and not extends_left) or falls_back
-    return f"{'bottom' if up else 'top'}-{'right' if extends_left else 'left'}"
-
-
 def curve_label_layer(
     path: PathLayer, *, x_range: Range, y_range: Range, at: str = "end"
-) -> TextLayer | None:
+) -> PointLabelLayer | None:
     """Name ``path`` with its legend text beside its visible end.
 
     ``at="end"`` (default) uses the right-most end, ``at="start"`` the left-most.
+    MosaicKit places the text right beside that end, inside the plot, covering no
+    line, point, region, or other text.
     """
     if not path.legend:
         return None
     found = _visible_end(tuple(path.path), x_range, y_range, at)
     if found is None:
         return None
-    end, neighbour = found
-    anchor = _anchor(end, neighbour, x_range, y_range)
-    vertical, horizontal = anchor.split("-")
-    return TextLayer(
+    end, _ = found
+    return PointLabelLayer(
         end,
         path.legend,
         id=f"{path.id}.label",
         role=path.role,
-        offset=(
-            OFFSET_PT if horizontal == "left" else -OFFSET_PT,
-            OFFSET_PT if vertical == "bottom" else -OFFSET_PT,
-        ),
-        anchor=anchor,
         z_index=7,
     )
 
@@ -143,42 +112,25 @@ def is_named_curve(layer: Layer) -> bool:
     )
 
 
-def _stacked(label: TextLayer, placed: list[TextLayer]) -> TextLayer:
-    """Move ``label`` one line away from each placed label sharing its end and anchor."""
-    clashes = sum(
-        other.anchor == label.anchor
-        and math.isclose(other.position[0], label.position[0], abs_tol=1e-9)
-        and math.isclose(other.position[1], label.position[1], abs_tol=1e-9)
-        for other in placed
-    )
-    if not clashes:
-        return label
-    step = LINE_PT if label.anchor.startswith("bottom") else -LINE_PT
-    dx, dy = label.offset
-    return replace(label, offset=(dx, dy + clashes * step))
-
-
 def curve_label_layers(
     layers: Iterable[Layer],
     *,
     x_range: Range,
     y_range: Range,
     placed: Iterable[Layer] = (),
-) -> tuple[TextLayer, ...]:
+) -> tuple[PointLabelLayer, ...]:
     """Direct labels for every named curve among ``layers``.
 
-    Labels of curves that end where an already ``placed`` text (or an earlier label
-    here) sits are stacked a line apart rather than drawn over each other.
+    ``placed`` is accepted for compatibility; MosaicKit now keeps labels of curves
+    that end at the same point apart by itself.
     """
-    taken = [layer for layer in placed if isinstance(layer, TextLayer)]
-    labels: list[TextLayer] = []
+    del placed
+    labels: list[PointLabelLayer] = []
     for layer in layers:
         if not is_named_curve(layer):
             continue
         label = curve_label_layer(layer, x_range=x_range, y_range=y_range)
         if label is not None:
-            label = _stacked(label, taken)
-            taken.append(label)
             labels.append(label)
     return tuple(labels)
 

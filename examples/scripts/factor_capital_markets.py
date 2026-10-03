@@ -57,8 +57,8 @@ def main() -> None:
         investment,
         savings,
         q_max=17,
-        demand_label="D₀",
-        supply_label="S₀",
+        demand_label="$D_0$",
+        supply_label="$S_0$",
     )
     figure.add_loanable_funds(funds)
     figure.finalize()

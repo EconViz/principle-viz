@@ -1,6 +1,16 @@
 """Equilibrium markers, labels, guides, and movements."""
 
-from mosaickit import ArrowLayer, Marker, MarkerLayer, Stroke, TextLayer, TextStyle
+from mosaickit import (
+    ArrowLayer,
+    AxisMarkLayer,
+    Layer,
+    Marker,
+    MarkerLayer,
+    PathLayer,
+    PointLabelLayer,
+    Stroke,
+    TextStyle,
+)
 
 from principle_viz.core.equilibrium import EquilibriumResult
 
@@ -10,11 +20,12 @@ def equilibrium_layers(
     *,
     layer_id: str = "market.equilibrium",
     role: str = "principle.market.equilibrium",
-    label: str = r"$e^{*}$",
+    label: str = "$e^*$",
     color: str | None = None,
     marker_size: float | None = None,
-    label_offset: tuple[float, float] = (14, 14),
-) -> tuple[MarkerLayer | TextLayer, ...]:
+) -> tuple[MarkerLayer | PointLabelLayer, ...]:
+    """A filled point and its label, which MosaicKit places beside it so it
+    covers no curve, point, region, or other text."""
     point = (equilibrium.q_star, equilibrium.p_star)
     marker = None
     text_style = None
@@ -35,16 +46,37 @@ def equilibrium_layers(
             model=equilibrium,
             z_index=6,
         ),
-        TextLayer(
+        PointLabelLayer(
             point,
             label,
             id=f"{layer_id}.label",
             role=role,
             style=text_style,
-            offset=label_offset,
-            anchor="left",
             z_index=7,
         ),
+    )
+
+
+def quantity_mark_layers(
+    equilibrium: EquilibriumResult,
+    symbol: str,
+    *,
+    layer_id: str,
+    role: str = "principle.market.equilibrium",
+) -> tuple[Layer, ...]:
+    """A filled point named on the quantity axis instead of beside it: a guide
+    drops from the point to the axis, where ``symbol`` (LaTeX, without ``$``)
+    marks its quantity. Keeps crowded crossings free of text."""
+    q, p = equilibrium.q_star, equilibrium.p_star
+    return (
+        MarkerLayer(((q, p),), id=layer_id, role=role, model=equilibrium, z_index=6),
+        PathLayer(
+            ((q, 0.0), (q, p)),
+            id=f"{layer_id}.guide",
+            role="principle.market.guide",
+            z_index=2,
+        ),
+        AxisMarkLayer("x", q, symbol, math=True, id=f"{layer_id}.mark"),
     )
 
 

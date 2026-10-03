@@ -1,6 +1,9 @@
 """Welfare regions and annotations as MosaicKit layers."""
 
-from mosaickit import FillLayer, Layer, PathLayer, TextLayer
+import math
+from collections.abc import Iterable
+
+from mosaickit import AxisMarkLayer, FillLayer, Layer, PathLayer
 
 from principle_viz.visuals.direct_labels import region_label_layer
 from principle_viz.welfare.layout import (
@@ -20,11 +23,23 @@ _REGION_ROLES = {
 _UNFILLED_ROLES = frozenset({"principle.welfare.revenue"})
 
 
-def welfare_layers(surplus: SurplusResult, *, labels: bool = True) -> tuple[Layer, ...]:
-    """Shade CS, PS, tax revenue, and DWL; name each region unless ``labels`` is off."""
+def welfare_layers(
+    surplus: SurplusResult,
+    *,
+    labels: bool = True,
+    regions: Iterable[str] | None = None,
+) -> tuple[Layer, ...]:
+    """Shade CS, PS, tax revenue, and DWL; name each region unless ``labels`` is off.
+
+    ``regions`` keeps only the given keys (``"cs"``, ``"ps"``, ``"tax_revenue"``,
+    ``"dwl"``), e.g. just the deadweight loss where other areas would overlap.
+    """
+    keep = None if regions is None else set(regions)
     fills: list[Layer] = []
     names: list[Layer] = []
     for region in build_labeled_regions(surplus):
+        if keep is not None and region.key not in keep:
+            continue
         layer_id = f"market.welfare.{region.key}"
         role = _REGION_ROLES[region.key]
         fills.append(
@@ -95,41 +110,33 @@ def welfare_overlay_layers(
             role=role,
             z_index=3,
         ),
-        TextLayer(
-            (ref.baseline_quantity, 0.0),
-            r"$Q_0$",
+        AxisMarkLayer(
+            "x",
+            ref.baseline_quantity,
+            "Q_0",
+            math=True,
             id="market.welfare.label.q0",
-            role="principle.annotation",
-            offset=(0, -12),
-            anchor="bottom",
-            z_index=4,
         ),
-        TextLayer(
-            (ref.policy_quantity, 0.0),
-            r"$Q_1$",
+        AxisMarkLayer(
+            "x",
+            ref.policy_quantity,
+            "Q_1",
+            math=True,
             id="market.welfare.label.q1",
-            role="principle.annotation",
-            offset=(0, -12),
-            anchor="bottom",
-            z_index=4,
         ),
-        TextLayer(
-            (0.0, ref.baseline_price),
-            r"$p_0$",
+        AxisMarkLayer(
+            "y",
+            ref.baseline_price,
+            "p_0",
+            math=True,
             id="market.welfare.label.p0",
-            role="principle.annotation",
-            offset=(-12, 0),
-            anchor="right",
-            z_index=4,
         ),
-        TextLayer(
-            (0.0, ref.policy_consumer_price),
-            r"$p_1^c$",
+        AxisMarkLayer(
+            "y",
+            ref.policy_consumer_price,
+            "p_1^c",
+            math=True,
             id="market.welfare.label.p1c",
-            role="principle.annotation",
-            offset=(-12, 0),
-            anchor="right",
-            z_index=4,
         ),
     ]
     if abs(ref.policy_consumer_price - ref.policy_producer_price) > 1e-9:
@@ -144,15 +151,63 @@ def welfare_overlay_layers(
                     role=role,
                     z_index=3,
                 ),
-                TextLayer(
-                    (0.0, ref.policy_producer_price),
-                    r"$p_1^p$",
+                AxisMarkLayer(
+                    "y",
+                    ref.policy_producer_price,
+                    "p_1^p",
+                    math=True,
                     id="market.welfare.label.p1p",
-                    role="principle.annotation",
-                    offset=(-12, 0),
-                    anchor="right",
-                    z_index=4,
                 ),
             )
         )
     return tuple(layers)
+
+
+def _strictly_inside(
+    point: tuple[float, float], polygon: tuple[tuple[float, float], ...]
+) -> bool:
+    """Whether ``point`` lies inside ``polygon`` and off its edges."""
+    x, y = point
+    inside = False
+    for (x0, y0), (x1, y1) in zip(polygon, polygon[1:] + polygon[:1]):
+        dx, dy = x1 - x0, y1 - y0
+        length2 = dx * dx + dy * dy
+        t = 0.0 if length2 == 0 else ((x - x0) * dx + (y - y0) * dy) / length2
+        t = min(1.0, max(0.0, t))
+        if math.hypot(x - (x0 + t * dx), y - (y0 + t * dy)) <= 1e-9:
+            return False
+        if (y0 > y) != (y1 > y) and x < x0 + (y - y0) * dx / dy:
+            inside = not inside
+    return inside
+
+
+def guides_through_regions(layers: Iterable[Layer]) -> tuple[str, ...]:
+    """Ids of guide lines that cut through a shaded welfare region.
+
+    A guide drawn across a region splits it, leaving its name no room; the axis
+    mark at the guide's end already carries the value.
+    """
+    layers = tuple(layers)
+    regions = [
+        tuple(layer.boundary)
+        for layer in layers
+        if isinstance(layer, FillLayer) and layer.role.startswith("principle.welfare.")
+    ]
+    crossing: list[str] = []
+    for layer in layers:
+        if not (
+            isinstance(layer, PathLayer)
+            and layer.role == "principle.market.guide"
+            and len(layer.path) == 2
+        ):
+            continue
+        (x0, y0), (x1, y1) = layer.path
+        samples = [
+            (x0 + t * (x1 - x0), y0 + t * (y1 - y0))
+            for t in (step / 20 for step in range(1, 20))
+        ]
+        if any(
+            _strictly_inside(point, region) for region in regions for point in samples
+        ):
+            crossing.append(layer.id)
+    return tuple(crossing)

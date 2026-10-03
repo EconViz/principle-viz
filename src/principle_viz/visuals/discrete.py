@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from mosaickit import (
     TRANSPARENT,
+    BraceLayer,
     Layer,
     Marker,
     MarkerLayer,
     PathLayer,
-    TextLayer,
+    PointLabelLayer,
 )
 
 from principle_viz.core.discrete import (
@@ -80,29 +81,32 @@ def discrete_equilibrium_layers(
     x_max: float,
     color: str,
 ) -> tuple[Layer, ...]:
+    point = (float(equilibrium.q_star), equilibrium.price)
     layers: list[Layer] = []
     if equilibrium.price_high > equilibrium.price_low:
+        # Every price in the interval clears the market; guides stop at Q*.
         layers.extend(
             (
                 PathLayer(
-                    ((0.0, equilibrium.price_low), (x_max, equilibrium.price_low)),
+                    ((0.0, equilibrium.price_low), (point[0], equilibrium.price_low)),
                     id="market.discrete.equilibrium.price_interval.lower",
                     role="principle.market.guide",
                     z_index=1,
                 ),
                 PathLayer(
-                    ((0.0, equilibrium.price_high), (x_max, equilibrium.price_high)),
+                    ((0.0, equilibrium.price_high), (point[0], equilibrium.price_high)),
                     id="market.discrete.equilibrium.price_interval.upper",
                     role="principle.market.guide",
                     z_index=1,
                 ),
-                TextLayer(
-                    (0.0, equilibrium.price_high),
-                    f"p∈[{equilibrium.price_low:g}, {equilibrium.price_high:g}]",
+                BraceLayer(
+                    "y",
+                    equilibrium.price_low,
+                    equilibrium.price_high,
+                    rf"$p \in [{equilibrium.price_low:g}, {equilibrium.price_high:g}]$",
+                    side="inside",
                     id="market.discrete.equilibrium.price_interval.label",
                     role="principle.annotation",
-                    offset=(8, 8),
-                    anchor="left",
                     z_index=5,
                 ),
             )
@@ -110,13 +114,13 @@ def discrete_equilibrium_layers(
     layers.extend(
         (
             PathLayer(
-                ((0.0, equilibrium.price), (x_max, equilibrium.price)),
+                ((0.0, equilibrium.price), point),
                 id="market.discrete.equilibrium.price",
                 role="principle.market.guide",
                 z_index=3,
             ),
             MarkerLayer(
-                ((float(equilibrium.q_star), equilibrium.price),),
+                (point,),
                 id="market.discrete.equilibrium",
                 role="principle.market.equilibrium",
                 marker=Marker(
@@ -125,13 +129,11 @@ def discrete_equilibrium_layers(
                 model=equilibrium,
                 z_index=6,
             ),
-            TextLayer(
-                (float(equilibrium.q_star), equilibrium.price),
-                f"Q*={equilibrium.q_star}, p*={equilibrium.price:g}",
+            PointLabelLayer(
+                point,
+                rf"$Q^* = {equilibrium.q_star},\ p^* = {equilibrium.price:g}$",
                 id="market.discrete.equilibrium.label",
                 role="principle.market.equilibrium",
-                offset=(12, 12),
-                anchor="left",
                 z_index=7,
             ),
         )

@@ -26,7 +26,7 @@ def metrics_layer(
     x_fraction, y_fraction, anchor = _LOCATIONS.get(location, _LOCATIONS["upper right"])
     lines: list[str] = []
     if title:
-        lines.extend((title, "—"))
+        lines.extend((title, "-" * len(title)))
     lines.extend(f"{key}: {_format_metric(value)}" for key, value in metrics.items())
     return TextLayer(
         (x_fraction * x_max, y_fraction * y_max),

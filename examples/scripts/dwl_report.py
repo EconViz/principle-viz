@@ -3,7 +3,15 @@
 from __future__ import annotations
 
 from common import EXAMPLE_PALETTE, ensure_output_dir, themed_output_path
-from mosaickit import Canvas, CanvasSpec, Fill, FillLayer, TextLayer, quadrant_axes
+from mosaickit import (
+    Canvas,
+    CanvasSpec,
+    Fill,
+    FillLayer,
+    Stroke,
+    TextLayer,
+    quadrant_axes,
+)
 
 from principle_viz.core.equilibrium import solve_equilibrium
 from principle_viz.core.line import Line
@@ -36,7 +44,7 @@ def main() -> None:
     )
     values = (baseline.total_surplus, policy.total_surplus, policy.deadweight_loss)
     labels = ("Baseline TS", "Policy TS", "DWL")
-    colors = ("#1A1A1A", "#777777", "#B5B5B5")
+    colors = ("grey-800", "grey-400", "teal")
     y_max = max(values) * 1.2
     canvas = Canvas(
         CanvasSpec(
@@ -63,6 +71,7 @@ def main() -> None:
                 id=f"dwl.bar.{index}",
                 role="region",
                 fill=Fill(color=color, opacity=1),
+                stroke=Stroke(width=0),
             )
         )
         canvas.add(

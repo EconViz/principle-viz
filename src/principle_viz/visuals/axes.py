@@ -2,13 +2,19 @@
 
 from mosaickit import ArrowPlacement, AxisSpec, Layer, TextLayer, build_axes
 
+FIGURE_SIZE = {"width": 6.0, "height": 6.0, "dpi": 150}
+"""Physical size of every principle-viz figure (one panel): square, so the price and
+quantity axes have the same length, as in textbook supply-and-demand diagrams."""
+
 TITLE_GAP_PT = 6.0
 """Gap between an arrow tip and its axis title, in points."""
 
 
 def _is_symbol(label: str) -> bool:
-    """Single-letter titles (p, Q, w, L) are set as italic math; words stay upright."""
-    return len(label) == 1 and label.isalpha()
+    """Single-letter titles (p, Q, w, L) and ``$...$`` titles are set as math;
+    words stay upright."""
+    is_math = len(label) > 1 and label.startswith("$") and label.endswith("$")
+    return is_math or (len(label) == 1 and label.isalpha())
 
 
 def axis_title_layers(

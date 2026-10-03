@@ -6,7 +6,16 @@ from collections.abc import Iterable
 from dataclasses import replace
 from pathlib import Path
 
-from mosaickit import Canvas, CanvasSpec, Layer, LegendLayer, LegendStyle, Scene
+from mosaickit import (
+    AxisMarkLayer,
+    Canvas,
+    CanvasSpec,
+    Layer,
+    LegendLayer,
+    LegendStyle,
+    PathLayer,
+    Scene,
+)
 
 from principle_viz.core.controls import PriceControlResult
 from principle_viz.core.discrete import (
@@ -53,6 +62,10 @@ from principle_viz.visuals import (
     welfare_layers,
     welfare_overlay_layers,
 )
+from principle_viz.visuals.axes import FIGURE_SIZE
+from principle_viz.visuals.direct_labels import fit_curve
+from principle_viz.visuals.policy import GapBrace
+from principle_viz.visuals.welfare import guides_through_regions
 from principle_viz.welfare.surplus import MarketOutcome, SurplusResult
 
 
@@ -76,9 +89,7 @@ class MarketFigure:
             CanvasSpec(
                 x_range=(0.0, self.x_max),
                 y_range=(0.0, self.y_max),
-                width=7.2,
-                height=5.2,
-                dpi=150,
+                **FIGURE_SIZE,
                 x_label=x_label,
                 y_label=y_label,
                 title=title,
@@ -105,12 +116,28 @@ class MarketFigure:
         return self
 
     def add_layers(self, layers: Iterable[Layer]) -> MarketFigure:
+        """Add layers; an axis mark replaces any earlier mark at the same value."""
+        layers = tuple(layers)
+        for mark in layers:
+            if isinstance(mark, AxisMarkLayer):
+                for old in self.scene.layers:
+                    if (
+                        isinstance(old, AxisMarkLayer)
+                        and old.axis == mark.axis
+                        and abs(old.value - mark.value) <= 1e-9
+                    ):
+                        self.canvas.remove(old.id)
         self.canvas.extend(layers)
         return self
 
     def _add_named_curves(self, layers: Iterable[Layer]) -> MarketFigure:
-        """Add layers and name each core curve beside its visible end."""
-        layers = tuple(layers)
+        """Add layers, trim straight curves below the top of the plot, and name each
+        core curve beside its visible end."""
+        bounds = {"x_range": (0.0, self.x_max), "y_range": (0.0, self.y_max)}
+        layers = tuple(
+            fit_curve(layer, **bounds) if isinstance(layer, PathLayer) else layer
+            for layer in layers
+        )
         labels = curve_label_layers(
             layers,
             x_range=(0.0, self.x_max),
@@ -204,7 +231,7 @@ class MarketFigure:
     def add_equilibrium(
         self,
         equilibrium: EquilibriumResult,
-        label: str = r"$e^{*}$",
+        label: str = "$e^*$",
         color: str | None = None,
     ) -> MarketFigure:
         return self.add_layers(
@@ -221,8 +248,8 @@ class MarketFigure:
         result: ComparativeStaticsResult,
         q_max: float,
         *,
-        demand_label: str = "D₁",
-        supply_label: str = "S₁",
+        demand_label: str = "$D_1$",
+        supply_label: str = "$S_1$",
     ) -> MarketFigure:
         market = result.shifted_market
         # A curve that did not move is drawn but not named a second time.
@@ -255,7 +282,6 @@ class MarketFigure:
                 result.baseline_equilibrium,
                 layer_id="market.equilibrium.baseline",
                 label=r"$e_0$",
-                label_offset=(14, -14),
             )
         )
         layers.extend(
@@ -264,7 +290,6 @@ class MarketFigure:
                 layer_id="market.equilibrium.shifted",
                 role="principle.market.equilibrium.shifted",
                 label=r"$e_1$",
-                label_offset=(14, 14),
             )
         )
         layers.extend(
@@ -272,7 +297,23 @@ class MarketFigure:
         )
         return self._add_named_curves(layers)
 
-    def add_tax_comparison(self, result: TaxComparisonResult) -> MarketFigure:
+    def add_tax_comparison(
+        self,
+        result: TaxComparisonResult,
+        *,
+        brace_side: str = "outside",
+        notes: bool = False,
+    ) -> MarketFigure:
+        """Mark the tax wedge: ``p_d``, ``p_0`` and ``p_s`` on the price axis with a
+        "Tax" brace over ``p_s``..``p_d``, ``"outside"`` the axis (default) or
+        ``"inside"`` the plot. ``notes=True`` explains each mark beside the axis.
+
+        The wedge itself is named "Tax wedge" unless the figure already names the
+        tax revenue region, which then says the same thing.
+        """
+        names_revenue = any(
+            layer.id == "market.welfare.tax_revenue" for layer in self.scene.layers
+        )
         post_eq = EquilibriumResult(
             q_star=result.post_tax.q_star,
             p_star=result.post_tax.consumer_price,
@@ -285,7 +326,6 @@ class MarketFigure:
                 result.baseline_equilibrium,
                 layer_id="market.equilibrium.baseline",
                 label=r"$e_0$",
-                label_offset=(14, -14),
             )
         )
         layers.extend(
@@ -294,7 +334,6 @@ class MarketFigure:
                 layer_id="market.equilibrium.shifted",
                 role="principle.market.equilibrium.shifted",
                 label=r"$e_1$",
-                label_offset=(14, 14),
             )
         )
         layers.extend(
@@ -302,11 +341,24 @@ class MarketFigure:
                 quantity=result.post_tax.q_star,
                 consumer_price=result.post_tax.consumer_price,
                 producer_price=result.post_tax.producer_price,
+                baseline_quantity=result.baseline_equilibrium.q_star,
+                baseline_price=result.baseline_equilibrium.p_star,
+                label=None if names_revenue else "Tax wedge",
+                brace_side=brace_side,
+                notes=notes,
             )
         )
         return self.add_layers(layers)
 
-    def add_subsidy_comparison(self, result: SubsidyComparisonResult) -> MarketFigure:
+    def add_subsidy_comparison(
+        self,
+        result: SubsidyComparisonResult,
+        *,
+        brace_side: str = "outside",
+        notes: bool = False,
+    ) -> MarketFigure:
+        """Mark the subsidy wedge like the tax wedge, with a "Subsidy" brace on
+        ``brace_side`` of the price axis, and name the subsidy's cost."""
         post = result.post_subsidy
         layers: list[Layer] = []
         layers.extend(
@@ -314,7 +366,6 @@ class MarketFigure:
                 result.baseline_equilibrium,
                 layer_id="market.equilibrium.baseline",
                 label=r"$e_0$",
-                label_offset=(14, -14),
             )
         )
         layers.extend(
@@ -327,10 +378,10 @@ class MarketFigure:
                 ),
                 layer_id="market.equilibrium.subsidized",
                 role="principle.market.equilibrium.shifted",
-                label=r"$e_s$",
+                label=r"$e_1$",
             )
         )
-        layers.extend(subsidy_layers(result))
+        layers.extend(subsidy_layers(result, brace_side=brace_side, notes=notes))
         return self.add_layers(layers)
 
     def add_tax_transform(
@@ -348,7 +399,7 @@ class MarketFigure:
                 q_max=q_max,
                 layer_id=f"market.{guide.curve_role}.taxed",
                 role=f"principle.market.{guide.curve_role}.shifted",
-                label="S + t" if guide.curve_role == "supply" else "D − t",
+                label="$S + t$" if guide.curve_role == "supply" else "$D - t$",
             )
         ]
         anchor_q = guide.baseline_equilibrium.q_star
@@ -359,7 +410,7 @@ class MarketFigure:
                     quantity=anchor_q,
                     base_price=guide.base_curve.p_at(anchor_q),
                     taxed_price=guide.taxed_curve.p_at(anchor_q),
-                    label=f"Tax = {scenario.amount:g}",
+                    label=f"$t = {scenario.amount:g}$",
                     layer_id="market.tax.shift",
                 )
             )
@@ -375,6 +426,10 @@ class MarketFigure:
                     segment_layer((q1, 0.0), (q1, p1), layer_id="market.tax.guide.q1"),
                     segment_layer((0.0, p0), (q0, p0), layer_id="market.tax.guide.p0"),
                     segment_layer((0.0, p1), (q1, p1), layer_id="market.tax.guide.p1"),
+                    AxisMarkLayer("x", q0, "Q_0", math=True, id="market.tax.mark.q0"),
+                    AxisMarkLayer("x", q1, "Q_1", math=True, id="market.tax.mark.q1"),
+                    AxisMarkLayer("y", p0, "p_0", math=True, id="market.tax.mark.p0"),
+                    AxisMarkLayer("y", p1, "p_1", math=True, id="market.tax.mark.p1"),
                 )
             )
             layers.extend(
@@ -382,7 +437,7 @@ class MarketFigure:
                     base_curve=guide.base_curve,
                     taxed_curve=guide.taxed_curve,
                     pivot_q=q0,
-                    label=f"Tax rate = {scenario.amount:.0%}",
+                    label=f"$t = {100 * scenario.amount:g}\\%$",
                 )
             )
             layers.extend(
@@ -390,7 +445,7 @@ class MarketFigure:
                     quantity=q0,
                     base_price=guide.base_curve.p_at(q0),
                     taxed_price=guide.taxed_curve.p_at(q0),
-                    label=f"Tax ({scenario.amount:.0%})",
+                    label="",
                     layer_id="market.tax.shift.q0",
                 )
             )
@@ -407,7 +462,7 @@ class MarketFigure:
             equilibrium_layers(
                 guide.baseline_equilibrium,
                 layer_id="market.equilibrium.baseline",
-                label=r"$e^{*}$",
+                label="$e^*$",
             )
         )
         if scenario.tax_type == TaxType.AD_VALOREM_TAX:
@@ -423,16 +478,23 @@ class MarketFigure:
                     layer_id="market.equilibrium.taxed",
                     role="principle.market.equilibrium.shifted",
                     label=r"$e_t$",
-                    label_offset=(14, -14),
                 )
             )
         return self._add_named_curves(layers)
 
-    def add_price_control(self, result: PriceControlResult) -> MarketFigure:
-        return self.add_layers(price_control_layers(result, x_max=self.x_max))
+    def add_price_control(
+        self, result: PriceControlResult, *, gap_brace: GapBrace = "line"
+    ) -> MarketFigure:
+        return self.add_layers(
+            price_control_layers(result, x_max=self.x_max, gap_brace=gap_brace)
+        )
 
-    def add_minimum_wage(self, result: MinimumWageResult) -> MarketFigure:
-        return self.add_layers(minimum_wage_layers(result, x_max=self.x_max))
+    def add_minimum_wage(
+        self, result: MinimumWageResult, *, gap_brace: GapBrace = "line"
+    ) -> MarketFigure:
+        return self.add_layers(
+            minimum_wage_layers(result, x_max=self.x_max, gap_brace=gap_brace)
+        )
 
     def add_loanable_funds(self, result: LoanableFundsResult) -> MarketFigure:
         return self._add_named_curves(loanable_funds_layers(result, q_max=self.x_max))
@@ -447,10 +509,18 @@ class MarketFigure:
         return self._add_named_curves(trade_layers(result, x_max=self.x_max))
 
     def add_welfare(
-        self, surplus: SurplusResult, *, labels: bool = True
+        self,
+        surplus: SurplusResult,
+        *,
+        labels: bool = True,
+        regions: Iterable[str] | None = None,
     ) -> MarketFigure:
-        """Shade the welfare regions and, unless ``labels`` is off, name each one."""
-        return self.add_layers(welfare_layers(surplus, labels=labels))
+        """Shade the welfare regions and, unless ``labels`` is off, name each one.
+
+        ``regions`` limits the shading to some of ``"cs"``, ``"ps"``,
+        ``"tax_revenue"`` and ``"dwl"``.
+        """
+        return self.add_layers(welfare_layers(surplus, labels=labels, regions=regions))
 
     def add_welfare_transition(
         self,
@@ -490,6 +560,11 @@ class MarketFigure:
         )
 
     def finalize(self, legend: bool = False) -> MarketFigure:
+        """Finish the figure: drop guide lines that would cut a shaded welfare
+        region in two (its axis mark still names the value), and add a legend only
+        when ``legend`` is on."""
+        for guide_id in guides_through_regions(self.scene.layers):
+            self.canvas.remove(guide_id)
         if any(layer.id == "market.legend" for layer in self.scene.layers):
             self.canvas.remove("market.legend")
         if legend:
@@ -513,6 +588,7 @@ class MarketFigure:
         canvas = Canvas(
             self.canvas.spec.replace(dpi=int(dpi)),
             theme=self.canvas.theme,
+            config=self.canvas.config,
             renderer=self.canvas.renderer,
             role_overrides=self.canvas.role_overrides,
         ).extend(self.scene.layers)

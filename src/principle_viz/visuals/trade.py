@@ -2,9 +2,20 @@
 
 from __future__ import annotations
 
-from mosaickit import ArrowLayer, FillLayer, Layer, PathLayer, TextLayer
+from mosaickit import (
+    AxisMarkLayer,
+    BraceLayer,
+    FillLayer,
+    Layer,
+    PathLayer,
+)
 
-from principle_viz.policy.trade import TradeComparisonResult, TradeDirection
+from principle_viz.policy.trade import (
+    TradeComparisonResult,
+    TradeDirection,
+    TradeOutcome,
+)
+from principle_viz.visuals.curves import segment_layer
 from principle_viz.visuals.direct_labels import region_label_layer
 
 
@@ -19,14 +30,12 @@ def trade_layers(result: TradeComparisonResult, *, x_max: float) -> tuple[Layer,
             legend="World price",
             z_index=2,
         ),
-        TextLayer(
-            (0.02 * x_max, free.domestic_price),
-            r"$p_w$",
+        AxisMarkLayer(
+            "y",
+            free.domestic_price,
+            "p_w",
+            math=True,
             id="market.trade.world_price.mark",
-            role="principle.trade.world",
-            offset=(0, -14),
-            anchor="left",
-            z_index=4,
         ),
     ]
     if policy.domestic_price > free.domestic_price + 1e-9:
@@ -39,53 +48,19 @@ def trade_layers(result: TradeComparisonResult, *, x_max: float) -> tuple[Layer,
                     legend="Domestic policy price",
                     z_index=2,
                 ),
-                TextLayer(
-                    (0.02 * x_max, policy.domestic_price),
-                    r"$p_{policy}$",
+                AxisMarkLayer(
+                    "y",
+                    policy.domestic_price,
+                    "p_q" if policy.quota_rent > 1e-9 else "p_w + t",
+                    math=True,
                     id="market.trade.policy_price.mark",
-                    role="principle.trade.policy",
-                    offset=(0, 8),
-                    anchor="left",
-                    z_index=4,
                 ),
             )
         )
 
     outcome = policy
-    if outcome.direction == TradeDirection.IMPORT:
-        start = (outcome.quantity_supplied, outcome.domestic_price)
-        end = (outcome.quantity_demanded, outcome.domestic_price)
-        label = f"Imports = {outcome.imports:g}"
-    elif outcome.direction == TradeDirection.EXPORT:
-        start = (outcome.quantity_demanded, outcome.domestic_price)
-        end = (outcome.quantity_supplied, outcome.domestic_price)
-        label = f"Exports = {outcome.exports:g}"
-    else:
-        start = end = None
-        label = "No trade"
-
-    if start is not None and end is not None:
-        midpoint = ((start[0] + end[0]) / 2.0, outcome.domestic_price)
-        layers.extend(
-            (
-                ArrowLayer(
-                    start,
-                    end,
-                    id="market.trade.volume",
-                    role="principle.trade.flow",
-                    z_index=5,
-                ),
-                TextLayer(
-                    midpoint,
-                    label,
-                    id="market.trade.volume.label",
-                    role="principle.trade.flow",
-                    offset=(0, 10),
-                    anchor="bottom",
-                    z_index=6,
-                ),
-            )
-        )
+    if outcome.direction != TradeDirection.AUTARKY:
+        layers.extend(_volume_layers(outcome))
 
     rent = outcome.government_revenue + outcome.national_quota_rent
     if rent > 1e-9 and outcome.imports > 1e-9:
@@ -112,3 +87,25 @@ def trade_layers(result: TradeComparisonResult, *, x_max: float) -> tuple[Layer,
 
 
 __all__ = ["trade_layers"]
+
+
+def _volume_layers(outcome: TradeOutcome) -> tuple[Layer, ...]:
+    """Trade volume as a brace on the quantity axis over Q_s..Q_d, with guides
+    down from the domestic supply and demand points at the domestic price."""
+    price = outcome.domestic_price
+    imports = outcome.direction == TradeDirection.IMPORT
+    q_s, q_d = outcome.quantity_supplied, outcome.quantity_demanded
+    return (
+        segment_layer((q_s, 0.0), (q_s, price), layer_id="market.trade.guide.q_s"),
+        segment_layer((q_d, 0.0), (q_d, price), layer_id="market.trade.guide.q_d"),
+        AxisMarkLayer("x", q_s, "Q_s", math=True, id="market.trade.mark.q_s"),
+        AxisMarkLayer("x", q_d, "Q_d", math=True, id="market.trade.mark.q_d"),
+        BraceLayer(
+            "x",
+            min(q_s, q_d),
+            max(q_s, q_d),
+            "Imports" if imports else "Exports",
+            side="outside",
+            id="market.trade.volume",
+        ),
+    )

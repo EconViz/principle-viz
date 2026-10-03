@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from common import EXAMPLE_PALETTE, ensure_output_dir, themed_output_path
-from mosaickit import Marker, MarkerLayer, TextLayer, TextStyle
+from mosaickit import Marker, MarkerLayer, PointLabelLayer, TextStyle
 
 from principle_viz.core.elasticity import point_price_elasticity
 from principle_viz.core.line import Line
@@ -15,13 +15,13 @@ THEME = "elasticity"
 
 def _format_elasticity_label(abs_epsilon: float) -> str:
     if abs_epsilon >= 20.0:
-        return "Perfectly Elastic\n(limit)"
+        return "Perfectly\nelastic"
     if abs(abs_epsilon - 1.0) <= 1e-9:
-        return "Unit Elastic"
+        return "Unit elastic"
     if abs_epsilon > 1.0:
         return "Elastic"
     if abs_epsilon <= 0.05:
-        return "Perfectly Inelastic\n(limit)"
+        return "Perfectly\ninelastic"
     return "Inelastic"
 
 
@@ -40,18 +40,13 @@ def main() -> None:
             q_max=9.95,
             layer_id="market.demand",
             role="principle.market.demand",
-            label="Demand",
+            # One curve, named by the title: no direct label needed.
+            label=None,
         )
     )
 
-    sample_points = (
-        (0.2, "s", (12, 10)),
-        (2.0, "o", (12, 8)),
-        (5.0, "^", (12, 10)),
-        (8.0, "D", (12, -10)),
-        (9.8, "v", (12, 14)),
-    )
-    for index, (q, shape, text_offset) in enumerate(sample_points):
+    sample_points = ((0.2, "o"), (2.0, "o"), (5.0, "o"), (8.0, "o"), (9.6, "o"))
+    for index, (q, shape) in enumerate(sample_points):
         p = demand.p_at(q)
         abs_epsilon = abs(point_price_elasticity(demand, q=q))
         fig.add_layers(
@@ -69,14 +64,13 @@ def main() -> None:
                     ),
                     z_index=6,
                 ),
-                TextLayer(
+                PointLabelLayer(
                     (q, p),
-                    f"{_format_elasticity_label(abs_epsilon)}\n|ε|≈{abs_epsilon:.2f}",
+                    f"{_format_elasticity_label(abs_epsilon)}\n"
+                    rf"$|\varepsilon| \approx {abs_epsilon:.2f}$",
                     id=f"elasticity.point.{index}.label",
                     role="principle.annotation",
                     style=TextStyle(color=fig.theme.baseline_color),
-                    offset=text_offset,
-                    anchor="left",
                     z_index=7,
                 ),
             )

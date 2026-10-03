@@ -75,3 +75,28 @@ def test_factor_market_visual_layers() -> None:
     fund_ids = {layer.id for layer in funds_figure.scene.layers}
     assert "loanable.investment.shifted" in fund_ids
     assert "loanable.equilibrium.shifted" in fund_ids
+
+
+def test_binding_minimum_wage_braces_unemployment_on_the_wage_line() -> None:
+    from mosaickit import AxisMarkLayer, PointLabelLayer, SpanBraceLayer
+
+    demand, supply = Line.from_inverse(12, -1), Line.from_inverse(2, 1)
+    result = analyze_minimum_wage(demand, supply, minimum_wage=9)
+    figure = MarketFigure(x_max=12, y_max=14, x_label="L", y_label="w")
+    figure.add_minimum_wage(result)
+    layers = {layer.id: layer for layer in figure.scene.layers}
+    label = layers["labor.minimum_wage.label"]
+    assert isinstance(label, PointLabelLayer) and label.text == "Minimum wage"
+    marks = {
+        (layer.axis, layer.label): layer.value
+        for layer in figure.scene.layers
+        if isinstance(layer, AxisMarkLayer)
+    }
+    assert marks[("y", r"w_{\min}")] == pytest.approx(9)
+    assert marks[("x", "L_d")] == pytest.approx(result.labor_demanded)
+    assert marks[("x", "L_s")] == pytest.approx(result.labor_supplied)
+    brace = layers["labor.unemployment"]
+    assert isinstance(brace, SpanBraceLayer)
+    assert (brace.label, brace.side, brace.role) == ("Unemployment", "above", "axes")
+    assert brace.start == pytest.approx((result.labor_demanded, 9))
+    assert brace.end == pytest.approx((result.labor_supplied, 9))

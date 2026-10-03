@@ -89,3 +89,50 @@ def test_market_failure_visuals_use_semantic_layers(
     assert "public_good.social_benefit" in {
         layer.id for layer in canvas.snapshot().layers
     }
+
+
+@pytest.mark.parametrize(
+    "scenario",
+    [
+        ExternalityScenario(marginal_external_cost=2),
+        ExternalityScenario(marginal_external_benefit=2),
+    ],
+)
+def test_corrective_wedge_spans_private_to_social_curve_at_the_optimum(
+    market: tuple[Line, Line], scenario: ExternalityScenario
+) -> None:
+    result = analyze_externality(*market, scenario)
+    figure = MarketFigure(x_max=11, y_max=14).add_externality(result)
+    wedge = {layer.id: layer for layer in figure.scene.layers}[
+        "market.externality.corrective_wedge"
+    ]
+    q = result.social_equilibrium.q_star
+    social, private = (
+        (result.social_supply, market[1])
+        if result.corrective_tax
+        else (result.social_demand, market[0])
+    )
+    (bottom, top) = wedge.path
+    assert bottom == pytest.approx((q, private.p_at(q)))
+    assert top == pytest.approx((q, social.p_at(q)))
+
+
+def test_public_good_marks_private_and_efficient_quantity_on_the_axis() -> None:
+    from mosaickit import AxisMarkLayer, PointLabelLayer
+
+    a = IndividualBenefit("Person A", Line.from_inverse(10.0, -1.0))
+    b = IndividualBenefit("Person B", Line.from_inverse(6.0, -1.0))
+    result = analyze_public_good((a, b), Line.from_inverse(4.0, 0.0))
+    canvas = public_good_canvas(result)
+    layers = canvas.snapshot().layers
+    marks = {
+        layer.label: layer.value
+        for layer in layers
+        if isinstance(layer, AxisMarkLayer) and layer.axis == "x"
+    }
+    assert marks["Q_p"] == pytest.approx(result.private_provision_quantity)
+    assert marks["Q^*"] == pytest.approx(result.efficient_quantity)
+    texts = [str(layer.text) for layer in layers if isinstance(layer, PointLabelLayer)]
+    assert not any("Efficient" in t or "Private" in t for t in texts)
+    # The quantity axis ends just past the curves instead of leaving empty space.
+    assert canvas.spec.x_range[1] <= 1.1 * result.points[-1].quantity

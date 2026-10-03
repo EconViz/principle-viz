@@ -88,5 +88,5 @@ def test_trade_figure_contains_world_price_and_trade_volume(
 
     assert "market.trade.world_price" in ids
     assert "market.trade.policy_price" in ids
-    assert "market.trade.volume" in ids
+    assert "market.trade.volume" in ids  # brace over Q_s..Q_d on the quantity axis
     assert "market.trade.policy_rent" in ids

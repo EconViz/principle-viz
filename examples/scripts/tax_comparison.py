@@ -21,7 +21,7 @@ def _plot_tax_case(name: str, scenario: TaxScenario, filename: str) -> None:
     demand = Line.from_inverse(10.0, -1.0)
     supply = Line.from_inverse(0.0, 1.0)
 
-    fig = MarketFigure(x_max=11, y_max=11, title=name, palette=EXAMPLE_PALETTE)
+    fig = MarketFigure(x_max=12, y_max=13, title=name, palette=EXAMPLE_PALETTE)
     fig.add_curves(demand, supply, q_max=10)
     fig.add_tax_transform(demand, supply, scenario, q_max=10)
     fig.finalize()
@@ -32,8 +32,8 @@ def _plot_tax_case(name: str, scenario: TaxScenario, filename: str) -> None:
 def main() -> None:
     tax_cases = (
         (TaxType.FIXED_TAX, 2.0, "fixed"),
-        (TaxType.PER_UNIT_TAX, 1.5, "per_unit"),
-        (TaxType.AD_VALOREM_TAX, 0.2, "ad_valorem"),
+        (TaxType.PER_UNIT_TAX, 2.5, "per_unit"),
+        (TaxType.AD_VALOREM_TAX, 0.35, "ad_valorem"),
     )
     incidences = (
         (TaxOn.CONSUMER, "consumer"),

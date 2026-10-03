@@ -31,7 +31,7 @@ def main() -> None:
     control_result = evaluate_price_control(
         demand,
         supply,
-        PriceControlScenario(control_type=PriceControlType.CEILING, control_price=4.0),
+        PriceControlScenario(control_type=PriceControlType.CEILING, control_price=3.5),
     )
     control_outcome = outcome_from_control(control_result)
 

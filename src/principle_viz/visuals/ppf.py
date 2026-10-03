@@ -8,11 +8,11 @@ from mosaickit import (
     FillLayer,
     MarkerLayer,
     PathLayer,
-    TextLayer,
+    PointLabelLayer,
 )
 
 from principle_viz.core.ppf import PointStatus, PPFAnalysisResult, PPFGrowthResult
-from principle_viz.visuals.axes import market_axes_layers
+from principle_viz.visuals.axes import FIGURE_SIZE, market_axes_layers
 from principle_viz.visuals.direct_labels import curve_label_layer, curve_label_layers
 from principle_viz.visuals.theme import PlotTheme
 
@@ -34,6 +34,7 @@ def ppf_canvas(
     y_max = frontier.y_intercept * 1.15
     canvas = Canvas(
         CanvasSpec(
+            **FIGURE_SIZE,
             x_range=(0, x_max),
             y_range=(0, y_max),
             x_label=frontier.x_good,
@@ -80,13 +81,11 @@ def ppf_canvas(
                     legend=point.status.value.title(),
                     z_index=4,
                 ),
-                TextLayer(
+                PointLabelLayer(
                     (point.x, point.y),
                     point.label,
                     id=f"{layer_id}.label",
                     role="principle.annotation",
-                    offset=(8, 8),
-                    anchor="left",
                     z_index=5,
                 ),
             )
@@ -104,6 +103,7 @@ def ppf_growth_canvas(
     y_max = max(result.baseline.y_intercept, result.shifted.y_intercept) * 1.1
     canvas = Canvas(
         CanvasSpec(
+            **FIGURE_SIZE,
             x_range=(0, x_max),
             y_range=(0, y_max),
             x_label=result.baseline.x_good,
@@ -124,13 +124,13 @@ def ppf_growth_canvas(
             result.baseline_points,
             id="ppf.growth.baseline",
             role="principle.ppf.frontier",
-            legend="PPF₀",
+            legend="$PPF_0$",
         ),
         PathLayer(
             result.shifted_points,
             id="ppf.growth.shifted",
             role="principle.ppf.shifted",
-            legend="PPF₁",
+            legend="$PPF_1$",
         ),
     )
     canvas.extend(curves)

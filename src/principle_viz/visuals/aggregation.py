@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from dataclasses import replace
 
 from mosaickit import (
+    AxisMarkLayer,
     Canvas,
     CanvasSpec,
     DashStyle,
@@ -13,7 +14,6 @@ from mosaickit import (
     MarkerLayer,
     PathLayer,
     Stroke,
-    TextLayer,
 )
 
 from principle_viz.core.discrete import DiscreteDemand, DiscreteSupply
@@ -26,8 +26,6 @@ Point = tuple[float, float]
 
 PANEL_WIDTH = 4.6
 PANEL_HEIGHT = 4.2
-MARK_GAP_PT = 6.0
-"""Gap between an axis and the mark naming a guide's end, in points."""
 
 
 def aggregation_panel(
@@ -144,19 +142,17 @@ def quantity_guide_layers(
 ) -> tuple[Layer, ...]:
     """Dashed guides from the price axis to the curve and down to the Q axis.
 
-    The price and the quantity are named beside the axes, outside the plot area.
+    The price and the quantity are axis marks, beside the axes outside the plot.
     The quantity guide breaks for ``hole`` around each price in ``holes`` (such as
     a step endpoint on the guide) so it never runs through a marker.
     """
     layers: list[Layer] = [
-        TextLayer(
-            (0.0, price),
+        AxisMarkLayer(
+            "y",
+            price,
             price_label,
+            math=True,
             id=f"aggregation.{panel_id}.price.label",
-            role="principle.annotation",
-            offset=(-MARK_GAP_PT, 0),
-            anchor="right",
-            z_index=7,
         )
     ]
     if quantity <= 0:
@@ -184,14 +180,12 @@ def quantity_guide_layers(
                     _pieces(price, holes=holes, hole=hole)
                 )
             ),
-            TextLayer(
-                (quantity, 0.0),
+            AxisMarkLayer(
+                "x",
+                quantity,
                 quantity_label,
+                math=True,
                 id=f"aggregation.{panel_id}.quantity.label",
-                role="principle.annotation",
-                offset=(0, -MARK_GAP_PT),
-                anchor="top",
-                z_index=7,
             ),
         )
     )

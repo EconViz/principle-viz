@@ -22,8 +22,8 @@ def main() -> None:
         x_intercept=10,
         y_intercept=8,
         curvature=2,
-        x_good="Consumer",
-        y_good="Capital",
+        x_good="Consumer goods",
+        y_good="Capital goods",
     )
     analysis = analyze_ppf(
         frontier,

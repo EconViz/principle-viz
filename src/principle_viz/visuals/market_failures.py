@@ -3,27 +3,28 @@
 from __future__ import annotations
 
 from mosaickit import (
+    AxisMarkLayer,
     Canvas,
     CanvasSpec,
     FillLayer,
     Layer,
     MarkerLayer,
     PathLayer,
-    TextLayer,
+    PointLabelLayer,
 )
 
 from principle_viz.core.equilibrium import EquilibriumResult
 from principle_viz.core.public_goods import PublicGoodResult
 from principle_viz.policy.common_resources import CommonResourceResult
 from principle_viz.policy.externality import ExternalityResult
-from principle_viz.visuals.axes import market_axes_layers
-from principle_viz.visuals.curves import curve_layer
+from principle_viz.visuals.axes import FIGURE_SIZE, market_axes_layers
+from principle_viz.visuals.curves import curve_layer, segment_layer
 from principle_viz.visuals.direct_labels import (
     curve_label_layer,
     curve_label_layers,
     region_label_layer,
 )
-from principle_viz.visuals.equilibrium import equilibrium_layers
+from principle_viz.visuals.equilibrium import quantity_mark_layers
 from principle_viz.visuals.theme import PlotTheme
 
 
@@ -37,7 +38,7 @@ def externality_layers(result: ExternalityResult, *, q_max: float) -> tuple[Laye
                 q_max=q_max,
                 layer_id="market.externality.social_cost",
                 role="principle.market.supply.shifted",
-                label="MSC",
+                label="$MSC$",
             )
         )
     if result.corrective_subsidy > 0:
@@ -48,22 +49,20 @@ def externality_layers(result: ExternalityResult, *, q_max: float) -> tuple[Laye
                 q_max=q_max,
                 layer_id="market.externality.social_benefit",
                 role="principle.market.demand.shifted",
-                label="MSB",
+                label="$MSB$",
             )
         )
     layers.extend(
-        equilibrium_layers(
-            result.private_equilibrium,
-            layer_id="market.externality.private",
-            label=r"$Q_m$",
+        quantity_mark_layers(
+            result.private_equilibrium, "Q_m", layer_id="market.externality.private"
         )
     )
     layers.extend(
-        equilibrium_layers(
+        quantity_mark_layers(
             result.social_equilibrium,
+            "Q^*",
             layer_id="market.externality.social",
             role="principle.market.equilibrium.shifted",
-            label=r"$Q^*$",
         )
     )
     q0 = result.private_equilibrium.q_star
@@ -94,12 +93,11 @@ def externality_layers(result: ExternalityResult, *, q_max: float) -> tuple[Laye
             if result.corrective_tax
             else "principle.policy.subsidy"
         )
+        text = f"${'t' if result.corrective_tax else 's'} = {wedge:g}$"
         quantity = result.social_equilibrium.q_star
-        lower = min(
-            result.social_demand.p_at(quantity),
-            result.social_supply.p_at(quantity),
-            result.private_equilibrium.p_star,
-        )
+        # The wedge spans the gap between the private and social curve at Q^*.
+        social = result.social_supply if result.corrective_tax else result.social_demand
+        lower = social.p_at(quantity) - wedge
         layers.extend(
             (
                 PathLayer(
@@ -108,13 +106,13 @@ def externality_layers(result: ExternalityResult, *, q_max: float) -> tuple[Laye
                     role=role,
                     z_index=5,
                 ),
-                TextLayer(
+                # Short, as on the tax diagrams: the wedge is a narrow pocket
+                # between two parallel curves.
+                PointLabelLayer(
                     (quantity, lower + 0.5 * wedge),
-                    f"Corrective {'tax' if result.corrective_tax else 'subsidy'} = {wedge:g}",
+                    text,
                     id="market.externality.corrective_wedge.label",
                     role=role,
-                    offset=(10, 0),
-                    anchor="left",
                     z_index=6,
                 ),
             )
@@ -134,23 +132,23 @@ def common_resource_layers(
             q_max=q_max,
             layer_id="market.common_resource.social_cost",
             role="principle.market.supply.shifted",
-            label="MSC",
+            label="$MSC$",
         ),
-        *equilibrium_layers(
+        *quantity_mark_layers(
             open_access,
+            r"Q_{\mathrm{open}}",
             layer_id="market.common_resource.open_access",
-            label=r"$Q_{open}$",
         ),
-        *equilibrium_layers(
+        *quantity_mark_layers(
             EquilibriumResult(
                 efficient.q_star,
                 efficient.p_star,
                 efficient.is_valid_market,
                 efficient.notes,
             ),
+            "Q^*",
             layer_id="market.common_resource.efficient",
             role="principle.market.equilibrium.shifted",
-            label=r"$Q^*$",
         ),
         FillLayer(
             (
@@ -174,7 +172,7 @@ def common_resource_layers(
             role="principle.policy.tax",
             z_index=5,
         ),
-        TextLayer(
+        PointLabelLayer(
             (
                 efficient.q_star,
                 0.5
@@ -186,8 +184,6 @@ def common_resource_layers(
             f"Fee = {result.corrective_fee:g}",
             id="market.common_resource.fee.label",
             role="principle.policy.tax",
-            offset=(10, 0),
-            anchor="left",
             z_index=6,
         ),
     ]
@@ -200,7 +196,7 @@ def public_good_canvas(
     theme: PlotTheme | None = None,
 ) -> Canvas:
     selected = theme or PlotTheme()
-    q_max = result.points[-1].quantity * 1.2
+    q_max = result.points[-1].quantity * 1.08
     y_max = (
         max(
             max(point.social_marginal_benefit, point.marginal_cost)
@@ -210,6 +206,7 @@ def public_good_canvas(
     )
     canvas = Canvas(
         CanvasSpec(
+            **FIGURE_SIZE,
             x_range=(0, q_max),
             y_range=(0, y_max),
             x_label="Q",
@@ -217,7 +214,7 @@ def public_good_canvas(
             title="Public Good",
         ),
         theme=selected.to_mosaickit(),
-    ).extend(market_axes_layers(q_max, y_max, x_label="Q", y_label="MB, MC"))
+    ).extend(market_axes_layers(q_max, y_max, x_label="Q", y_label="$MB$, $MC$"))
     curves: list[PathLayer] = []
     for index, individual in enumerate(result.individuals):
         curves.append(
@@ -240,13 +237,13 @@ def public_good_canvas(
                 ),
                 id="public_good.social_benefit",
                 role="principle.market.demand",
-                legend="ΣMB",
+                legend=r"$\Sigma MB$",
             ),
             PathLayer(
                 tuple((point.quantity, point.marginal_cost) for point in result.points),
                 id="public_good.marginal_cost",
                 role="principle.market.supply",
-                legend="MC",
+                legend="$MC$",
             ),
         )
     )
@@ -254,8 +251,12 @@ def public_good_canvas(
     # Beyond its kink the sum runs along the largest individual curve, so it is
     # named where it starts, on the price axis.
     bounds = {"x_range": (0, q_max), "y_range": (0, y_max)}
-    canvas.extend(curve_label_layers(curves[:-2] + curves[-1:], **bounds))
-    canvas.add(curve_label_layer(curves[-2], at="start", **bounds))
+    # Individual curves are named where they start, on the price axis, away from
+    # the crowded quantity axis where they end.
+    individuals = curves[:-2]
+    canvas.extend(curve_label_layers(curves[-1:], **bounds))
+    for curve in (*individuals, curves[-2]):
+        canvas.add(curve_label_layer(curve, at="start", **bounds))
     canvas.extend(
         (
             MarkerLayer(
@@ -273,24 +274,32 @@ def public_good_canvas(
                 id="public_good.private_provision",
                 role="principle.market.equilibrium.shifted",
             ),
-            TextLayer(
+            segment_layer(
+                (result.efficient_quantity, 0.0),
                 (result.efficient_quantity, result.efficient_marginal_value),
-                f"Efficient Q = {result.efficient_quantity:.2f}",
-                id="public_good.efficient.label",
-                role="principle.annotation",
-                offset=(8, 8),
-                anchor="left",
+                layer_id="public_good.efficient.guide",
             ),
-            TextLayer(
+            segment_layer(
+                (result.private_provision_quantity, 0.0),
                 (
                     result.private_provision_quantity,
                     result.marginal_cost.p_at(result.private_provision_quantity),
                 ),
-                f"Private Q = {result.private_provision_quantity:.2f}",
-                id="public_good.private_provision.label",
-                role="principle.annotation",
-                offset=(-8, -14),
-                anchor="right",
+                layer_id="public_good.private_provision.guide",
+            ),
+            AxisMarkLayer(
+                "x",
+                result.efficient_quantity,
+                "Q^*",
+                math=True,
+                id="public_good.efficient.mark",
+            ),
+            AxisMarkLayer(
+                "x",
+                result.private_provision_quantity,
+                "Q_p",
+                math=True,
+                id="public_good.private_provision.mark",
             ),
         )
     )

@@ -16,7 +16,7 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-    "mosaickit>=0.1.0,<0.2.0",
+    "mosaickit>=0.2.0,<0.3.0",
 ]
 
 [project.scripts]

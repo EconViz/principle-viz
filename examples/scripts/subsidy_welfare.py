@@ -42,19 +42,7 @@ def main() -> None:
     figure.add_curves(demand, supply, q_max=11)
     figure.add_welfare(welfare.policy)
     figure.add_subsidy_comparison(comparison)
-    figure.add_metrics(
-        {
-            "Q0": baseline.quantity,
-            "Qs": subsidized.quantity,
-            "Pc": subsidized.consumer_price,
-            "Pp": subsidized.producer_price,
-            "government cost": comparison.post_subsidy.government_expenditure,
-            "DWL": welfare.deadweight_loss,
-        },
-        title="Subsidy Outcome",
-        location="upper right",
-    )
-    figure.finalize(legend=True)
+    figure.finalize()
     figure.save(str(themed_output_path(THEME, "subsidy_welfare.png")))
     figure.close()
 

@@ -40,3 +40,11 @@ def test_finalize_adds_scene_legend() -> None:
     legend = next(layer for layer in figure.scene.layers if layer.id == "market.legend")
     assert isinstance(legend, LegendLayer)
     assert legend.entries == ("test.line",)
+
+
+def test_finalize_draws_no_legend_by_default() -> None:
+    figure = MarketFigure(title="No legend").add_layer(
+        PathLayer(((0, 0), (1, 1)), id="test.line", legend="Line")
+    )
+    figure.finalize()
+    assert all(layer.id != "market.legend" for layer in figure.scene.layers)

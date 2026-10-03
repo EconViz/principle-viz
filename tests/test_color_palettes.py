@@ -47,3 +47,25 @@ def test_market_figure_accepts_palette_name() -> None:
 def test_unknown_palette_raises() -> None:
     with pytest.raises(ValueError):
         get_color_model("not-a-palette")
+
+
+def test_default_palette_takes_its_hues_from_mosaickit() -> None:
+    from mosaickit import DEFAULT_PALETTE as P
+
+    default = get_color_model("default")
+    assert default.demand_color == P["blue"].to_hex()
+    assert default.supply_color == P["red"].to_hex()
+    assert default.cs_color == default.demand_color
+    assert default.ps_color == default.supply_color
+    assert default.dwl_color == P["teal"].to_hex()
+
+
+def test_default_theme_welfare_opacities_and_background() -> None:
+    roles = PlotTheme().to_mosaickit().roles
+    assert roles["principle.welfare.consumer"].fill.opacity == 0.15
+    assert roles["principle.welfare.producer"].fill.opacity == 0.15
+    assert roles["principle.welfare.loss"].fill.opacity == 0.45
+    assert roles["principle.welfare.revenue"].fill.opacity == 0  # labelled, not filled
+    assert roles["canvas"].fill.opacity == 1
+    assert roles["principle.market.demand"].stroke.width == 2.6
+    assert roles["principle.market.supply"].stroke.width == 2.6

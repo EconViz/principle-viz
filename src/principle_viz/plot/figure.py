@@ -445,7 +445,7 @@ class MarketFigure:
             )
         )
 
-    def finalize(self, legend: bool = True) -> MarketFigure:
+    def finalize(self, legend: bool = False) -> MarketFigure:
         if any(layer.id == "market.legend" for layer in self.scene.layers):
             self.canvas.remove("market.legend")
         if legend:

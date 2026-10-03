@@ -30,16 +30,6 @@ def main() -> None:
     )
     fig.add_curves(demand, supply, q_max=10)
     fig.add_price_control(result)
-    fig.add_metrics(
-        {
-            "binding": result.is_binding,
-            "Q traded": result.traded_quantity,
-            "shortage": result.shortage,
-            "surplus": result.surplus,
-        },
-        title="Control Outcome",
-        location="upper right",
-    )
     fig.finalize()
     fig.save(str(themed_output_path(THEME, "price_controls.png")))
     fig.close()

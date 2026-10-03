@@ -21,15 +21,6 @@ def main() -> None:
     )
     fig.add_curves(demand, supply, q_max=12)
     fig.add_equilibrium(eq)
-    fig.add_metrics(
-        {
-            "q*": eq.q_star,
-            "p*": eq.p_star,
-            "valid": eq.is_valid_market,
-        },
-        title="Equilibrium",
-        location="upper right",
-    )
     fig.finalize()
     fig.save(str(themed_output_path(THEME, "basic_equilibrium.png")))
     fig.close()

@@ -82,16 +82,7 @@ def main() -> None:
             )
         )
 
-    fig.add_metrics(
-        {
-            "point count": 5,
-            "curve": "single demand line",
-            "mapping": "top→bottom: PE, E, U, I, PI",
-        },
-        title="Classification Points",
-        location="upper right",
-    )
-    fig.finalize(legend=True)
+    fig.finalize()
     fig.save(themed_output_path(THEME, "elasticity_demo.png"))
 
 

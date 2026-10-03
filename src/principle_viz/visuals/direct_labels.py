@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from dataclasses import replace
 from itertools import pairwise
 
 from mosaickit import Layer, PathLayer, PointLabelLayer, RegionLabelLayer
@@ -101,6 +102,31 @@ def curve_label_layer(
     )
 
 
+HEADROOM = 0.92
+"""Share of the price axis a curve may climb to, leaving room for its name."""
+
+
+def fit_curve(path: PathLayer, *, x_range: Range, y_range: Range) -> PathLayer:
+    """A straight curve trimmed to the plot, below ``HEADROOM`` of its height.
+
+    Curves stop short of the top edge so neither they nor their names run into
+    the axis arrow or the title. Curved or invisible paths are returned as is.
+    """
+    if not is_curve(path) or len(path.path) != 2:
+        return path
+    top = y_range[0] + HEADROOM * (y_range[1] - y_range[0])
+    clipped = _clip(path.path[0], path.path[1], x_range, (y_range[0], top))
+    if clipped is None or clipped == tuple(path.path):
+        return path
+    return replace(path, path=clipped)
+
+
+def is_curve(layer: Layer) -> bool:
+    return isinstance(layer, PathLayer) and any(
+        layer.role == role or layer.role.startswith(f"{role}.") for role in CURVE_ROLES
+    )
+
+
 def is_named_curve(layer: Layer) -> bool:
     return (
         isinstance(layer, PathLayer)
@@ -156,8 +182,11 @@ def region_label_layer(
 
 __all__ = [
     "CURVE_ROLES",
+    "HEADROOM",
     "curve_label_layer",
     "curve_label_layers",
+    "fit_curve",
+    "is_curve",
     "is_named_curve",
     "region_label_layer",
 ]

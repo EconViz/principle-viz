@@ -53,10 +53,10 @@ def price_control_layers(
 
 TAX_NOTES = {
     "p_d": "Price paid\nby buyers",
-    "p_0": "Price\nwithout tax",
+    "p_0": "Price\nwithout {policy}",
     "p_s": "Price received\nby sellers",
 }
-"""Explanations of the tax-wedge price marks, shown with ``notes=True``."""
+"""Explanations of the wedge price marks, shown with ``notes=True``."""
 
 
 def tax_wedge_layers(
@@ -70,6 +70,7 @@ def tax_wedge_layers(
     layer_id: str = "market.tax.wedge",
     brace_side: str = "outside",
     notes: bool = False,
+    policy: str = "tax",
 ) -> tuple[Layer, ...]:
     """The tax wedge at the taxed quantity, read off the price axis.
 
@@ -77,8 +78,9 @@ def tax_wedge_layers(
     ``baseline_price`` is given) and ``p_s`` (received by sellers), with a "Tax"
     brace over ``p_s``..``p_d`` on ``brace_side`` (``"outside"`` in the gutter or
     ``"inside"`` the plot). ``notes=True`` adds a short explanation of each mark.
+    ``policy="subsidy"`` draws the same wedge for a subsidy (``p_s`` above ``p_d``).
     """
-    role = "principle.policy.tax"
+    role = f"principle.policy.{policy}"
     guide = "principle.market.guide"
     layers: list[Layer] = [
         PathLayer(
@@ -122,16 +124,19 @@ def tax_wedge_layers(
         if notes:
             layers.append(
                 AxisNoteLayer(
-                    "y", price, TAX_NOTES[symbol], id=f"{layer_id}.note.{symbol}"
+                    "y",
+                    price,
+                    TAX_NOTES[symbol].format(policy=policy),
+                    id=f"{layer_id}.note.{symbol}",
                 )
             )
     if abs(consumer_price - producer_price) > 1e-9:
         layers.append(
             BraceLayer(
                 "y",
-                producer_price,
-                consumer_price,
-                "Tax",
+                min(producer_price, consumer_price),
+                max(producer_price, consumer_price),
+                policy.title(),
                 side=brace_side,
                 id=f"{layer_id}.brace",
             )
@@ -208,35 +213,45 @@ def tax_rotation_layers(
 
 def subsidy_layers(
     result: SubsidyComparisonResult,
+    *,
+    brace_side: str = "outside",
+    notes: bool = False,
 ) -> tuple[Layer, ...]:
-    """Render the producer-consumer subsidy wedge at the policy quantity."""
+    """The subsidy wedge at the subsidised quantity and what it costs.
+
+    Like the tax wedge, the price axis marks ``p_s`` (received by sellers), ``p_0``
+    and ``p_d`` (paid by buyers), with a "Subsidy" brace over ``p_d``..``p_s``.
+    """
     post = result.post_subsidy
-    midpoint = 0.5 * (post.consumer_price + post.producer_price)
+    baseline = result.baseline_equilibrium
+    cost = (
+        (0.0, post.consumer_price),
+        (post.q_star, post.consumer_price),
+        (post.q_star, post.producer_price),
+        (0.0, post.producer_price),
+    )
     return (
         FillLayer(
-            (
-                (0.0, post.consumer_price),
-                (post.q_star, post.consumer_price),
-                (post.q_star, post.producer_price),
-                (0.0, post.producer_price),
-            ),
+            cost,
             id="market.subsidy.expenditure",
             role="principle.welfare.subsidy",
             legend="Subsidy cost",
             z_index=0.5,
         ),
-        PathLayer(
-            ((post.q_star, post.consumer_price), (post.q_star, post.producer_price)),
-            id="market.subsidy.wedge",
-            role="principle.policy.subsidy",
-            z_index=5,
+        *tax_wedge_layers(
+            quantity=post.q_star,
+            consumer_price=post.consumer_price,
+            producer_price=post.producer_price,
+            baseline_quantity=baseline.q_star,
+            baseline_price=baseline.p_star,
+            label=f"$s = {post.subsidy_wedge:g}$",
+            layer_id="market.subsidy.wedge",
+            brace_side=brace_side,
+            notes=notes,
+            policy="subsidy",
         ),
-        PointLabelLayer(
-            (post.q_star, midpoint),
-            f"Subsidy = {post.subsidy_wedge:g}",
-            id="market.subsidy.wedge.label",
-            role="principle.policy.subsidy",
-            z_index=6,
+        # Unshaded, so the label is placed against the polygon itself.
+        region_label_layer(
+            "market.subsidy.expenditure", "Subsidy cost", "Cost", polygon=cost
         ),
-        region_label_layer("market.subsidy.expenditure", "Subsidy cost", "Cost"),
     )

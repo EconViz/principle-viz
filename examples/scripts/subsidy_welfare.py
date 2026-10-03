@@ -27,7 +27,7 @@ def main() -> None:
     comparison = compare_subsidy_scenario(
         demand,
         supply,
-        SubsidyScenario(amount=2.0, subsidy_to=SubsidyTo.PRODUCER),
+        SubsidyScenario(amount=3.0, subsidy_to=SubsidyTo.PRODUCER),
     )
     baseline = outcome_from_equilibrium(solve_equilibrium(demand, supply))
     subsidized = outcome_from_subsidy(comparison.post_subsidy)
@@ -40,7 +40,8 @@ def main() -> None:
         palette=EXAMPLE_PALETTE,
     )
     figure.add_curves(demand, supply, q_max=11)
-    figure.add_welfare(welfare.policy)
+    # The subsidy cost overlaps the surplus areas, so only the loss is shaded.
+    figure.add_welfare(welfare.policy, regions=("dwl",))
     figure.add_subsidy_comparison(comparison)
     figure.finalize()
     figure.save(str(themed_output_path(THEME, "subsidy_welfare.png")))

@@ -296,8 +296,9 @@ class PlotTheme:
                 fill=Fill(color=c.tax_revenue_color, opacity=0),
                 stroke=Stroke(width=0),
             ),
+            # Like tax revenue, the subsidy's cost is named, not shaded.
             "principle.welfare.subsidy": StyleBundle(
-                fill=Fill(color=c.shifted_color, opacity=0.16),
+                fill=Fill(color=c.shifted_color, opacity=0),
                 stroke=Stroke(width=0),
             ),
             "principle.welfare.loss": StyleBundle(

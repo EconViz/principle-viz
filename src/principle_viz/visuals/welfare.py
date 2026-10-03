@@ -1,5 +1,8 @@
 """Welfare regions and annotations as MosaicKit layers."""
 
+import math
+from collections.abc import Iterable
+
 from mosaickit import AxisMarkLayer, FillLayer, Layer, PathLayer
 
 from principle_viz.visuals.direct_labels import region_label_layer
@@ -20,11 +23,23 @@ _REGION_ROLES = {
 _UNFILLED_ROLES = frozenset({"principle.welfare.revenue"})
 
 
-def welfare_layers(surplus: SurplusResult, *, labels: bool = True) -> tuple[Layer, ...]:
-    """Shade CS, PS, tax revenue, and DWL; name each region unless ``labels`` is off."""
+def welfare_layers(
+    surplus: SurplusResult,
+    *,
+    labels: bool = True,
+    regions: Iterable[str] | None = None,
+) -> tuple[Layer, ...]:
+    """Shade CS, PS, tax revenue, and DWL; name each region unless ``labels`` is off.
+
+    ``regions`` keeps only the given keys (``"cs"``, ``"ps"``, ``"tax_revenue"``,
+    ``"dwl"``), e.g. just the deadweight loss where other areas would overlap.
+    """
+    keep = None if regions is None else set(regions)
     fills: list[Layer] = []
     names: list[Layer] = []
     for region in build_labeled_regions(surplus):
+        if keep is not None and region.key not in keep:
+            continue
         layer_id = f"market.welfare.{region.key}"
         role = _REGION_ROLES[region.key]
         fills.append(
@@ -146,3 +161,53 @@ def welfare_overlay_layers(
             )
         )
     return tuple(layers)
+
+
+def _strictly_inside(
+    point: tuple[float, float], polygon: tuple[tuple[float, float], ...]
+) -> bool:
+    """Whether ``point`` lies inside ``polygon`` and off its edges."""
+    x, y = point
+    inside = False
+    for (x0, y0), (x1, y1) in zip(polygon, polygon[1:] + polygon[:1]):
+        dx, dy = x1 - x0, y1 - y0
+        length2 = dx * dx + dy * dy
+        t = 0.0 if length2 == 0 else ((x - x0) * dx + (y - y0) * dy) / length2
+        t = min(1.0, max(0.0, t))
+        if math.hypot(x - (x0 + t * dx), y - (y0 + t * dy)) <= 1e-9:
+            return False
+        if (y0 > y) != (y1 > y) and x < x0 + (y - y0) * dx / dy:
+            inside = not inside
+    return inside
+
+
+def guides_through_regions(layers: Iterable[Layer]) -> tuple[str, ...]:
+    """Ids of guide lines that cut through a shaded welfare region.
+
+    A guide drawn across a region splits it, leaving its name no room; the axis
+    mark at the guide's end already carries the value.
+    """
+    layers = tuple(layers)
+    regions = [
+        tuple(layer.boundary)
+        for layer in layers
+        if isinstance(layer, FillLayer) and layer.role.startswith("principle.welfare.")
+    ]
+    crossing: list[str] = []
+    for layer in layers:
+        if not (
+            isinstance(layer, PathLayer)
+            and layer.role == "principle.market.guide"
+            and len(layer.path) == 2
+        ):
+            continue
+        (x0, y0), (x1, y1) = layer.path
+        samples = [
+            (x0 + t * (x1 - x0), y0 + t * (y1 - y0))
+            for t in (step / 20 for step in range(1, 20))
+        ]
+        if any(
+            _strictly_inside(point, region) for region in regions for point in samples
+        ):
+            crossing.append(layer.id)
+    return tuple(crossing)

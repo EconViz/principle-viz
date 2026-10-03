@@ -13,6 +13,7 @@ from mosaickit import (
     Layer,
     LegendLayer,
     LegendStyle,
+    PathLayer,
     Scene,
 )
 
@@ -62,6 +63,8 @@ from principle_viz.visuals import (
     welfare_overlay_layers,
 )
 from principle_viz.visuals.axes import FIGURE_SIZE
+from principle_viz.visuals.direct_labels import fit_curve
+from principle_viz.visuals.welfare import guides_through_regions
 from principle_viz.welfare.surplus import MarketOutcome, SurplusResult
 
 
@@ -127,8 +130,13 @@ class MarketFigure:
         return self
 
     def _add_named_curves(self, layers: Iterable[Layer]) -> MarketFigure:
-        """Add layers and name each core curve beside its visible end."""
-        layers = tuple(layers)
+        """Add layers, trim straight curves below the top of the plot, and name each
+        core curve beside its visible end."""
+        bounds = {"x_range": (0.0, self.x_max), "y_range": (0.0, self.y_max)}
+        layers = tuple(
+            fit_curve(layer, **bounds) if isinstance(layer, PathLayer) else layer
+            for layer in layers
+        )
         labels = curve_label_layers(
             layers,
             x_range=(0.0, self.x_max),
@@ -341,7 +349,15 @@ class MarketFigure:
         )
         return self.add_layers(layers)
 
-    def add_subsidy_comparison(self, result: SubsidyComparisonResult) -> MarketFigure:
+    def add_subsidy_comparison(
+        self,
+        result: SubsidyComparisonResult,
+        *,
+        brace_side: str = "outside",
+        notes: bool = False,
+    ) -> MarketFigure:
+        """Mark the subsidy wedge like the tax wedge, with a "Subsidy" brace on
+        ``brace_side`` of the price axis, and name the subsidy's cost."""
         post = result.post_subsidy
         layers: list[Layer] = []
         layers.extend(
@@ -361,10 +377,10 @@ class MarketFigure:
                 ),
                 layer_id="market.equilibrium.subsidized",
                 role="principle.market.equilibrium.shifted",
-                label=r"$e_s$",
+                label=r"$e_1$",
             )
         )
-        layers.extend(subsidy_layers(result))
+        layers.extend(subsidy_layers(result, brace_side=brace_side, notes=notes))
         return self.add_layers(layers)
 
     def add_tax_transform(
@@ -484,10 +500,18 @@ class MarketFigure:
         return self._add_named_curves(trade_layers(result, x_max=self.x_max))
 
     def add_welfare(
-        self, surplus: SurplusResult, *, labels: bool = True
+        self,
+        surplus: SurplusResult,
+        *,
+        labels: bool = True,
+        regions: Iterable[str] | None = None,
     ) -> MarketFigure:
-        """Shade the welfare regions and, unless ``labels`` is off, name each one."""
-        return self.add_layers(welfare_layers(surplus, labels=labels))
+        """Shade the welfare regions and, unless ``labels`` is off, name each one.
+
+        ``regions`` limits the shading to some of ``"cs"``, ``"ps"``,
+        ``"tax_revenue"`` and ``"dwl"``.
+        """
+        return self.add_layers(welfare_layers(surplus, labels=labels, regions=regions))
 
     def add_welfare_transition(
         self,
@@ -527,6 +551,11 @@ class MarketFigure:
         )
 
     def finalize(self, legend: bool = False) -> MarketFigure:
+        """Finish the figure: drop guide lines that would cut a shaded welfare
+        region in two (its axis mark still names the value), and add a legend only
+        when ``legend`` is on."""
+        for guide_id in guides_through_regions(self.scene.layers):
+            self.canvas.remove(guide_id)
         if any(layer.id == "market.legend" for layer in self.scene.layers):
             self.canvas.remove("market.legend")
         if legend:

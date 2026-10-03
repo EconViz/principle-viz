@@ -1,7 +1,15 @@
 from __future__ import annotations
 
 import pytest
-from mosaickit import TRANSPARENT, CanvasGrid, MarkerLayer, PathLayer, TextLayer
+from mosaickit import (
+    TRANSPARENT,
+    AxisMarkLayer,
+    CanvasGrid,
+    MarkerLayer,
+    PathLayer,
+    PointLabelLayer,
+    TextLayer,
+)
 
 from principle_viz import (
     AggregationFigure,
@@ -23,9 +31,13 @@ def _layers(canvas) -> dict[str, object]:
 
 
 def _texts(canvas) -> list[str]:
-    return [
-        layer.text for layer in canvas.snapshot().layers if isinstance(layer, TextLayer)
-    ]
+    texts: list[str] = []
+    for layer in canvas.snapshot().layers:
+        if isinstance(layer, (TextLayer, PointLabelLayer)):
+            texts.append(layer.text)
+        elif isinstance(layer, AxisMarkLayer):
+            texts.append(layer.label)
+    return texts
 
 
 def test_demand_figure_has_one_panel_per_individual_and_a_market_panel() -> None:

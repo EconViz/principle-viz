@@ -1,4 +1,4 @@
-"""Comparative statics example (image-only output)."""
+"""Comparative statics: one curve moves at a time (image-only output)."""
 
 from __future__ import annotations
 
@@ -9,26 +9,46 @@ from principle_viz.core.shifts import ShiftScenario, ShiftSpec, comparative_stat
 from principle_viz.plot.figure import MarketFigure
 
 THEME = "equilibrium"
+SHIFT = 3.0
+"""Vertical shift of the moving curve: large enough to read at a glance."""
+
+SCENARIOS = (
+    (
+        "demand_increase",
+        "Increase in Demand",
+        ShiftScenario(demand_shift=ShiftSpec(delta_intercept=SHIFT)),
+    ),
+    (
+        "demand_decrease",
+        "Decrease in Demand",
+        ShiftScenario(demand_shift=ShiftSpec(delta_intercept=-SHIFT)),
+    ),
+    (
+        "supply_increase",
+        "Increase in Supply",
+        ShiftScenario(supply_shift=ShiftSpec(delta_intercept=-SHIFT)),
+    ),
+    (
+        "supply_decrease",
+        "Decrease in Supply",
+        ShiftScenario(supply_shift=ShiftSpec(delta_intercept=SHIFT)),
+    ),
+)
 
 
 def main() -> None:
     demand = Line.from_inverse(10.0, -1.0)
     supply = Line.from_inverse(2.0, 1.0)
-
-    scenario = ShiftScenario(
-        demand_shift=ShiftSpec(delta_intercept=1.5),
-        supply_shift=ShiftSpec(delta_intercept=0.5),
-    )
-    result = comparative_statics(demand, supply, scenario)
-
-    fig = MarketFigure(
-        x_max=12, y_max=12, title="Comparative Statics", palette=EXAMPLE_PALETTE
-    )
-    fig.add_curves(demand, supply, q_max=10, demand_label="$D_0$", supply_label="$S_0$")
-    fig.add_comparative_statics(result, q_max=10)
-    fig.finalize()
-    fig.save(str(themed_output_path(THEME, "comparative_statics.png")))
-    fig.close()
+    for name, title, scenario in SCENARIOS:
+        result = comparative_statics(demand, supply, scenario)
+        fig = MarketFigure(x_max=12, y_max=14, title=title, palette=EXAMPLE_PALETTE)
+        fig.add_curves(
+            demand, supply, q_max=10, demand_label="$D_0$", supply_label="$S_0$"
+        )
+        fig.add_comparative_statics(result, q_max=10)
+        fig.finalize()
+        fig.save(str(themed_output_path(THEME, f"comparative_statics_{name}.png")))
+        fig.close()
 
 
 if __name__ == "__main__":

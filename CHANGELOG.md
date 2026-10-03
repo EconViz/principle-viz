@@ -12,7 +12,15 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
-- Depend on `mosaickit>=0.4.0,<0.5.0`.
+- Discrete step schedules draw open endpoints with an opaque white face (the step no longer shows through them) and a thin dashed riser, in the schedule's colour, from each open endpoint to the closed point that starts the next step. Points on an axis are drawn whole.
+- `MarketFigure.add_discrete_curves()` accepts a demand schedule, a supply schedule, or both. New example `discrete_schedules.py` draws each alone.
+- Aggregation figures take `link_price=True` to run the price line across every panel and the gaps between them (via MosaicKit `GridLink`), marking the price on the first panel only. In discrete panels the quantity guide no longer doubles the step's riser at `Q`. New example outputs `market_demand_linked.png` and `market_supply_linked.png`.
+- Movement arrows (comparative statics, loanable funds, tax shifts and rotations) are thin (1.2 pt), black and dashed, and their labels are black.
+- `add_comparative_statics()` redraws only the curve that moved. The example now draws four figures, one shift each (increase/decrease in demand/supply), with a larger shift.
+- The elasticity example names each point without values and puts the perfectly elastic and perfectly inelastic points on the axes.
+- Removed the DWL summary bar-chart example (`build_dwl_report()` is unchanged).
+
+- Depend on `mosaickit>=0.5.1,<0.6.0`.
 - `MarketFigure.finalize()` no longer adds a legend by default. Pass `finalize(legend=True)` to keep the previous behaviour.
 - The `default` palette now takes its hues from MosaicKit's `DEFAULT_PALETTE`: demand blue, supply red, deadweight loss teal. Consumer and producer surplus reuse the demand and supply hues at 15% opacity, deadweight loss is 45%, and tax revenue is labelled rather than shaded. Supply and demand curves (and shifted and taxed curves) are 3.5 pt wide, axes 1.0 pt, equilibrium points 6.5 pt across, and figures have an opaque white background.
 - Official examples use the `default` palette and no longer show legends or metric boxes. Example output always goes to `examples/output`, whichever directory the scripts run from.

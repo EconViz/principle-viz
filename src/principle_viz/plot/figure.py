@@ -177,37 +177,45 @@ class MarketFigure:
 
     def add_discrete_curves(
         self,
-        demand: DiscreteDemand,
-        supply: DiscreteSupply,
+        demand: DiscreteDemand | None = None,
+        supply: DiscreteSupply | None = None,
         *,
         demand_label: str = "Demand",
         supply_label: str = "Supply",
     ) -> MarketFigure:
-        self.add_layers(
-            discrete_schedule_layers(
-                demand,
-                schedule_id="market.discrete.demand",
-                role="principle.market.demand",
-                color=self.theme.demand_color,
-                label=demand_label,
+        """Step schedules, each named at its last step; pass one or both."""
+        schedules = [
+            (schedule, schedule_id, role, color, label)
+            for schedule, schedule_id, role, color, label in (
+                (
+                    demand,
+                    "market.discrete.demand",
+                    "principle.market.demand",
+                    self.theme.demand_color,
+                    demand_label,
+                ),
+                (
+                    supply,
+                    "market.discrete.supply",
+                    "principle.market.supply",
+                    self.theme.supply_color,
+                    supply_label,
+                ),
             )
-        )
-        self.add_layers(
-            discrete_schedule_layers(
-                supply,
-                schedule_id="market.discrete.supply",
-                role="principle.market.supply",
-                color=self.theme.supply_color,
-                label=supply_label,
+            if schedule is not None
+        ]
+        if not schedules:
+            raise ValueError("add_discrete_curves needs a demand or a supply schedule.")
+        for schedule, schedule_id, role, color, label in schedules:
+            layers = discrete_schedule_layers(
+                schedule, schedule_id=schedule_id, role=role, color=color, label=label
             )
-        )
-        # Name each schedule at its last step.
-        steps = {layer.id: layer for layer in self.scene.layers}
-        for schedule_id, schedule, label in (
-            ("market.discrete.demand", demand, demand_label),
-            ("market.discrete.supply", supply, supply_label),
-        ):
-            last = steps[f"{schedule_id}.step.{len(schedule.values) - 1}"]
+            self.add_layers(layers)
+            last = next(
+                layer
+                for layer in layers
+                if layer.id == f"{schedule_id}.step.{len(schedule.values) - 1}"
+            )
             self.add_layers(
                 curve_label_layers(
                     (replace(last, id=schedule_id, legend=label),),
@@ -252,31 +260,36 @@ class MarketFigure:
         supply_label: str = "$S_1$",
     ) -> MarketFigure:
         market = result.shifted_market
-        # A curve that did not move is drawn but not named a second time.
         demand_moved = (
             market.shifted_demand.as_tuple() != market.baseline_demand.as_tuple()
         )
         supply_moved = (
             market.shifted_supply.as_tuple() != market.baseline_supply.as_tuple()
         )
-        layers: list[Layer] = [
-            curve_layer(
-                result.shifted_market.shifted_demand,
-                q_min=0.0,
-                q_max=q_max,
-                layer_id="market.demand.shifted",
-                role="principle.market.demand.shifted",
-                label=demand_label if demand_moved else None,
-            ),
-            curve_layer(
-                result.shifted_market.shifted_supply,
-                q_min=0.0,
-                q_max=q_max,
-                layer_id="market.supply.shifted",
-                role="principle.market.supply.shifted",
-                label=supply_label if supply_moved else None,
-            ),
-        ]
+        # Only a curve that moved is drawn again.
+        layers: list[Layer] = []
+        if demand_moved:
+            layers.append(
+                curve_layer(
+                    market.shifted_demand,
+                    q_min=0.0,
+                    q_max=q_max,
+                    layer_id="market.demand.shifted",
+                    role="principle.market.demand.shifted",
+                    label=demand_label,
+                )
+            )
+        if supply_moved:
+            layers.append(
+                curve_layer(
+                    market.shifted_supply,
+                    q_min=0.0,
+                    q_max=q_max,
+                    layer_id="market.supply.shifted",
+                    role="principle.market.supply.shifted",
+                    label=supply_label,
+                )
+            )
         layers.extend(
             equilibrium_layers(
                 result.baseline_equilibrium,

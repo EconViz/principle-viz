@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+from itertools import pairwise
+
 from mosaickit import (
-    TRANSPARENT,
     BraceLayer,
+    DashStyle,
     Layer,
     Marker,
     MarkerLayer,
     PathLayer,
     PointLabelLayer,
+    Stroke,
 )
 
 from principle_viz.core.discrete import (
@@ -17,6 +20,9 @@ from principle_viz.core.discrete import (
     DiscreteEquilibriumResult,
     DiscreteSupply,
 )
+
+OPEN_FILL = "white"
+"""Face of an open endpoint: opaque, so the step behind it does not show through."""
 
 
 def discrete_schedule_layers(
@@ -27,7 +33,9 @@ def discrete_schedule_layers(
     color: str,
     label: str,
 ) -> tuple[Layer, ...]:
-    """Render `[q, q+1)` steps with solid-left and hollow-right endpoints."""
+    """Render ``[q, q+1)`` steps: a closed point at the left end, an open point at
+    the right end, and a dashed drop (or rise) from each open point to the
+    closed point that starts the next step."""
     layers: list[Layer] = []
     starts: list[tuple[float, float]] = []
     ends: list[tuple[float, float]] = []
@@ -46,6 +54,18 @@ def discrete_schedule_layers(
                 z_index=2,
             )
         )
+    connector = Stroke(color=color, width=1.0, dash=DashStyle.DASHED)
+    for index, (end, following) in enumerate(pairwise(schedule.values)):
+        q = float(index + 1)
+        layers.append(
+            PathLayer(
+                ((q, end), (q, following)),
+                id=f"{schedule_id}.connector.{index}",
+                role=role,
+                stroke=connector,
+                z_index=1,
+            )
+        )
     layers.extend(
         (
             MarkerLayer(
@@ -62,7 +82,7 @@ def discrete_schedule_layers(
                 id=f"{schedule_id}.open",
                 role=role,
                 marker=Marker(
-                    color=TRANSPARENT,
+                    color=OPEN_FILL,
                     edge_color=color,
                     edge_width=1.5,
                     size=34,

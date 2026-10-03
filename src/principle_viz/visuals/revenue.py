@@ -1,9 +1,13 @@
 """MosaicKit canvases for elasticity and total revenue."""
 
-from mosaickit import Canvas, CanvasSpec, MarkerLayer, PathLayer, PointLabelLayer
+from collections.abc import Mapping
+
+from mosaickit import CanvasSpec, MarkerLayer, PathLayer, PointLabelLayer
 
 from principle_viz.core.line import Line
 from principle_viz.core.revenue import ElasticityRevenueResult
+from principle_viz.plot.canvas import Canvas
+from principle_viz.plot.label import Label
 from principle_viz.visuals.axes import FIGURE_SIZE, market_axes_layers
 from principle_viz.visuals.direct_labels import curve_label_layer
 from principle_viz.visuals.theme import PlotTheme
@@ -14,6 +18,8 @@ def elasticity_revenue_canvases(
     result: ElasticityRevenueResult,
     *,
     theme: PlotTheme | None = None,
+    labels: Mapping[str, Label] | None = None,
+    visibility: Mapping[str, bool] | None = None,
 ) -> tuple[Canvas, Canvas]:
     selected = theme or PlotTheme()
     q_max = result.choke_quantity * 1.2
@@ -27,6 +33,8 @@ def elasticity_revenue_canvases(
             title="Demand and Elasticity",
         ),
         theme=selected.to_mosaickit(),
+        labels=labels,
+        visibility=visibility,
     ).extend(
         market_axes_layers(q_max, result.choke_price * 1.05, x_label="Q", y_label="p")
     )
@@ -84,6 +92,8 @@ def elasticity_revenue_canvases(
             title="Total Revenue",
         ),
         theme=selected.to_mosaickit(),
+        labels=labels,
+        visibility=visibility,
     ).extend(
         market_axes_layers(
             q_max, result.maximum_revenue * 1.15, x_label="Q", y_label="$TR$"

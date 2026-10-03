@@ -216,3 +216,25 @@ def test_price_line_is_not_linked_by_default() -> None:
         p_max=10.0,
     )
     assert figure.links == ()
+
+
+def test_aggregation_layers_and_labels_are_user_configurable() -> None:
+    from principle_viz import Label
+
+    figure = demand_aggregation_figure(
+        DEMANDS,
+        price=4,
+        visibility={"aggregation.A.point": False},
+        labels={"aggregation.A.curve": Label(text="$D_1$")},
+    )
+    a_layers = _layers(figure.panels[0])
+    assert not a_layers["aggregation.A.point"].visible
+    assert a_layers["aggregation.A.curve.label"].text == "$D_1$"
+
+    figure.hide("aggregation.market.curve").configure_label(
+        "aggregation.market.curve",
+        text="$D_M$",
+    )
+    market_layers = _layers(figure.panels[-1])
+    assert not market_layers["aggregation.market.curve"].visible
+    assert market_layers["aggregation.market.curve.label"].text == "$D_M$"

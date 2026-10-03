@@ -8,9 +8,7 @@ from pathlib import Path
 
 from mosaickit import (
     AxisMarkLayer,
-    Canvas,
     CanvasSpec,
-    FillLayer,
     Layer,
     LegendLayer,
     LegendStyle,
@@ -28,7 +26,8 @@ from principle_viz.core.equilibrium import EquilibriumResult
 from principle_viz.core.factor_markets import LoanableFundsResult, MinimumWageResult
 from principle_viz.core.line import Line
 from principle_viz.core.shifts import ComparativeStaticsResult
-from principle_viz.plot.label import Label, apply_label, is_label_layer
+from principle_viz.plot.canvas import Canvas
+from principle_viz.plot.label import Label
 from principle_viz.plot.theme import PlotTheme
 from principle_viz.policy.common_resources import CommonResourceResult
 from principle_viz.policy.externality import ExternalityResult
@@ -89,18 +88,6 @@ class MarketFigure:
         self.theme = theme or PlotTheme.from_palette(palette or "default")
         self.x_max = float(x_max)
         self.y_max = float(y_max)
-        self._label_overrides = dict(labels or {})
-        if not all(
-            isinstance(label, Label) for label in self._label_overrides.values()
-        ):
-            raise TypeError("MarketFigure labels must map layer ids to Label values")
-        self._label_defaults: dict[str, Layer] = {}
-        self._visibility_overrides = dict(visibility or {})
-        if not all(
-            isinstance(visible, bool)
-            for visible in self._visibility_overrides.values()
-        ):
-            raise TypeError("MarketFigure visibility values must be bools")
         self.canvas = Canvas(
             CanvasSpec(
                 x_range=(0.0, self.x_max),
@@ -111,6 +98,8 @@ class MarketFigure:
                 title=title,
             ),
             theme=self.theme.to_mosaickit(),
+            labels=labels,
+            visibility=visibility,
         )
         self.add_layers(
             market_axes_layers(
@@ -130,42 +119,9 @@ class MarketFigure:
     def add_layer(self, layer: Layer) -> MarketFigure:
         return self.add_layers((layer,))
 
-    def _regions(
-        self,
-        incoming: Iterable[Layer] = (),
-    ) -> dict[str, tuple[tuple[float, float], ...]]:
-        return {
-            layer.id: tuple(layer.boundary)
-            for layer in (*self.scene.layers, *incoming)
-            if isinstance(layer, FillLayer)
-        }
-
-    def _label_override(self, layer_id: str) -> Label | None:
-        override = self._label_overrides.get(layer_id)
-        if override is not None or not layer_id.endswith(".label"):
-            return override
-        return self._label_overrides.get(layer_id.removesuffix(".label"))
-
-    def _prepare_labels(self, layers: tuple[Layer, ...]) -> tuple[Layer, ...]:
-        regions = self._regions(layers)
-        prepared: list[Layer] = []
-        for layer in layers:
-            if layer.id in self._visibility_overrides:
-                layer = replace(
-                    layer,
-                    visible=self._visibility_overrides[layer.id],
-                )
-            if is_label_layer(layer):
-                self._label_defaults[layer.id] = layer
-                override = self._label_override(layer.id)
-                if override is not None:
-                    layer = apply_label(layer, override, regions=regions)
-            prepared.append(layer)
-        return tuple(prepared)
-
     def add_layers(self, layers: Iterable[Layer]) -> MarketFigure:
         """Add layers; an axis mark replaces any earlier mark at the same value."""
-        layers = self._prepare_labels(tuple(layers))
+        layers = tuple(layers)
         for mark in layers:
             if isinstance(mark, AxisMarkLayer):
                 for old in self.scene.layers:
@@ -181,22 +137,11 @@ class MarketFigure:
     @property
     def layer_ids(self) -> tuple[str, ...]:
         """Stable ids of all layers currently supplied by the figure."""
-        return tuple(layer.id for layer in self.scene.layers)
+        return self.canvas.layer_ids
 
     def configure_layer(self, layer_id: str, *, visible: bool) -> MarketFigure:
         """Show or hide any supplied line, point, region, or annotation."""
-        if not isinstance(visible, bool):
-            raise TypeError("visible must be a bool")
-        layer = next(
-            (candidate for candidate in self.scene.layers if candidate.id == layer_id),
-            None,
-        )
-        if layer is None:
-            available = ", ".join(self.layer_ids) or "none"
-            raise KeyError(f"Unknown layer {layer_id!r}; available layers: {available}")
-        self._visibility_overrides[layer_id] = visible
-        self.canvas.remove(layer_id)
-        self.canvas.add(replace(layer, visible=visible))
+        self.canvas.configure_layer(layer_id, visible=visible)
         return self
 
     def hide(self, *layer_ids: str) -> MarketFigure:
@@ -214,7 +159,7 @@ class MarketFigure:
     @property
     def label_ids(self) -> tuple[str, ...]:
         """Stable ids of every built-in label currently provided by the figure."""
-        return tuple(self._label_defaults)
+        return self.canvas.label_ids
 
     def configure_label(
         self,
@@ -230,29 +175,13 @@ class MarketFigure:
         ``layer_id`` may be the label id returned by :attr:`label_ids` or the id
         without its final ``".label"``. Offsets are in points.
         """
-        if label is not None and any(
-            value is not None for value in (text, visible, offset)
-        ):
-            raise ValueError("Pass either a Label or individual label options")
-        selected = label or Label(text=text, visible=visible, offset=offset)
-        candidates = (layer_id, f"{layer_id}.label")
-        resolved_id = next(
-            (candidate for candidate in candidates if candidate in self._label_defaults),
-            "",
+        self.canvas.configure_label(
+            layer_id,
+            label,
+            text=text,
+            visible=visible,
+            offset=offset,
         )
-        if not resolved_id:
-            available = ", ".join(self.label_ids) or "none"
-            raise KeyError(f"Unknown label {layer_id!r}; available labels: {available}")
-        self._label_overrides[resolved_id] = selected
-        default = self._label_defaults[resolved_id]
-        if resolved_id in self._visibility_overrides:
-            default = replace(
-                default,
-                visible=self._visibility_overrides[resolved_id],
-            )
-        replacement = apply_label(default, selected, regions=self._regions())
-        self.canvas.remove(resolved_id)
-        self.canvas.add(replacement)
         return self
 
     def _add_named_curves(self, layers: Iterable[Layer]) -> MarketFigure:
@@ -698,11 +627,11 @@ class MarketFigure:
         )
 
     def finalize(self, legend: bool = False) -> MarketFigure:
-        """Finish the figure: drop guide lines that would cut a shaded welfare
+        """Finish the figure: hide guide lines that would cut a shaded welfare
         region in two (its axis mark still names the value), and add a legend only
         when ``legend`` is on."""
         for guide_id in guides_through_regions(self.scene.layers):
-            self.canvas.remove(guide_id)
+            self.canvas.hide(guide_id)
         if any(layer.id == "market.legend" for layer in self.scene.layers):
             self.canvas.remove("market.legend")
         if legend:

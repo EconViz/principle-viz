@@ -38,6 +38,12 @@ def main() -> None:
         y_max=13,
         title="Per-Unit Subsidy",
         palette=EXAMPLE_PALETTE,
+        visibility={
+            "market.subsidy.expenditure.label": False,
+            "market.subsidy.wedge.label": False,
+            "market.subsidy.wedge.mark.p_0": False,
+            "market.subsidy.wedge.brace": False,
+        },
     )
     figure.add_curves(demand, supply, q_max=11)
     # The subsidy cost overlaps the surplus areas, so only the loss is shaded.

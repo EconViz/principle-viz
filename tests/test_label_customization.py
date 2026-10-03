@@ -66,6 +66,27 @@ def test_subsidy_annotations_can_be_moved_or_hidden_individually() -> None:
     assert isinstance(brace, BraceLayer) and not brace.visible
 
 
+def test_every_provided_subsidy_label_can_be_hidden() -> None:
+    result = compare_subsidy_scenario(
+        DEMAND,
+        SUPPLY,
+        SubsidyScenario(amount=2.0, subsidy_to=SubsidyTo.PRODUCER),
+    )
+    figure = (
+        MarketFigure(x_max=12, y_max=12)
+        .add_curves(DEMAND, SUPPLY, q_max=10)
+        .add_subsidy_comparison(result)
+    )
+
+    label_ids = figure.label_ids
+    for layer_id in label_ids:
+        figure.configure_label(layer_id, visible=False)
+
+    layers = _layers(figure)
+    assert label_ids
+    assert all(not layers[layer_id].visible for layer_id in label_ids)
+
+
 def test_label_rejects_invalid_offset() -> None:
     with pytest.raises(ValueError, match="two finite values"):
         Label(offset=(1, float("nan")))
@@ -75,3 +96,51 @@ def test_configure_label_reports_unknown_id() -> None:
     figure = MarketFigure().add_curves(DEMAND, SUPPLY, q_max=10)
     with pytest.raises(KeyError, match="Unknown label"):
         figure.configure_label("market.unknown", visible=False)
+
+
+def test_any_supplied_layer_can_be_hidden_and_shown() -> None:
+    result = compare_subsidy_scenario(
+        DEMAND,
+        SUPPLY,
+        SubsidyScenario(amount=2.0, subsidy_to=SubsidyTo.PRODUCER),
+    )
+    figure = (
+        MarketFigure(x_max=12, y_max=12)
+        .add_curves(DEMAND, SUPPLY, q_max=10)
+        .add_subsidy_comparison(result)
+    )
+    optional = (
+        "market.demand",
+        "market.equilibrium.baseline",
+        "market.subsidy.expenditure",
+        "market.subsidy.wedge",
+        "market.subsidy.wedge.brace",
+    )
+
+    figure.hide(*optional)
+    assert all(not _layers(figure)[layer_id].visible for layer_id in optional)
+
+    figure.show(*optional)
+    assert all(_layers(figure)[layer_id].visible for layer_id in optional)
+
+
+def test_visibility_can_be_declared_before_layers_exist() -> None:
+    figure = MarketFigure(
+        visibility={"market.demand": False},
+    ).add_curves(DEMAND, SUPPLY, q_max=10)
+
+    layers = _layers(figure)
+    assert not layers["market.demand"].visible
+    assert layers["market.supply"].visible
+    assert layers["axes.x.label"].visible
+    assert layers["axes.y.label"].visible
+
+
+def test_generic_visibility_survives_later_label_changes() -> None:
+    figure = MarketFigure().add_curves(DEMAND, SUPPLY, q_max=10)
+    figure.hide("market.supply.label")
+    figure.configure_label("market.supply", text="$S_0$")
+
+    label = _layers(figure)["market.supply.label"]
+    assert label.text == "$S_0$"
+    assert not label.visible

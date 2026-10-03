@@ -84,6 +84,7 @@ class MarketFigure:
         theme: PlotTheme | None = None,
         palette: str | None = None,
         labels: Mapping[str, Label] | None = None,
+        visibility: Mapping[str, bool] | None = None,
     ) -> None:
         self.theme = theme or PlotTheme.from_palette(palette or "default")
         self.x_max = float(x_max)
@@ -94,6 +95,12 @@ class MarketFigure:
         ):
             raise TypeError("MarketFigure labels must map layer ids to Label values")
         self._label_defaults: dict[str, Layer] = {}
+        self._visibility_overrides = dict(visibility or {})
+        if not all(
+            isinstance(visible, bool)
+            for visible in self._visibility_overrides.values()
+        ):
+            raise TypeError("MarketFigure visibility values must be bools")
         self.canvas = Canvas(
             CanvasSpec(
                 x_range=(0.0, self.x_max),
@@ -105,7 +112,7 @@ class MarketFigure:
             ),
             theme=self.theme.to_mosaickit(),
         )
-        self.canvas.extend(
+        self.add_layers(
             market_axes_layers(
                 self.x_max,
                 self.y_max,
@@ -143,6 +150,11 @@ class MarketFigure:
         regions = self._regions(layers)
         prepared: list[Layer] = []
         for layer in layers:
+            if layer.id in self._visibility_overrides:
+                layer = replace(
+                    layer,
+                    visible=self._visibility_overrides[layer.id],
+                )
             if is_label_layer(layer):
                 self._label_defaults[layer.id] = layer
                 override = self._label_override(layer.id)
@@ -164,6 +176,39 @@ class MarketFigure:
                     ):
                         self.canvas.remove(old.id)
         self.canvas.extend(layers)
+        return self
+
+    @property
+    def layer_ids(self) -> tuple[str, ...]:
+        """Stable ids of all layers currently supplied by the figure."""
+        return tuple(layer.id for layer in self.scene.layers)
+
+    def configure_layer(self, layer_id: str, *, visible: bool) -> MarketFigure:
+        """Show or hide any supplied line, point, region, or annotation."""
+        if not isinstance(visible, bool):
+            raise TypeError("visible must be a bool")
+        layer = next(
+            (candidate for candidate in self.scene.layers if candidate.id == layer_id),
+            None,
+        )
+        if layer is None:
+            available = ", ".join(self.layer_ids) or "none"
+            raise KeyError(f"Unknown layer {layer_id!r}; available layers: {available}")
+        self._visibility_overrides[layer_id] = visible
+        self.canvas.remove(layer_id)
+        self.canvas.add(replace(layer, visible=visible))
+        return self
+
+    def hide(self, *layer_ids: str) -> MarketFigure:
+        """Hide supplied layers by stable id."""
+        for layer_id in layer_ids:
+            self.configure_layer(layer_id, visible=False)
+        return self
+
+    def show(self, *layer_ids: str) -> MarketFigure:
+        """Show supplied layers by stable id."""
+        for layer_id in layer_ids:
+            self.configure_layer(layer_id, visible=True)
         return self
 
     @property
@@ -200,6 +245,11 @@ class MarketFigure:
             raise KeyError(f"Unknown label {layer_id!r}; available labels: {available}")
         self._label_overrides[resolved_id] = selected
         default = self._label_defaults[resolved_id]
+        if resolved_id in self._visibility_overrides:
+            default = replace(
+                default,
+                visible=self._visibility_overrides[resolved_id],
+            )
         replacement = apply_label(default, selected, regions=self._regions())
         self.canvas.remove(resolved_id)
         self.canvas.add(replacement)

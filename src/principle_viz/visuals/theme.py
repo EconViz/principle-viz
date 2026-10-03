@@ -164,9 +164,10 @@ class PlotTheme:
     color_model: ColorModel = field(default_factory=lambda: DEFAULT_COLOR_MODEL)
     demand_linewidth: float = 3.5
     supply_linewidth: float = 3.5
-    shifted_linewidth: float = 3.5
-    tax_linewidth: float = 3.5
-    arrow_linewidth: float = 1.2
+    shifted_linewidth: float = 1.0
+    tax_linewidth: float = 1.0
+    arrow_linewidth: float = 1.0
+    dashed_linewidth: float = 1.0
     equilibrium_marker_size: float = 42.25  # 6.5 pt across
     show_grid: bool = False
     show_ticks: bool = False
@@ -239,25 +240,43 @@ class PlotTheme:
                 text=TextStyle(color=c.label_color, size=10),
             ),
             "principle.policy.control": StyleBundle(
-                stroke=Stroke(color=c.control_color, width=1.8, dash=dashed),
+                stroke=Stroke(
+                    color=c.control_color,
+                    width=self.dashed_linewidth,
+                    dash=dashed,
+                ),
                 text=TextStyle(color=c.control_color, size=10),
             ),
             "principle.policy.tax": StyleBundle(
-                stroke=Stroke(color=c.tax_color, width=self.tax_linewidth, dash=dashed),
+                stroke=Stroke(
+                    color=c.tax_color,
+                    width=self.tax_linewidth,
+                    dash=dashed,
+                ),
                 text=TextStyle(color=c.tax_color, size=10),
             ),
             "principle.policy.subsidy": StyleBundle(
                 stroke=Stroke(
-                    color=c.shifted_color, width=self.tax_linewidth, dash=dashed
+                    color=c.shifted_color,
+                    width=self.tax_linewidth,
+                    dash=dashed,
                 ),
                 text=TextStyle(color=c.shifted_color, size=10),
             ),
             "principle.trade.world": StyleBundle(
-                stroke=Stroke(color=c.axis_color, width=1.5, dash=dashed),
+                stroke=Stroke(
+                    color=c.axis_color,
+                    width=self.dashed_linewidth,
+                    dash=dashed,
+                ),
                 text=TextStyle(color=c.label_color, size=10),
             ),
             "principle.trade.policy": StyleBundle(
-                stroke=Stroke(color=c.tax_color, width=1.8, dash=dashed),
+                stroke=Stroke(
+                    color=c.tax_color,
+                    width=self.dashed_linewidth,
+                    dash=dashed,
+                ),
                 text=TextStyle(color=c.tax_color, size=10),
             ),
             "principle.trade.flow": StyleBundle(
@@ -273,7 +292,11 @@ class PlotTheme:
                 text=TextStyle(color=c.baseline_color, size=11),
             ),
             "principle.ppf.shifted": StyleBundle(
-                stroke=Stroke(color=c.shifted_color, width=2.0, dash=dashed),
+                stroke=Stroke(
+                    color=c.shifted_color,
+                    width=self.dashed_linewidth,
+                    dash=dashed,
+                ),
                 text=TextStyle(color=c.shifted_color, size=11),
             ),
             "principle.ppf.feasible": StyleBundle(

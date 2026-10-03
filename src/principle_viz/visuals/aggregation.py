@@ -149,7 +149,7 @@ def quantity_guide_layers(
     endpoint, or a step's own riser on the guide), so it never runs through a
     marker or over another line.
     """
-    dashed = Stroke(dash=DashStyle.DASHED)
+    dashed = Stroke(width=1.0, dash=DashStyle.DASHED)
     layers: list[Layer] = []
     if price_mark:
         layers.append(

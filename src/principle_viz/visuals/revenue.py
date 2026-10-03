@@ -34,7 +34,7 @@ def elasticity_revenue_canvases(
         ((0, demand.p_at(0)), (result.choke_quantity, 0)),
         id="elasticity.demand",
         role="principle.market.demand",
-        legend="Demand",
+        legend="$D$",
     )
     demand_canvas.extend(
         (
@@ -94,7 +94,7 @@ def elasticity_revenue_canvases(
             tuple((point.quantity, point.total_revenue) for point in result.points),
             id="elasticity.total_revenue",
             role="principle.market.demand",
-            legend="Total revenue",
+            legend="$TR$",
         )
     )
     revenue_canvas.add(

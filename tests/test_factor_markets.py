@@ -86,7 +86,7 @@ def test_binding_minimum_wage_braces_unemployment_on_the_wage_line() -> None:
     figure.add_minimum_wage(result)
     layers = {layer.id: layer for layer in figure.scene.layers}
     label = layers["labor.minimum_wage.label"]
-    assert isinstance(label, PointLabelLayer) and label.text == "Minimum wage"
+    assert isinstance(label, PointLabelLayer) and label.text == r"$w_{\min}$"
     marks = {
         (layer.axis, layer.label): layer.value
         for layer in figure.scene.layers

@@ -181,7 +181,7 @@ def common_resource_layers(
                     + result.social_cost.p_at(efficient.q_star)
                 ),
             ),
-            f"Fee = {result.corrective_fee:g}",
+            f"$f = {result.corrective_fee:g}$",
             id="market.common_resource.fee.label",
             role="principle.policy.tax",
             z_index=6,

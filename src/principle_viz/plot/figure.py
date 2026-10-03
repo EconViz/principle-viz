@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import replace
 from pathlib import Path
 
@@ -10,6 +10,7 @@ from mosaickit import (
     AxisMarkLayer,
     Canvas,
     CanvasSpec,
+    FillLayer,
     Layer,
     LegendLayer,
     LegendStyle,
@@ -27,6 +28,7 @@ from principle_viz.core.equilibrium import EquilibriumResult
 from principle_viz.core.factor_markets import LoanableFundsResult, MinimumWageResult
 from principle_viz.core.line import Line
 from principle_viz.core.shifts import ComparativeStaticsResult
+from principle_viz.plot.label import Label, apply_label, is_label_layer
 from principle_viz.plot.theme import PlotTheme
 from principle_viz.policy.common_resources import CommonResourceResult
 from principle_viz.policy.externality import ExternalityResult
@@ -81,10 +83,17 @@ class MarketFigure:
         title: str = "Market Diagram",
         theme: PlotTheme | None = None,
         palette: str | None = None,
+        labels: Mapping[str, Label] | None = None,
     ) -> None:
         self.theme = theme or PlotTheme.from_palette(palette or "default")
         self.x_max = float(x_max)
         self.y_max = float(y_max)
+        self._label_overrides = dict(labels or {})
+        if not all(
+            isinstance(label, Label) for label in self._label_overrides.values()
+        ):
+            raise TypeError("MarketFigure labels must map layer ids to Label values")
+        self._label_defaults: dict[str, Layer] = {}
         self.canvas = Canvas(
             CanvasSpec(
                 x_range=(0.0, self.x_max),
@@ -112,12 +121,39 @@ class MarketFigure:
         return self.canvas.snapshot()
 
     def add_layer(self, layer: Layer) -> MarketFigure:
-        self.canvas.add(layer)
-        return self
+        return self.add_layers((layer,))
+
+    def _regions(
+        self,
+        incoming: Iterable[Layer] = (),
+    ) -> dict[str, tuple[tuple[float, float], ...]]:
+        return {
+            layer.id: tuple(layer.boundary)
+            for layer in (*self.scene.layers, *incoming)
+            if isinstance(layer, FillLayer)
+        }
+
+    def _label_override(self, layer_id: str) -> Label | None:
+        override = self._label_overrides.get(layer_id)
+        if override is not None or not layer_id.endswith(".label"):
+            return override
+        return self._label_overrides.get(layer_id.removesuffix(".label"))
+
+    def _prepare_labels(self, layers: tuple[Layer, ...]) -> tuple[Layer, ...]:
+        regions = self._regions(layers)
+        prepared: list[Layer] = []
+        for layer in layers:
+            if is_label_layer(layer):
+                self._label_defaults[layer.id] = layer
+                override = self._label_override(layer.id)
+                if override is not None:
+                    layer = apply_label(layer, override, regions=regions)
+            prepared.append(layer)
+        return tuple(prepared)
 
     def add_layers(self, layers: Iterable[Layer]) -> MarketFigure:
         """Add layers; an axis mark replaces any earlier mark at the same value."""
-        layers = tuple(layers)
+        layers = self._prepare_labels(tuple(layers))
         for mark in layers:
             if isinstance(mark, AxisMarkLayer):
                 for old in self.scene.layers:
@@ -128,6 +164,45 @@ class MarketFigure:
                     ):
                         self.canvas.remove(old.id)
         self.canvas.extend(layers)
+        return self
+
+    @property
+    def label_ids(self) -> tuple[str, ...]:
+        """Stable ids of every built-in label currently provided by the figure."""
+        return tuple(self._label_defaults)
+
+    def configure_label(
+        self,
+        layer_id: str,
+        label: Label | None = None,
+        *,
+        text: str | None = None,
+        visible: bool | None = None,
+        offset: tuple[float, float] | None = None,
+    ) -> MarketFigure:
+        """Show, hide, rename, or move one built-in label.
+
+        ``layer_id`` may be the label id returned by :attr:`label_ids` or the id
+        without its final ``".label"``. Offsets are in points.
+        """
+        if label is not None and any(
+            value is not None for value in (text, visible, offset)
+        ):
+            raise ValueError("Pass either a Label or individual label options")
+        selected = label or Label(text=text, visible=visible, offset=offset)
+        candidates = (layer_id, f"{layer_id}.label")
+        resolved_id = next(
+            (candidate for candidate in candidates if candidate in self._label_defaults),
+            "",
+        )
+        if not resolved_id:
+            available = ", ".join(self.label_ids) or "none"
+            raise KeyError(f"Unknown label {layer_id!r}; available labels: {available}")
+        self._label_overrides[resolved_id] = selected
+        default = self._label_defaults[resolved_id]
+        replacement = apply_label(default, selected, regions=self._regions())
+        self.canvas.remove(resolved_id)
+        self.canvas.add(replacement)
         return self
 
     def _add_named_curves(self, layers: Iterable[Layer]) -> MarketFigure:
@@ -151,8 +226,8 @@ class MarketFigure:
         demand: Line,
         supply: Line,
         q_max: float,
-        demand_label: str = "Demand",
-        supply_label: str = "Supply",
+        demand_label: str = "$D$",
+        supply_label: str = "$S$",
     ) -> MarketFigure:
         return self._add_named_curves(
             (
@@ -180,8 +255,8 @@ class MarketFigure:
         demand: DiscreteDemand | None = None,
         supply: DiscreteSupply | None = None,
         *,
-        demand_label: str = "Demand",
-        supply_label: str = "Supply",
+        demand_label: str = "$D$",
+        supply_label: str = "$S$",
     ) -> MarketFigure:
         """Step schedules, each named at its last step; pass one or both."""
         schedules = [
@@ -321,8 +396,8 @@ class MarketFigure:
         "Tax" brace over ``p_s``..``p_d``, ``"outside"`` the axis (default) or
         ``"inside"`` the plot. ``notes=True`` explains each mark beside the axis.
 
-        The wedge itself is named "Tax wedge" unless the figure already names the
-        tax revenue region, which then says the same thing.
+        The wedge itself is named ``t`` unless the figure already names the tax
+        revenue region.
         """
         names_revenue = any(
             layer.id == "market.welfare.tax_revenue" for layer in self.scene.layers
@@ -356,7 +431,7 @@ class MarketFigure:
                 producer_price=result.post_tax.producer_price,
                 baseline_quantity=result.baseline_equilibrium.q_star,
                 baseline_price=result.baseline_equilibrium.p_star,
-                label=None if names_revenue else "Tax wedge",
+                label=None if names_revenue else f"$t = {result.post_tax.tax_wedge:g}$",
                 brace_side=brace_side,
                 notes=notes,
             )

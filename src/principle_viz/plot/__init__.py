@@ -19,6 +19,7 @@ from principle_viz.plot.colors import (
     list_color_models,
 )
 from principle_viz.plot.figure import MarketFigure
+from principle_viz.plot.label import Label
 from principle_viz.plot.theme import PlotTheme
 
 __all__ = [
@@ -30,6 +31,7 @@ __all__ = [
     "AggregationFigure",
     "Canvas",
     "ColorModel",
+    "Label",
     "MarketFigure",
     "PlotTheme",
     "demand_aggregation_figure",

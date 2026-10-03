@@ -125,7 +125,7 @@ def _build(
                 index + 1,
                 (0.0, price),
                 role="principle.market.guide",
-                stroke=Stroke(dash=DashStyle.DASHED),
+                stroke=Stroke(width=1.0, dash=DashStyle.DASHED),
             )
             for index, (left, _) in enumerate(pairwise(panels))
         )

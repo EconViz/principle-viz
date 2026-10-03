@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 ## v0.10.0 (unreleased)
 
+### Features
+
+- Market curves from individual curves (#23). `market_demand()` and `market_supply(..., p_max=...)` sum linear individual curves horizontally into a new `PiecewiseLinear` curve (`q_at`, `p_at`, `kinks`, `domain`, `price_range`, `integrate_q`) with a kink at each individual's choke price or minimum price. `solve_piecewise_equilibrium()` solves the market exactly on each segment and `piecewise_surplus()` integrates consumer and producer surplus. Invalid input raises `AggregationError` or `PiecewiseLinearError` with the reason.
+- `DiscreteDemand.combine()` / `DiscreteSupply.combine()` merge individual reservation prices or unit costs into one market schedule (ties kept as separate units), and `quantity_at(price)` counts the units bought or sold at a price; the existing discrete solver works on the combined schedules.
+- `demand_aggregation_figure()`, `supply_aggregation_figure()`, `discrete_demand_aggregation_figure()` and `discrete_supply_aggregation_figure()` return an `AggregationFigure`: side-by-side `CanvasGrid` panels (one per individual, then the market) sharing the price axis, curves named directly (`$D_A$`, `$D_B$`, `$D$`; `$S_A$`, `$S_B$`, `$S$`), and dashed guides at a chosen price marked `$p_1$`, `$Q_A$`, `$Q_B$` and `$Q_A + Q_B = Q$`. Discrete panels draw steps with filled (included) and open (excluded) endpoints. New examples `aggregation_demand.py`, `aggregation_supply.py`, `aggregation_discrete_demand.py`, `aggregation_discrete_supply.py` write to `examples/output/aggregation/`.
+
 ### Changed
 
 - Depend on `mosaickit>=0.2.0,<0.3.0`.

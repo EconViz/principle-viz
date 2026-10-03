@@ -76,6 +76,42 @@ fig.save("tax_ad_valorem_consumer.png")
 fig.close()
 ```
 
+## Market Demand and Supply from Individuals
+
+Individual curves sum horizontally into the market curve. Each buyer buys nothing above their choke price and each seller sells nothing below their minimum price, so the market curve is piecewise linear with a kink at each of those prices.
+
+```python
+from principle_viz import (
+    DiscreteDemand,
+    demand_aggregation_figure,
+    discrete_demand_aggregation_figure,
+    market_demand,
+    market_supply,
+    solve_piecewise_equilibrium,
+)
+from principle_viz.core.line import Line
+
+a = Line.from_inverse(10, -2)  # p = 10 - 2Q
+b = Line.from_inverse(6, -0.5)  # p = 6 - 0.5Q
+demand = market_demand((a, b))
+demand.points  # ((0, 10), (2, 6), (17, 0)), kink at B's choke price
+demand.q_at(4)  # 7 = Q_A + Q_B
+
+supply = market_supply((Line.from_inverse(2, 1), Line.from_inverse(5, 0.5)), p_max=10)
+solve_piecewise_equilibrium(demand, supply)  # exact on each segment
+
+# Individual A | individual B | market, with guides at p_1 showing Q_A + Q_B = Q.
+demand_aggregation_figure({"A": a, "B": b}, price=4).save("market_demand.png")
+
+# Discrete: reservation prices combine into one market step schedule.
+DiscreteDemand.combine(DiscreteDemand((10, 7, 4)), DiscreteDemand((8, 5, 2)))
+discrete_demand_aggregation_figure(
+    {"A": DiscreteDemand((10, 7, 4)), "B": DiscreteDemand((8, 5, 2))}, price=6
+).save("discrete_market_demand.png")
+```
+
+`supply_aggregation_figure` and `discrete_supply_aggregation_figure` draw the supply side. Examples: `examples/scripts/aggregation_*.py`, output under `examples/output/aggregation/`.
+
 ## CLI
 
 ```bash
@@ -104,6 +140,7 @@ Generated images are grouped by topic under `examples/output/`:
 - `price_controls/`
 - `welfare/`
 - `elasticity/`
+- `aggregation/`
 
 ### Example Gallery
 

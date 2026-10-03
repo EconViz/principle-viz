@@ -192,6 +192,22 @@ def test_linked_price_line_runs_across_every_panel() -> None:
     assert figure.grid.links == figure.links
 
 
+def test_linked_demand_can_mark_an_individual_choke_price_and_market_kink() -> None:
+    figure = demand_aggregation_figure(
+        DEMANDS,
+        price=DEMANDS["B"].p_intercept(),
+        price_label="$p_B$",
+        link_price=True,
+    )
+    a, b, market = figure.panels
+
+    assert _layers(a)["aggregation.A.point"].points == ((2.0, 6.0),)
+    assert "aggregation.B.guide.quantity" not in _layers(b)
+    assert _layers(market)["aggregation.market.point"].points == ((2.0, 6.0),)
+    assert _layers(market)["aggregation.market.curve"].path[1] == (2.0, 6.0)
+    assert "$p_B$" in _texts(a)
+
+
 def test_price_line_is_not_linked_by_default() -> None:
     figure = supply_aggregation_figure(
         {"A": Line.from_inverse(2.0, 1.0), "B": Line.from_inverse(5.0, 0.5)},

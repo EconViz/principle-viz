@@ -11,17 +11,20 @@ THEME = "aggregation"
 
 
 def main() -> None:
-    # The second figure runs the price line across all three panels.
+    demands = {
+        "A": Line.from_inverse(10.0, -2.0),
+        "B": Line.from_inverse(6.0, -0.5),
+    }
+    # The linked figure marks B's choke price, where B enters the market and
+    # the horizontally summed demand curve changes slope.
     for linked, name in (
         (False, "market_demand.png"),
         (True, "market_demand_linked.png"),
     ):
         figure = demand_aggregation_figure(
-            {
-                "A": Line.from_inverse(10.0, -2.0),
-                "B": Line.from_inverse(6.0, -0.5),
-            },
-            price=4.0,
+            demands,
+            price=demands["B"].p_intercept() if linked else 4.0,
+            price_label="$p_B$" if linked else "$p_1$",
             palette=EXAMPLE_PALETTE,
             link_price=linked,
         )

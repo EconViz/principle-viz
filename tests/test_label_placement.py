@@ -149,6 +149,20 @@ def test_policy_annotations_are_point_labels(build, label_id, prefix) -> None:
     assert _point_label(figure, label_id).text.startswith(prefix)
 
 
+def test_tax_wedge_is_a_thin_dashed_line() -> None:
+    from mosaickit import DashStyle, PathLayer
+
+    figure = MarketFigure(x_max=12, y_max=14).add_tax_comparison(
+        compare_tax_scenario(DEMAND, SUPPLY, TAX)
+    )
+    wedge = _layers(figure)["market.tax.wedge"]
+
+    assert isinstance(wedge, PathLayer)
+    assert wedge.stroke is not None
+    assert wedge.stroke.width == 1.0
+    assert wedge.stroke.dash == DashStyle.DASHED
+
+
 def test_no_text_layer_is_placed_by_a_hard_coded_offset() -> None:
     eq = solve_equilibrium(DEMAND, SUPPLY)
     figure = (

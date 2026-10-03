@@ -9,7 +9,7 @@ from aggregation_supply import main as aggregation_supply_main
 from basic_equilibrium import main as basic_main
 from common import clear_all_outputs, remove_non_image_outputs
 from discrete_market import main as discrete_main
-from dwl_report import main as report_main
+from discrete_schedules import main as discrete_schedules_main
 from elasticity_demo import main as elasticity_main
 from elasticity_five_types_centered import main as elasticity_five_main
 from elasticity_total_revenue import main as elasticity_revenue_main
@@ -30,6 +30,7 @@ def main() -> None:
     remove_non_image_outputs()
     basic_main()
     discrete_main()
+    discrete_schedules_main()
     shift_main()
     tax_main()
     subsidy_main()
@@ -43,7 +44,6 @@ def main() -> None:
     elasticity_five_main()
     elasticity_revenue_main()
     factor_markets_main()
-    report_main()
     aggregation_demand_main()
     aggregation_supply_main()
     aggregation_discrete_demand_main()

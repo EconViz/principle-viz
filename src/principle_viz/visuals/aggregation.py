@@ -34,16 +34,11 @@ def aggregation_panel(
     x_max: float,
     y_max: float,
     theme: PlotTheme,
-    x_min: float = 0.0,
 ) -> Canvas:
-    """An empty p/Q panel with arrowed axes at the origin.
-
-    A negative ``x_min`` leaves room left of the price axis, so markers sitting on
-    it are drawn whole.
-    """
+    """An empty p/Q panel with arrowed axes at the origin."""
     return Canvas(
         CanvasSpec(
-            x_range=(x_min, x_max),
+            x_range=(0.0, x_max),
             y_range=(0.0, y_max),
             width=PANEL_WIDTH,
             height=PANEL_HEIGHT,
@@ -115,15 +110,18 @@ def named_schedule_layers(
 
 
 def _pieces(
-    top: float, *, holes: Sequence[float], hole: float
+    top: float, *, holes: Sequence[tuple[float, float]], hole: float
 ) -> list[tuple[float, float]]:
-    """Spans of ``[0, top]``, from the top down, that skip each hole."""
+    """Spans of ``[0, top]``, from the top down, that skip each ``(low, high)``
+    hole widened by ``hole`` on both sides."""
     pieces: list[tuple[float, float]] = []
     upper = top
-    for centre in sorted((h for h in holes if 0 < h < top), reverse=True):
-        if upper > centre + hole:
-            pieces.append((upper, centre + hole))
-        upper = min(upper, centre - hole)
+    for low, high in sorted(holes, key=lambda span: span[1], reverse=True):
+        if high + hole <= 0 or low - hole >= top:
+            continue
+        if upper > high + hole:
+            pieces.append((upper, high + hole))
+        upper = min(upper, low - hole)
     if upper > 0:
         pieces.append((upper, 0.0))
     return pieces
@@ -137,36 +135,47 @@ def quantity_guide_layers(
     price_label: str,
     quantity_label: str,
     point: bool = True,
-    holes: Sequence[float] = (),
+    holes: Sequence[tuple[float, float]] = (),
     hole: float = 0.0,
+    price_mark: bool = True,
+    price_until: float | None = None,
 ) -> tuple[Layer, ...]:
     """Dashed guides from the price axis to the curve and down to the Q axis.
 
-    The price and the quantity are axis marks, beside the axes outside the plot.
-    The quantity guide breaks for ``hole`` around each price in ``holes`` (such as
-    a step endpoint on the guide) so it never runs through a marker.
+    The price and the quantity are axis marks, beside the axes outside the plot
+    (``price_mark=False`` leaves the price unmarked). The price guide runs to the
+    quantity, or on to ``price_until`` when given. The quantity guide skips each
+    ``(low, high)`` price span in ``holes``, widened by ``hole`` (such as a step
+    endpoint, or a step's own riser on the guide), so it never runs through a
+    marker or over another line.
     """
-    layers: list[Layer] = [
-        AxisMarkLayer(
-            "y",
-            price,
-            price_label,
-            math=True,
-            id=f"aggregation.{panel_id}.price.label",
-        )
-    ]
-    if quantity <= 0:
-        return tuple(layers)
     dashed = Stroke(dash=DashStyle.DASHED)
-    layers.extend(
-        (
+    layers: list[Layer] = []
+    if price_mark:
+        layers.append(
+            AxisMarkLayer(
+                "y",
+                price,
+                price_label,
+                math=True,
+                id=f"aggregation.{panel_id}.price.label",
+            )
+        )
+    end = max(quantity, price_until or 0.0)
+    if end > 0:
+        layers.append(
             PathLayer(
-                ((0.0, price), (quantity, price)),
+                ((0.0, price), (end, price)),
                 id=f"aggregation.{panel_id}.guide.price",
                 role="principle.market.guide",
                 stroke=dashed,
                 z_index=1,
-            ),
+            )
+        )
+    if quantity <= 0:
+        return tuple(layers)
+    layers.extend(
+        (
             *(
                 PathLayer(
                     ((quantity, top), (quantity, bottom)),

@@ -166,7 +166,7 @@ class PlotTheme:
     supply_linewidth: float = 3.5
     shifted_linewidth: float = 3.5
     tax_linewidth: float = 3.5
-    arrow_linewidth: float = 1.6
+    arrow_linewidth: float = 1.2
     equilibrium_marker_size: float = 42.25  # 6.5 pt across
     show_grid: bool = False
     show_ticks: bool = False
@@ -231,8 +231,12 @@ class PlotTheme:
             "principle.market.guide": StyleBundle(
                 stroke=Stroke(color=c.axis_color, width=1.0, dash=dotted)
             ),
+            # Arrows showing how something moves: thin, black, dashed.
             "principle.market.movement": StyleBundle(
-                stroke=Stroke(color=c.arrow_color, width=self.arrow_linewidth)
+                stroke=Stroke(
+                    color=c.arrow_color, width=self.arrow_linewidth, dash=dashed
+                ),
+                text=TextStyle(color=c.label_color, size=10),
             ),
             "principle.policy.control": StyleBundle(
                 stroke=Stroke(color=c.control_color, width=1.8, dash=dashed),

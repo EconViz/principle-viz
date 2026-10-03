@@ -13,16 +13,15 @@ from principle_viz.visuals import curve_layer
 THEME = "elasticity"
 
 
-def _format_elasticity_label(abs_epsilon: float) -> str:
-    if abs_epsilon >= 20.0:
-        return "Perfectly\nelastic"
+def _elasticity_name(abs_epsilon: float) -> str:
+    if abs_epsilon == float("inf"):
+        return "Perfectly elastic"
+    if abs_epsilon == 0.0:
+        # Two lines: the point sits at the end of the quantity axis.
+        return "Perfectly\ninelastic"
     if abs(abs_epsilon - 1.0) <= 1e-9:
         return "Unit elastic"
-    if abs_epsilon > 1.0:
-        return "Elastic"
-    if abs_epsilon <= 0.05:
-        return "Perfectly\ninelastic"
-    return "Inelastic"
+    return "Elastic" if abs_epsilon > 1.0 else "Inelastic"
 
 
 def main() -> None:
@@ -36,8 +35,8 @@ def main() -> None:
     fig.add_layer(
         curve_layer(
             demand,
-            q_min=0.05,
-            q_max=9.95,
+            q_min=0.0,
+            q_max=10.0,
             layer_id="market.demand",
             role="principle.market.demand",
             # One curve, named by the title: no direct label needed.
@@ -45,10 +44,17 @@ def main() -> None:
         )
     )
 
-    sample_points = ((0.2, "o"), (2.0, "o"), (5.0, "o"), (8.0, "o"), (9.6, "o"))
-    for index, (q, shape) in enumerate(sample_points):
+    # The ends sit on the axes: |e| is infinite where Q = 0 and zero where p = 0.
+    choke = demand.q_intercept()
+    for index, q in enumerate((0.0, 0.2 * choke, 0.5 * choke, 0.8 * choke, choke)):
         p = demand.p_at(q)
-        abs_epsilon = abs(point_price_elasticity(demand, q=q))
+        abs_epsilon = (
+            float("inf")
+            if q == 0.0
+            else 0.0
+            if p == 0.0
+            else abs(point_price_elasticity(demand, q=q))
+        )
         fig.add_layers(
             (
                 MarkerLayer(
@@ -60,14 +66,13 @@ def main() -> None:
                         edge_color=fig.theme.baseline_color,
                         edge_width=0,
                         size=42,
-                        shape=shape,
+                        shape="o",
                     ),
                     z_index=6,
                 ),
                 PointLabelLayer(
                     (q, p),
-                    f"{_format_elasticity_label(abs_epsilon)}\n"
-                    rf"$|\varepsilon| \approx {abs_epsilon:.2f}$",
+                    _elasticity_name(abs_epsilon),
                     id=f"elasticity.point.{index}.label",
                     role="principle.annotation",
                     style=TextStyle(color=fig.theme.baseline_color),

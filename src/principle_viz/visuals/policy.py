@@ -214,6 +214,10 @@ def tax_wedge_layers(
     return tuple(layers)
 
 
+MOVEMENT_ROLE = "principle.market.movement"
+"""Arrows showing how a curve moves, drawn thin, black and dashed."""
+
+
 def tax_shift_layers(
     *,
     quantity: float,
@@ -222,7 +226,7 @@ def tax_shift_layers(
     label: str,
     layer_id: str,
 ) -> tuple[ArrowLayer | PointLabelLayer, ...]:
-    role = "principle.policy.tax"
+    role = MOVEMENT_ROLE
     layers: list[ArrowLayer | PointLabelLayer] = [
         ArrowLayer(
             (quantity, base_price),
@@ -258,7 +262,7 @@ def tax_rotation_layers(
     end_q = pivot_q + 0.65 * delta_q
     start = (start_q, base_curve.p_at(start_q))
     end = (end_q, taxed_curve.p_at(end_q))
-    role = "principle.policy.tax"
+    role = MOVEMENT_ROLE
     return (
         ArrowLayer(start, end, id=layer_id, role=role, z_index=5),
         # Named at its tail, outside the narrow wedge between the two curves.

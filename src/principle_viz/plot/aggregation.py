@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from itertools import pairwise
 from pathlib import Path
 
-from mosaickit import Canvas, CanvasGrid, Layer
+from mosaickit import Canvas, CanvasGrid, DashStyle, GridLink, Layer, Stroke
 
 from principle_viz.core.aggregation import (
     AggregationError,
@@ -29,9 +30,6 @@ MARGIN = 1.15
 HOLE = 0.035
 """Half-gap, as a share of the price axis, where a guide passes a step endpoint."""
 
-STEP_ROOM = 0.03
-"""Room left of the price axis, as a share of Q, for steps starting on it."""
-
 DEMAND_ROLE = "principle.market.demand"
 SUPPLY_ROLE = "principle.market.supply"
 
@@ -41,10 +39,11 @@ class AggregationFigure:
     """Side-by-side panels: one per individual, then the market."""
 
     panels: tuple[Canvas, ...]
+    links: tuple[GridLink, ...] = ()
 
     @property
     def grid(self) -> CanvasGrid:
-        return CanvasGrid(self.panels, rows=1)
+        return CanvasGrid(self.panels, rows=1, links=self.links)
 
     def save(self, path: str | Path) -> Path:
         target = Path(path)
@@ -61,8 +60,7 @@ class _Panel:
     quantity_label: str
     x_max: float
     draw: Callable[[Canvas], tuple[Layer, ...]]
-    holes: tuple[float, ...] = ()
-    x_min: float = 0.0
+    holes: tuple[tuple[float, float], ...] = ()
 
 
 def _check(individuals: Mapping[str, object]) -> None:
@@ -91,12 +89,14 @@ def _build(
     price_label: str,
     theme: PlotTheme,
     point: bool,
+    link_price: bool = False,
 ) -> AggregationFigure:
+    """Draw the panels; ``link_price`` runs the price guide across every panel
+    and the gaps between them, marking the price on the first panel only."""
     canvases: list[Canvas] = []
-    for panel in panels:
+    for index, panel in enumerate(panels):
         canvas = aggregation_panel(
             title=panel.title,
-            x_min=panel.x_min,
             x_max=panel.x_max,
             y_max=y_max,
             theme=theme,
@@ -112,10 +112,27 @@ def _build(
                 point=point,
                 holes=panel.holes,
                 hole=HOLE * y_max,
+                price_mark=index == 0 or not link_price,
+                price_until=panel.x_max if link_price else None,
             )
         )
         canvases.append(canvas)
-    return AggregationFigure(tuple(canvases))
+    links = (
+        tuple(
+            GridLink(
+                index,
+                (left.x_max, price),
+                index + 1,
+                (0.0, price),
+                role="principle.market.guide",
+                stroke=Stroke(dash=DashStyle.DASHED),
+            )
+            for index, (left, _) in enumerate(pairwise(panels))
+        )
+        if link_price
+        else ()
+    )
+    return AggregationFigure(tuple(canvases), links)
 
 
 def _line_panels(
@@ -170,8 +187,13 @@ def demand_aggregation_figure(
     price_label: str = "$p_1$",
     theme: PlotTheme | None = None,
     palette: str | None = None,
+    link_price: bool = False,
 ) -> AggregationFigure:
-    """Individual demands, their horizontal sum, and the quantities at ``price``."""
+    """Individual demands, their horizontal sum, and the quantities at ``price``.
+
+    ``link_price=True`` runs the price line across every panel and the gaps
+    between them, as one line, and marks the price on the first panel only.
+    """
     _check(individuals)
     market = market_demand(individuals.values())
     top = market.price_range[1]
@@ -198,6 +220,7 @@ def demand_aggregation_figure(
         price_label=price_label,
         theme=_theme(theme, palette),
         point=True,
+        link_price=link_price,
     )
 
 
@@ -209,8 +232,13 @@ def supply_aggregation_figure(
     price_label: str = "$p_1$",
     theme: PlotTheme | None = None,
     palette: str | None = None,
+    link_price: bool = False,
 ) -> AggregationFigure:
-    """Individual supplies up to ``p_max``, their sum, and quantities at ``price``."""
+    """Individual supplies up to ``p_max``, their sum, and quantities at ``price``.
+
+    ``link_price=True`` runs the price line across every panel and the gaps
+    between them, as one line, and marks the price on the first panel only.
+    """
     _check(individuals)
     market = market_supply(individuals.values(), p_max=p_max)
     bottom = market.price_range[0]
@@ -238,6 +266,7 @@ def supply_aggregation_figure(
         price_label=price_label,
         theme=_theme(theme, palette),
         point=True,
+        link_price=link_price,
     )
 
 
@@ -250,6 +279,7 @@ def _discrete_figure(
     symbol: str,
     role: str,
     theme: PlotTheme,
+    link_price: bool,
 ) -> AggregationFigure:
     if price <= 0:
         raise AggregationError("price must be positive.")
@@ -261,12 +291,12 @@ def _discrete_figure(
         is_market = name == "market"
         label = f"${symbol}$" if is_market else f"${_sub(symbol, name)}$"
         quantity = schedule.quantity_at(price)
-        # Step endpoints at Q: the end of unit Q and the start of unit Q + 1.
+        # At Q sit the end of unit Q, the start of unit Q + 1 and the dashed
+        # riser between them: the quantity guide skips that whole span.
         values = schedule.values
         x_max = schedule.unit_count * MARGIN + 0.6
-        holes = tuple(
-            values[i] for i in (quantity - 1, quantity) if 0 <= i < len(values)
-        )
+        ends = [values[i] for i in (quantity - 1, quantity) if 0 <= i < len(values)]
+        holes = ((min(ends), max(ends)),) if ends else ()
         panels.append(
             _Panel(
                 panel_id=name,
@@ -277,7 +307,6 @@ def _discrete_figure(
                 if is_market
                 else f"${_sub('Q', name)}$",
                 x_max=x_max,
-                x_min=-STEP_ROOM * x_max,
                 draw=lambda canvas, n=name, s=schedule, lab=label: (
                     named_schedule_layers(
                         canvas, s, panel_id=n, role=role, color=color, label=lab
@@ -292,6 +321,7 @@ def _discrete_figure(
         price_label=price_label,
         theme=theme,
         point=False,
+        link_price=link_price,
     )
 
 
@@ -302,8 +332,13 @@ def discrete_demand_aggregation_figure(
     price_label: str = "$p_1$",
     theme: PlotTheme | None = None,
     palette: str | None = None,
+    link_price: bool = False,
 ) -> AggregationFigure:
-    """Individual unit demands, the combined market schedule, and units at ``price``."""
+    """Individual unit demands, the combined market schedule, and units at ``price``.
+
+    ``link_price=True`` runs the price line across every panel and the gaps
+    between them, as one line, and marks the price on the first panel only.
+    """
     _check(individuals)
     return _discrete_figure(
         individuals,
@@ -313,6 +348,7 @@ def discrete_demand_aggregation_figure(
         symbol="D",
         role=DEMAND_ROLE,
         theme=_theme(theme, palette),
+        link_price=link_price,
     )
 
 
@@ -323,8 +359,13 @@ def discrete_supply_aggregation_figure(
     price_label: str = "$p_1$",
     theme: PlotTheme | None = None,
     palette: str | None = None,
+    link_price: bool = False,
 ) -> AggregationFigure:
-    """Individual unit costs, the combined market schedule, and units at ``price``."""
+    """Individual unit costs, the combined market schedule, and units at ``price``.
+
+    ``link_price=True`` runs the price line across every panel and the gaps
+    between them, as one line, and marks the price on the first panel only.
+    """
     _check(individuals)
     return _discrete_figure(
         individuals,
@@ -334,6 +375,7 @@ def discrete_supply_aggregation_figure(
         symbol="S",
         role=SUPPLY_ROLE,
         theme=_theme(theme, palette),
+        link_price=link_price,
     )
 
 

@@ -15,13 +15,13 @@ THEME = "elasticity"
 
 def _format_elasticity_label(abs_epsilon: float) -> str:
     if abs_epsilon >= 20.0:
-        return "Perfectly Elastic\n(limit)"
+        return "Perfectly elastic"
     if abs(abs_epsilon - 1.0) <= 1e-9:
         return "Unit Elastic"
     if abs_epsilon > 1.0:
         return "Elastic"
     if abs_epsilon <= 0.05:
-        return "Perfectly Inelastic\n(limit)"
+        return "Perfectly inelastic"
     return "Inelastic"
 
 
@@ -40,11 +40,12 @@ def main() -> None:
             q_max=9.95,
             layer_id="market.demand",
             role="principle.market.demand",
-            label="Demand",
+            # One curve, named by the title: no direct label needed.
+            label=None,
         )
     )
 
-    sample_points = ((0.2, "s"), (2.0, "o"), (5.0, "^"), (8.0, "D"), (9.8, "v"))
+    sample_points = ((0.2, "s"), (2.0, "o"), (5.0, "^"), (8.0, "D"), (9.6, "v"))
     for index, (q, shape) in enumerate(sample_points):
         p = demand.p_at(q)
         abs_epsilon = abs(point_price_elasticity(demand, q=q))

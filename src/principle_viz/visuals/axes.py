@@ -2,8 +2,9 @@
 
 from mosaickit import ArrowPlacement, AxisSpec, Layer, TextLayer, build_axes
 
-FIGURE_SIZE = {"width": 7.2, "height": 5.2, "dpi": 150}
-"""Physical size of every principle-viz figure (one panel), in inches and dots per inch."""
+FIGURE_SIZE = {"width": 6.0, "height": 6.0, "dpi": 150}
+"""Physical size of every principle-viz figure (one panel): square, so the price and
+quantity axes have the same length, as in textbook supply-and-demand diagrams."""
 
 TITLE_GAP_PT = 6.0
 """Gap between an arrow tip and its axis title, in points."""

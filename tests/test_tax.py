@@ -64,7 +64,9 @@ def test_compare_tax_scenario_has_directions() -> None:
 def test_tax_visual_shift_producer_is_upward_at_anchor() -> None:
     demand = Line.from_inverse(12.0, -1.0)
     supply = Line.from_inverse(2.0, 1.0)
-    scenario = TaxScenario(tax_type=TaxType.FIXED_TAX, amount=1.5, tax_on=TaxOn.PRODUCER)
+    scenario = TaxScenario(
+        tax_type=TaxType.FIXED_TAX, amount=1.5, tax_on=TaxOn.PRODUCER
+    )
 
     guide = build_tax_visual_guide(demand, supply, scenario)
     q0 = guide.baseline_equilibrium.q_star
@@ -77,7 +79,9 @@ def test_tax_visual_shift_producer_is_upward_at_anchor() -> None:
 def test_tax_visual_shift_consumer_keeps_upward_arrow_gap() -> None:
     demand = Line.from_inverse(12.0, -1.0)
     supply = Line.from_inverse(2.0, 1.0)
-    scenario = TaxScenario(tax_type=TaxType.PER_UNIT_TAX, amount=1.2, tax_on=TaxOn.CONSUMER)
+    scenario = TaxScenario(
+        tax_type=TaxType.PER_UNIT_TAX, amount=1.2, tax_on=TaxOn.CONSUMER
+    )
 
     guide = build_tax_visual_guide(demand, supply, scenario)
     q0 = guide.baseline_equilibrium.q_star
@@ -90,14 +94,18 @@ def test_tax_visual_shift_consumer_keeps_upward_arrow_gap() -> None:
 def test_tax_visual_ad_valorem_default_is_origin_scaled_rotation_for_producer() -> None:
     demand = Line.from_inverse(12.0, -1.0)
     supply = Line.from_inverse(2.0, 1.0)
-    scenario = TaxScenario(tax_type=TaxType.AD_VALOREM_TAX, amount=0.25, tax_on=TaxOn.PRODUCER)
+    scenario = TaxScenario(
+        tax_type=TaxType.AD_VALOREM_TAX, amount=0.25, tax_on=TaxOn.PRODUCER
+    )
 
     guide = build_tax_visual_guide(demand, supply, scenario)
     q_ref = 3.0
 
     assert guide.transform_kind == "rotation"
     assert guide.curve_role == "supply"
-    assert guide.taxed_curve.p_at(q_ref) == pytest.approx(guide.base_curve.p_at(q_ref) * 1.25)
+    assert guide.taxed_curve.p_at(q_ref) == pytest.approx(
+        guide.base_curve.p_at(q_ref) * 1.25
+    )
     assert guide.taxed_curve.slope() == pytest.approx(guide.base_curve.slope() * 1.25)
     assert scenario.anchor_mode == AnchorMode.NONE
 

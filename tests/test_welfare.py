@@ -79,7 +79,9 @@ def test_welfare_annotation_layout_builds_reference_and_named_regions() -> None:
         TaxScenario(tax_type=TaxType.PER_UNIT_TAX, amount=1.0, tax_on=TaxOn.PRODUCER),
     )
     policy_outcome = outcome_from_tax(tax_eq)
-    policy_surplus = compute_surplus(demand, supply, policy_outcome, baseline_outcome=baseline_outcome)
+    policy_surplus = compute_surplus(
+        demand, supply, policy_outcome, baseline_outcome=baseline_outcome
+    )
 
     layout = build_welfare_annotation_layout(
         baseline_outcome=baseline_outcome,

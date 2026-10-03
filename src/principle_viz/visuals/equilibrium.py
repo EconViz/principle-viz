@@ -2,8 +2,11 @@
 
 from mosaickit import (
     ArrowLayer,
+    AxisMarkLayer,
+    Layer,
     Marker,
     MarkerLayer,
+    PathLayer,
     PointLabelLayer,
     Stroke,
     TextStyle,
@@ -51,6 +54,29 @@ def equilibrium_layers(
             style=text_style,
             z_index=7,
         ),
+    )
+
+
+def quantity_mark_layers(
+    equilibrium: EquilibriumResult,
+    symbol: str,
+    *,
+    layer_id: str,
+    role: str = "principle.market.equilibrium",
+) -> tuple[Layer, ...]:
+    """A filled point named on the quantity axis instead of beside it: a guide
+    drops from the point to the axis, where ``symbol`` (LaTeX, without ``$``)
+    marks its quantity. Keeps crowded crossings free of text."""
+    q, p = equilibrium.q_star, equilibrium.p_star
+    return (
+        MarkerLayer(((q, p),), id=layer_id, role=role, model=equilibrium, z_index=6),
+        PathLayer(
+            ((q, 0.0), (q, p)),
+            id=f"{layer_id}.guide",
+            role="principle.market.guide",
+            z_index=2,
+        ),
+        AxisMarkLayer("x", q, symbol, math=True, id=f"{layer_id}.mark"),
     )
 
 

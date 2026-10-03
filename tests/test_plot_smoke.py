@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from mosaickit import RegionLabelLayer, TextLayer
+from mosaickit import AxisMarkLayer, PointLabelLayer, RegionLabelLayer, TextLayer
 
 from principle_viz.core.equilibrium import solve_equilibrium
 from principle_viz.core.line import Line
@@ -15,9 +15,14 @@ from principle_viz.welfare.surplus import (
 
 
 def _texts(figure: MarketFigure) -> list[str]:
-    return [
-        str(layer.text) for layer in figure.scene.layers if isinstance(layer, TextLayer)
-    ]
+    """Every piece of text a figure draws: plain text, point labels, axis marks."""
+    texts = []
+    for layer in figure.scene.layers:
+        if isinstance(layer, (TextLayer, PointLabelLayer)):
+            texts.append(str(layer.text))
+        elif isinstance(layer, AxisMarkLayer):
+            texts.append(f"${layer.label}$" if layer.math else str(layer.label))
+    return texts
 
 
 def test_market_figure_smoke_save_all_static_formats(tmp_path) -> None:
@@ -27,9 +32,11 @@ def test_market_figure_smoke_save_all_static_formats(tmp_path) -> None:
     figure = MarketFigure(x_max=12, y_max=12, title="Smoke")
     figure.add_curves(demand, supply, q_max=10).add_equilibrium(eq).finalize()
 
-    assert r"$e^{*}$" in _texts(figure)
+    assert "$e^*$" in _texts(figure)
     layer_ids = {layer.id for layer in figure.scene.layers}
-    assert layer_ids.issuperset({"market.demand", "market.supply", "market.equilibrium"})
+    assert layer_ids.issuperset(
+        {"market.demand", "market.supply", "market.equilibrium"}
+    )
     assert "market.legend" not in layer_ids
     for suffix in ("png", "svg", "pdf"):
         output = tmp_path / f"smoke_basic.{suffix}"
@@ -65,8 +72,8 @@ def test_market_figure_tax_shift_transform_smoke(tmp_path) -> None:
     figure.add_curves(demand, supply, q_max=10).add_tax_transform(
         demand, supply, scenario, q_max=10
     ).finalize()
-    assert any(label.startswith("Tax = ") for label in _texts(figure))
-    assert r"$e^{*}$" in _texts(figure)
+    assert any(label.startswith("$t = ") for label in _texts(figure))
+    assert "$e^*$" in _texts(figure)
     output = tmp_path / "smoke_tax_shift.png"
     figure.save(output)
     assert output.exists()
@@ -84,8 +91,10 @@ def test_market_figure_tax_rotation_transform_smoke(tmp_path) -> None:
     figure.add_curves(demand, supply, q_max=10).add_tax_transform(
         demand, supply, scenario, q_max=10
     ).finalize()
-    assert any(label.startswith("Tax rate = ") for label in _texts(figure))
-    assert r"$e^{*}$" in _texts(figure)
+    assert any(
+        label.startswith("$t = ") and label.endswith("\\%$") for label in _texts(figure)
+    )
+    assert "$e^*$" in _texts(figure)
     output = tmp_path / "smoke_tax_rotation.png"
     figure.save(output)
     assert output.exists()

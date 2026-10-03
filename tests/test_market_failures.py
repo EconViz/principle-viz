@@ -89,3 +89,24 @@ def test_market_failure_visuals_use_semantic_layers(
     assert "public_good.social_benefit" in {
         layer.id for layer in canvas.snapshot().layers
     }
+
+
+def test_public_good_marks_private_and_efficient_quantity_on_the_axis() -> None:
+    from mosaickit import AxisMarkLayer, PointLabelLayer
+
+    a = IndividualBenefit("Person A", Line.from_inverse(10.0, -1.0))
+    b = IndividualBenefit("Person B", Line.from_inverse(6.0, -1.0))
+    result = analyze_public_good((a, b), Line.from_inverse(4.0, 0.0))
+    canvas = public_good_canvas(result)
+    layers = canvas.snapshot().layers
+    marks = {
+        layer.label: layer.value
+        for layer in layers
+        if isinstance(layer, AxisMarkLayer) and layer.axis == "x"
+    }
+    assert marks["Q_p"] == pytest.approx(result.private_provision_quantity)
+    assert marks["Q^*"] == pytest.approx(result.efficient_quantity)
+    texts = [str(layer.text) for layer in layers if isinstance(layer, PointLabelLayer)]
+    assert not any("Efficient" in t or "Private" in t for t in texts)
+    # The quantity axis ends just past the curves instead of leaving empty space.
+    assert canvas.spec.x_range[1] <= 1.1 * result.points[-1].quantity

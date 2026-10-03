@@ -16,7 +16,6 @@ def test_list_color_models_matches_econ_viz_builtin_names() -> None:
     assert "monochrome" in names
 
 
-
 def test_get_color_model_resolves_known_palettes() -> None:
     default = get_color_model("default")
     colorblind = get_color_model("colorblind")
@@ -29,19 +28,16 @@ def test_get_color_model_resolves_known_palettes() -> None:
     assert monochrome.name == "monochrome"
 
 
-
 def test_plot_theme_from_palette() -> None:
     theme = PlotTheme.from_palette("nord")
     assert theme.color_model.name == "nord"
     assert theme.axis_color == "#2E3440"
 
 
-
 def test_market_figure_accepts_palette_name() -> None:
     fig = MarketFigure(title="Palette", palette="colorblind")
     assert fig.theme.color_model.name == "colorblind"
     fig.close()
-
 
 
 def test_unknown_palette_raises() -> None:
@@ -59,9 +55,7 @@ def test_default_palette_names_mosaickit_palette_colours() -> None:
     assert default.ps_color == default.supply_color
     assert default.dwl_color == "teal"
     assert all(
-        getattr(default, name) in P
-        for name in vars(default)
-        if name.endswith("_color")
+        getattr(default, name) in P for name in vars(default) if name.endswith("_color")
     )
 
 

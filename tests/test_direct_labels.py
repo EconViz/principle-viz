@@ -1,7 +1,14 @@
 from __future__ import annotations
 
 import pytest
-from mosaickit import FillLayer, LegendLayer, PathLayer, RegionLabelLayer, TextLayer
+from mosaickit import (
+    FillLayer,
+    LegendLayer,
+    PathLayer,
+    PointLabelLayer,
+    RegionLabelLayer,
+    TextLayer,
+)
 
 from principle_viz.core.equilibrium import solve_equilibrium
 from principle_viz.core.factor_markets import (
@@ -42,9 +49,9 @@ def _layers(figure: MarketFigure) -> dict[str, object]:
     return {layer.id: layer for layer in figure.scene.layers}
 
 
-def _label(figure: MarketFigure, curve_id: str) -> TextLayer:
+def _label(figure: MarketFigure, curve_id: str) -> PointLabelLayer:
     label = _layers(figure)[f"{curve_id}.label"]
-    assert isinstance(label, TextLayer)
+    assert isinstance(label, PointLabelLayer)
     return label
 
 
@@ -66,56 +73,39 @@ def test_add_curves_names_each_curve_from_its_legend_label() -> None:
         assert label.role == layers[curve_id].role
 
 
-def test_curve_label_sits_beside_the_visible_end() -> None:
+def test_curve_label_sits_at_the_visible_end() -> None:
     figure = MarketFigure(x_max=12, y_max=12).add_curves(DEMAND, SUPPLY, q_max=11)
-    demand = _label(figure, "market.demand")
-    supply = _label(figure, "market.supply")
-    # Demand meets the quantity axis at Q=10: text goes up and right, off the line.
-    assert demand.position == pytest.approx((10.0, 0.0))
-    assert demand.anchor == "bottom-left"
-    # Supply leaves through the top (p=12 at Q=10): named just past its exit point.
-    assert supply.position == pytest.approx((10.0, 12.0))
-    assert supply.anchor == "bottom-left"
-    assert demand.offset[0] > 0 and demand.offset[1] > 0
+    # Demand meets the quantity axis at Q=10.
+    assert _label(figure, "market.demand").point == pytest.approx((10.0, 0.0))
+    # Supply is trimmed below the top of the plot and named at its trimmed end.
+    supply = _label(figure, "market.supply").point
+    assert supply[1] < 12.0
+    assert supply == pytest.approx(_layers(figure)["market.supply"].path[-1])
 
 
-def test_curve_label_ending_at_right_edge_extends_left() -> None:
+def test_curve_label_at_right_edge_uses_the_edge_point() -> None:
     path = curve_layer(
         Line.from_inverse(1.0, 0.5),
         q_min=0,
         q_max=10,
         layer_id="test.curve",
         role="principle.market.supply",
-        label="S",
+        label="$S$",
     )
     label = curve_label_layer(path, x_range=(0, 10), y_range=(0, 12))
-    assert label.position == pytest.approx((10.0, 6.0))
-    assert label.anchor == "bottom-right"
-
-
-def test_curve_label_below_a_rising_curve_goes_under_it() -> None:
-    path = curve_layer(
-        Line.from_inverse(9.0, -0.5),
-        q_min=0,
-        q_max=10,
-        layer_id="test.curve",
-        role="principle.market.demand",
-        label="D",
-    )
-    label = curve_label_layer(path, x_range=(0, 10), y_range=(0, 12))
-    # Ends at the right edge and rises leftwards: the text goes left and below.
-    assert label.position == pytest.approx((10.0, 4.0))
-    assert label.anchor == "top-right"
-    assert label.offset == (-4.0, -4.0)
+    assert isinstance(label, PointLabelLayer)
+    assert label.point == pytest.approx((10.0, 6.0))
 
 
 def test_curve_resting_on_the_axis_is_named_where_it_lifts_off() -> None:
     path = PathLayer(
-        ((0, 6), (6, 0), (10, 0)), id="mb", role="principle.market.demand", legend="MB"
+        ((0, 6), (6, 0), (10, 0)),
+        id="mb",
+        role="principle.market.demand",
+        legend="$MB$",
     )
     label = curve_label_layer(path, x_range=(0, 10), y_range=(0, 8))
-    assert label.position == pytest.approx((6.0, 0.0))
-    assert label.anchor == "bottom-left"
+    assert label.point == pytest.approx((6.0, 0.0))
 
 
 def test_curve_label_needs_a_legend_and_a_visible_segment() -> None:
@@ -136,12 +126,14 @@ def test_shifted_curves_use_short_symbols() -> None:
     )
     figure = (
         MarketFigure(x_max=12, y_max=12)
-        .add_curves(DEMAND, SUPPLY, q_max=10, demand_label="D₀", supply_label="S₀")
+        .add_curves(
+            DEMAND, SUPPLY, q_max=10, demand_label="$D_0$", supply_label="$S_0$"
+        )
         .add_comparative_statics(result, q_max=10)
     )
-    assert _label(figure, "market.demand").text == "D₀"
-    assert _label(figure, "market.demand.shifted").text == "D₁"
-    assert _label(figure, "market.supply.shifted").text == "S₁"
+    assert _label(figure, "market.demand").text == "$D_0$"
+    assert _label(figure, "market.demand.shifted").text == "$D_1$"
+    assert _label(figure, "market.supply.shifted").text == "$S_1$"
 
 
 def test_unshifted_curve_is_not_labelled_twice() -> None:
@@ -264,16 +256,19 @@ def test_policy_regions_are_named() -> None:
             DEMAND, SUPPLY, ExternalityScenario(marginal_external_cost=2)
         )
     )
-    regions = {
-        layer.region: layer.text
-        for layer in figure.scene.layers
-        if isinstance(layer, RegionLabelLayer)
-    }
-    assert regions == {
-        "market.subsidy.expenditure": "Subsidy cost",
-        "market.trade.policy_rent": "Tariff revenue",
-        "market.externality.dwl": "Deadweight loss",
-    }
+    labels = [
+        layer for layer in figure.scene.layers if isinstance(layer, RegionLabelLayer)
+    ]
+    assert sorted(label.text for label in labels) == [
+        "Deadweight loss",
+        "Subsidy cost",
+        "Tariff revenue",
+    ]
+    by_text = {label.text: label.region for label in labels}
+    assert by_text["Tariff revenue"] == "market.trade.policy_rent"
+    assert by_text["Deadweight loss"] == "market.externality.dwl"
+    # The subsidy's cost is named but not shaded, so it is labelled by its polygon.
+    assert isinstance(by_text["Subsidy cost"], tuple)
 
 
 def test_axis_titles_default_to_p_and_q_past_the_arrow_tips() -> None:
@@ -295,11 +290,13 @@ def test_worded_axis_titles_are_not_math() -> None:
 
 def test_sum_curve_can_be_named_at_its_start() -> None:
     path = PathLayer(
-        ((0, 9), (5, 4), (9, 0)), id="s", role="principle.market.demand", legend="ΣMB"
+        ((0, 9), (5, 4), (9, 0)),
+        id="s",
+        role="principle.market.demand",
+        legend=r"$\Sigma MB$",
     )
     label = curve_label_layer(path, x_range=(0, 10), y_range=(0, 10), at="start")
-    assert label.position == pytest.approx((0.0, 9.0))
-    assert label.anchor == "bottom-left"
+    assert label.point == pytest.approx((0.0, 9.0))
 
 
 def test_titles_use_normal_weight() -> None:
@@ -307,7 +304,7 @@ def test_titles_use_normal_weight() -> None:
     assert theme.roles["title"].text.weight == "normal"
 
 
-def test_curves_ending_at_the_same_point_are_stacked() -> None:
+def test_curves_ending_at_the_same_point_get_separate_labels(tmp_path) -> None:
     scenario = TaxScenario(
         tax_type=TaxType.AD_VALOREM_TAX, amount=0.2, tax_on=TaxOn.CONSUMER
     )
@@ -318,6 +315,19 @@ def test_curves_ending_at_the_same_point_are_stacked() -> None:
     )
     base = _label(figure, "market.demand")
     taxed = _label(figure, "market.demand.taxed")
-    assert taxed.text == "D − t"
-    assert taxed.position == pytest.approx(base.position)
-    assert taxed.offset[1] > base.offset[1]
+    assert taxed.text == "$D - t$"
+    assert taxed.point == pytest.approx(base.point)
+    result = figure.canvas.render()
+    try:
+        renderer = result.figure.canvas.get_renderer()
+        boxes = {
+            text.get_gid(): text.get_window_extent(renderer)
+            for text in result.axes.texts
+            if text.get_gid() in {"market.demand.label", "market.demand.taxed.label"}
+        }
+        assert len(boxes) == 2
+        assert not boxes["market.demand.label"].overlaps(
+            boxes["market.demand.taxed.label"]
+        )
+    finally:
+        result.close()

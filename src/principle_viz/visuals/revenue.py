@@ -39,10 +39,12 @@ def elasticity_revenue_canvases(
     demand_canvas.extend(
         (
             demand_curve,
+            # Named where it starts: its other end sits on the axis, in the corner.
             curve_label_layer(
                 demand_curve,
                 x_range=demand_canvas.spec.x_range,
                 y_range=demand_canvas.spec.y_range,
+                at="start",
             ),
         )
     )

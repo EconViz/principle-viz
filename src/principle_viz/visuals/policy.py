@@ -13,13 +13,15 @@ from mosaickit import (
     Stroke,
 )
 
-from principle_viz.core.controls import PriceControlResult
+from principle_viz.core.controls import PriceControlResult, PriceControlType
 from principle_viz.core.line import Line
 from principle_viz.policy.subsidy import SubsidyComparisonResult
 from principle_viz.visuals.direct_labels import region_label_layer
 
 
-def line_label_anchor(level: float, crossings: tuple[float, ...], x_max: float) -> tuple[float, float]:
+def line_label_anchor(
+    level: float, crossings: tuple[float, ...], x_max: float
+) -> tuple[float, float]:
     """A point on a horizontal line at ``level`` to hang its label on: halfway
     between the right-most curve crossing and the end of the line."""
     right = max((q for q in crossings if 0.0 <= q <= x_max), default=0.0)
@@ -28,27 +30,66 @@ def line_label_anchor(level: float, crossings: tuple[float, ...], x_max: float) 
 
 def price_control_layers(
     result: PriceControlResult, *, x_max: float
-) -> tuple[PathLayer, PointLabelLayer]:
-    note = f"{'Binding' if result.is_binding else 'Non-binding'} ({result.control_type.value})"
+) -> tuple[Layer, ...]:
+    """The control line, named directly, with ``p_c`` on the price axis. A binding
+    control also marks ``Q_d`` and ``Q_s`` with guides and braces the gap between
+    them on the quantity axis: "Shortage" under a ceiling, "Surplus" over a floor."""
     role = "principle.policy.control"
-    far_side = result.traded_quantity + result.shortage + result.surplus
-    return (
+    ceiling = result.control_type == PriceControlType.CEILING
+    name = "Price ceiling" if ceiling else "Price floor"
+    price = result.control_price
+    layers: list[Layer] = [
         PathLayer(
-            ((0.0, result.control_price), (x_max, result.control_price)),
+            ((0.0, price), (x_max, price)),
             id="market.control.price",
             role=role,
-            legend=result.control_type.value.title(),
+            legend=name,
             model=result,
             z_index=3,
         ),
         PointLabelLayer(
-            line_label_anchor(result.control_price, (far_side,), x_max),
-            note,
+            (x_max, price),
+            name,
             id="market.control.price.label",
             role=role,
             z_index=4,
         ),
+        AxisMarkLayer("y", price, "p_c", math=True, id="market.control.mark.p_c"),
+    ]
+    if not result.is_binding:
+        return tuple(layers)
+    gap = result.shortage if ceiling else result.surplus
+    q_short = result.traded_quantity
+    q_long = q_short + gap
+    q_d, q_s = (q_long, q_short) if ceiling else (q_short, q_long)
+    layers.extend(
+        (
+            PathLayer(
+                ((q_d, 0.0), (q_d, price)),
+                id="market.control.guide.q_d",
+                role="principle.market.guide",
+                z_index=2,
+            ),
+            PathLayer(
+                ((q_s, 0.0), (q_s, price)),
+                id="market.control.guide.q_s",
+                role="principle.market.guide",
+                z_index=2,
+            ),
+            AxisMarkLayer("x", q_d, "Q_d", math=True, id="market.control.mark.q_d"),
+            AxisMarkLayer("x", q_s, "Q_s", math=True, id="market.control.mark.q_s"),
+            BraceLayer(
+                "x",
+                q_short,
+                q_long,
+                "Shortage" if ceiling else "Surplus",
+                side="outside",
+                id="market.control.gap",
+                role=role,
+            ),
+        )
     )
+    return tuple(layers)
 
 
 TAX_NOTES = {
@@ -117,9 +158,7 @@ def tax_wedge_layers(
             )
     for symbol, price in prices:
         layers.append(
-            AxisMarkLayer(
-                "y", price, symbol, math=True, id=f"{layer_id}.mark.{symbol}"
-            )
+            AxisMarkLayer("y", price, symbol, math=True, id=f"{layer_id}.mark.{symbol}")
         )
         if notes:
             layers.append(

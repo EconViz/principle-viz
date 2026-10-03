@@ -115,18 +115,7 @@ def test_curve_labels_are_point_labels_at_the_curve_end() -> None:
         (
             lambda f: f.add_tax_transform(DEMAND, SUPPLY, TAX, q_max=10),
             "market.tax.shift.label",
-            "Tax = ",
-        ),
-        (
-            lambda f: f.add_price_control(
-                evaluate_price_control(
-                    DEMAND,
-                    SUPPLY,
-                    PriceControlScenario(PriceControlType.CEILING, 4.0),
-                )
-            ),
-            "market.control.price.label",
-            "Binding (ceiling)",
+            "$t = ",
         ),
         (
             lambda f: f.add_externality(
@@ -145,11 +134,6 @@ def test_curve_labels_are_point_labels_at_the_curve_end() -> None:
             "Fee = ",
         ),
         (
-            lambda f: f.add_trade(analyze_trade(DEMAND, SUPPLY, TradeScenario(4))),
-            "market.trade.volume.label",
-            "Imports = ",
-        ),
-        (
             lambda f: f.add_minimum_wage(analyze_minimum_wage(DEMAND, SUPPLY, 8)),
             "labor.unemployment.label",
             "Unemployment = ",
@@ -161,7 +145,7 @@ def test_curve_labels_are_point_labels_at_the_curve_end() -> None:
                 )
             ),
             "market.subsidy.wedge.label",
-            "Subsidy = ",
+            "$s = ",
         ),
     ],
 )
@@ -177,7 +161,9 @@ def test_no_text_layer_is_placed_by_a_hard_coded_offset() -> None:
         .add_curves(DEMAND, SUPPLY, q_max=10)
         .add_equilibrium(eq)
         .add_tax_comparison(compare_tax_scenario(DEMAND, SUPPLY, TAX))
-        .add_trade(analyze_trade(DEMAND, SUPPLY, TradeScenario(world_price=4, tariff=1)))
+        .add_trade(
+            analyze_trade(DEMAND, SUPPLY, TradeScenario(world_price=4, tariff=1))
+        )
         .add_loanable_funds(
             analyze_loanable_funds(
                 SUPPLY, DEMAND, LoanableFundsScenario(government_borrowing=2)
@@ -324,3 +310,91 @@ def test_examples_raise_no_layout_warning() -> None:
         text=True,
     )
     assert result.returncode == 0, result.stdout + result.stderr[-2000:]
+
+
+@pytest.mark.parametrize(
+    "world_price,label,low,high",
+    [(4.0, "Imports", "Q_s", "Q_d"), (8.0, "Exports", "Q_d", "Q_s")],
+)
+def test_trade_volume_is_a_brace_on_the_quantity_axis(
+    world_price: float, label: str, low: str, high: str
+) -> None:
+    result = analyze_trade(DEMAND, SUPPLY, TradeScenario(world_price))
+    figure = MarketFigure(x_max=12, y_max=14).add_trade(result)
+    brace = next(
+        layer for layer in figure.scene.layers if isinstance(layer, BraceLayer)
+    )
+    outcome = result.policy
+    q_low, q_high = sorted((outcome.quantity_supplied, outcome.quantity_demanded))
+    assert (brace.axis, brace.label) == ("x", label)
+    assert (brace.start, brace.end) == pytest.approx((q_low, q_high))
+    marks = _marks(figure, "x")
+    assert marks[low] == pytest.approx(q_low)
+    assert marks[high] == pytest.approx(q_high)
+
+
+@pytest.mark.parametrize(
+    "control,price,name,gap",
+    [
+        (PriceControlType.CEILING, 4.0, "Price ceiling", "Shortage"),
+        (PriceControlType.FLOOR, 8.0, "Price floor", "Surplus"),
+    ],
+)
+def test_binding_price_control_marks_the_gap_with_a_brace(
+    control: PriceControlType, price: float, name: str, gap: str
+) -> None:
+    result = evaluate_price_control(
+        DEMAND, SUPPLY, PriceControlScenario(control, price)
+    )
+    figure = MarketFigure(x_max=12, y_max=12).add_price_control(result)
+    layers = {layer.id: layer for layer in figure.scene.layers}
+    assert layers["market.control.price"].legend == name
+    assert isinstance(layers["market.control.price.label"], PointLabelLayer)
+    assert layers["market.control.price.label"].text == name
+    assert _marks(figure, "y")["p_c"] == pytest.approx(price)
+    q_d, q_s = DEMAND.q_at(price), SUPPLY.q_at(price)
+    marks = _marks(figure, "x")
+    assert (marks["Q_d"], marks["Q_s"]) == pytest.approx((q_d, q_s))
+    brace = next(
+        layer for layer in figure.scene.layers if isinstance(layer, BraceLayer)
+    )
+    assert (brace.axis, brace.label) == ("x", gap)
+    assert (brace.start, brace.end) == pytest.approx(tuple(sorted((q_d, q_s))))
+
+
+def test_non_binding_price_control_has_no_gap_brace() -> None:
+    result = evaluate_price_control(
+        DEMAND, SUPPLY, PriceControlScenario(PriceControlType.CEILING, 9.0)
+    )
+    figure = MarketFigure(x_max=12, y_max=12).add_price_control(result)
+    assert not any(isinstance(layer, BraceLayer) for layer in figure.scene.layers)
+
+
+def test_externality_quantities_are_axis_marks_not_point_labels() -> None:
+    result = analyze_externality(
+        DEMAND, SUPPLY, ExternalityScenario(marginal_external_cost=2)
+    )
+    figure = MarketFigure(x_max=12, y_max=14).add_externality(result)
+    marks = _marks(figure, "x")
+    assert marks["Q_m"] == pytest.approx(result.private_equilibrium.q_star)
+    assert marks["Q^*"] == pytest.approx(result.social_equilibrium.q_star)
+    point_texts = {
+        layer.text
+        for layer in figure.scene.layers
+        if isinstance(layer, PointLabelLayer)
+    }
+    assert not point_texts & {"$Q_m$", "$Q^*$"}
+
+
+def test_common_resource_quantities_are_axis_marks_not_point_labels() -> None:
+    result = analyze_common_resource(DEMAND, SUPPLY, marginal_congestion_cost=2)
+    figure = MarketFigure(x_max=12, y_max=14).add_common_resource(result)
+    marks = _marks(figure, "x")
+    assert marks["Q_{open}"] == pytest.approx(result.open_access_equilibrium.q_star)
+    assert marks["Q^*"] == pytest.approx(result.efficient_equilibrium.q_star)
+    point_texts = {
+        layer.text
+        for layer in figure.scene.layers
+        if isinstance(layer, PointLabelLayer)
+    }
+    assert not point_texts & {"$Q_{open}$", "$Q^*$"}

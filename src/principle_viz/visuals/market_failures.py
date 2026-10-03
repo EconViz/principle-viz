@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from mosaickit import (
+    AxisMarkLayer,
     Canvas,
     CanvasSpec,
     FillLayer,
@@ -17,13 +18,13 @@ from principle_viz.core.public_goods import PublicGoodResult
 from principle_viz.policy.common_resources import CommonResourceResult
 from principle_viz.policy.externality import ExternalityResult
 from principle_viz.visuals.axes import FIGURE_SIZE, market_axes_layers
-from principle_viz.visuals.curves import curve_layer
+from principle_viz.visuals.curves import curve_layer, segment_layer
 from principle_viz.visuals.direct_labels import (
     curve_label_layer,
     curve_label_layers,
     region_label_layer,
 )
-from principle_viz.visuals.equilibrium import equilibrium_layers
+from principle_viz.visuals.equilibrium import quantity_mark_layers
 from principle_viz.visuals.theme import PlotTheme
 
 
@@ -52,18 +53,16 @@ def externality_layers(result: ExternalityResult, *, q_max: float) -> tuple[Laye
             )
         )
     layers.extend(
-        equilibrium_layers(
-            result.private_equilibrium,
-            layer_id="market.externality.private",
-            label=r"$Q_m$",
+        quantity_mark_layers(
+            result.private_equilibrium, "Q_m", layer_id="market.externality.private"
         )
     )
     layers.extend(
-        equilibrium_layers(
+        quantity_mark_layers(
             result.social_equilibrium,
+            "Q^*",
             layer_id="market.externality.social",
             role="principle.market.equilibrium.shifted",
-            label=r"$Q^*$",
         )
     )
     q0 = result.private_equilibrium.q_star
@@ -134,21 +133,21 @@ def common_resource_layers(
             role="principle.market.supply.shifted",
             label="$MSC$",
         ),
-        *equilibrium_layers(
+        *quantity_mark_layers(
             open_access,
+            "Q_{open}",
             layer_id="market.common_resource.open_access",
-            label=r"$Q_{open}$",
         ),
-        *equilibrium_layers(
+        *quantity_mark_layers(
             EquilibriumResult(
                 efficient.q_star,
                 efficient.p_star,
                 efficient.is_valid_market,
                 efficient.notes,
             ),
+            "Q^*",
             layer_id="market.common_resource.efficient",
             role="principle.market.equilibrium.shifted",
-            label=r"$Q^*$",
         ),
         FillLayer(
             (
@@ -196,7 +195,7 @@ def public_good_canvas(
     theme: PlotTheme | None = None,
 ) -> Canvas:
     selected = theme or PlotTheme()
-    q_max = result.points[-1].quantity * 1.2
+    q_max = result.points[-1].quantity * 1.08
     y_max = (
         max(
             max(point.social_marginal_benefit, point.marginal_cost)
@@ -251,8 +250,12 @@ def public_good_canvas(
     # Beyond its kink the sum runs along the largest individual curve, so it is
     # named where it starts, on the price axis.
     bounds = {"x_range": (0, q_max), "y_range": (0, y_max)}
-    canvas.extend(curve_label_layers(curves[:-2] + curves[-1:], **bounds))
-    canvas.add(curve_label_layer(curves[-2], at="start", **bounds))
+    # Individual curves are named where they start, on the price axis, away from
+    # the crowded quantity axis where they end.
+    individuals = curves[:-2]
+    canvas.extend(curve_label_layers(curves[-1:], **bounds))
+    for curve in (*individuals, curves[-2]):
+        canvas.add(curve_label_layer(curve, at="start", **bounds))
     canvas.extend(
         (
             MarkerLayer(
@@ -270,20 +273,32 @@ def public_good_canvas(
                 id="public_good.private_provision",
                 role="principle.market.equilibrium.shifted",
             ),
-            PointLabelLayer(
+            segment_layer(
+                (result.efficient_quantity, 0.0),
                 (result.efficient_quantity, result.efficient_marginal_value),
-                f"Efficient $Q = {result.efficient_quantity:.2f}$",
-                id="public_good.efficient.label",
-                role="principle.annotation",
+                layer_id="public_good.efficient.guide",
             ),
-            PointLabelLayer(
+            segment_layer(
+                (result.private_provision_quantity, 0.0),
                 (
                     result.private_provision_quantity,
                     result.marginal_cost.p_at(result.private_provision_quantity),
                 ),
-                f"Private $Q = {result.private_provision_quantity:.2f}$",
-                id="public_good.private_provision.label",
-                role="principle.annotation",
+                layer_id="public_good.private_provision.guide",
+            ),
+            AxisMarkLayer(
+                "x",
+                result.efficient_quantity,
+                "Q^*",
+                math=True,
+                id="public_good.efficient.mark",
+            ),
+            AxisMarkLayer(
+                "x",
+                result.private_provision_quantity,
+                "Q_p",
+                math=True,
+                id="public_good.private_provision.mark",
             ),
         )
     )

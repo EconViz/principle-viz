@@ -27,6 +27,13 @@ from principle_viz.api import (
     solve_subsidy_equilibrium,
     solve_tax_equilibrium,
 )
+from principle_viz.core.aggregation import (
+    AggregationError,
+    market_demand,
+    market_supply,
+    piecewise_surplus,
+    solve_piecewise_equilibrium,
+)
 from principle_viz.core.discrete import (
     DiscreteDemand,
     DiscreteEquilibriumResult,
@@ -40,6 +47,7 @@ from principle_viz.core.factor_markets import (
     LoanableFundsScenario,
     MinimumWageResult,
 )
+from principle_viz.core.piecewise import PiecewiseLinear, PiecewiseLinearError
 from principle_viz.core.ppf import (
     ComparativeAdvantageResult,
     PointStatus,
@@ -62,12 +70,17 @@ from principle_viz.plot import (
     DEFAULT_COLOR_MODEL,
     MONOCHROME_COLOR_MODEL,
     NORD_COLOR_MODEL,
+    AggregationFigure,
     Canvas,
     ColorModel,
     MarketFigure,
     PlotTheme,
+    demand_aggregation_figure,
+    discrete_demand_aggregation_figure,
+    discrete_supply_aggregation_figure,
     get_color_model,
     list_color_models,
+    supply_aggregation_figure,
 )
 from principle_viz.policy.common_resources import CommonResourceResult
 from principle_viz.policy.externality import ExternalityResult, ExternalityScenario
@@ -95,6 +108,8 @@ __all__ = [
     "DEFAULT_COLOR_MODEL",
     "MONOCHROME_COLOR_MODEL",
     "NORD_COLOR_MODEL",
+    "AggregationError",
+    "AggregationFigure",
     "Canvas",
     "ColorModel",
     "CommonResourceResult",
@@ -118,6 +133,8 @@ __all__ = [
     "PPFGrowthResult",
     "PPFGrowthScenario",
     "PPFPoint",
+    "PiecewiseLinear",
+    "PiecewiseLinearError",
     "PlotTheme",
     "PointStatus",
     "ProductionPossibilitiesFrontier",
@@ -151,15 +168,23 @@ __all__ = [
     "compute_discrete_surplus",
     "compute_point_elasticity",
     "compute_surplus",
+    "demand_aggregation_figure",
+    "discrete_demand_aggregation_figure",
+    "discrete_supply_aggregation_figure",
     "elasticity_revenue_schedule",
     "evaluate_price_control",
     "get_color_model",
     "line_from_inverse",
     "line_from_standard",
     "list_color_models",
+    "market_demand",
+    "market_supply",
+    "piecewise_surplus",
     "solve_discrete_equilibrium",
     "solve_discrete_market",
     "solve_equilibrium",
+    "solve_piecewise_equilibrium",
     "solve_subsidy_equilibrium",
     "solve_tax_equilibrium",
+    "supply_aggregation_figure",
 ]

@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## Unreleased
+
+### Changed
+
+- Requires `mosaickit>=0.8.0,<0.9.0` (was `>=0.5.1,<0.6.0`). The test suite passes unchanged on 0.8.0, also with `DeprecationWarning` treated as an error. MosaicKit 0.6 deprecates `TextStyle.weight` in favour of GlyphKit but has no other way to set bold text yet, so the theme keeps its two bold/normal weights and silences that one warning where it builds them.
+
 ## v0.10.0 (2026-10-03)
 
 ### Features

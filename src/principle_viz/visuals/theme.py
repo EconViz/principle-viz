@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass, field
 
 from mosaickit import (
@@ -180,6 +181,13 @@ class PlotTheme:
 
     def to_mosaickit(self) -> Theme:
         c = self.color_model
+        # MosaicKit 0.8 deprecates TextStyle.weight in favour of GlyphKit but offers no other way to set
+        # bold text yet. Keep the weights, and silence the warning here instead of in every caller.
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message="TextStyle.family and TextStyle.weight", category=DeprecationWarning)
+            return self._theme(c)
+
+    def _theme(self, c: ColorModel) -> Theme:
         solid = DashStyle.SOLID
         dashed = DashStyle.DASHED
         dotted = DashStyle.DOTTED

@@ -11,7 +11,7 @@ All notable changes to this project are documented in this file.
   your font files and the rest keep the defaults; `PlotTheme(math_font=...)` takes a `MathFont` or the
   path of an OpenType math font, and without it math is set by Matplotlib.
   `PlotTheme(font_roles={...})` gives one role, such as `principle.market.demand`, its own generic font.
-- Requires `mosaickit>=0.9.1,<0.10.0`.
+- Requires `mosaickit>=0.9.2,<0.10.0`.
 
 ## v0.10.2 (2026-10-20)
 

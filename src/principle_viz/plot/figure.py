@@ -98,6 +98,7 @@ class MarketFigure:
                 title=title,
             ),
             theme=self.theme.to_mosaickit(),
+            config=self.theme.mosaickit_config(),
             labels=labels,
             visibility=visibility,
         )

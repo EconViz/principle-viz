@@ -219,6 +219,7 @@ def public_good_canvas(
             title="Public Good",
         ),
         theme=selected.to_mosaickit(),
+        config=selected.mosaickit_config(),
         labels=labels,
         visibility=visibility,
     ).extend(market_axes_layers(q_max, y_max, x_label="Q", y_label="$MB$, $MC$"))

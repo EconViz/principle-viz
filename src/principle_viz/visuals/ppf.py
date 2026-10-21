@@ -47,6 +47,7 @@ def ppf_canvas(
             title="Production Possibilities Frontier",
         ),
         theme=selected.to_mosaickit(),
+        config=selected.mosaickit_config(),
         labels=labels,
         visibility=visibility,
     ).extend(
@@ -120,6 +121,7 @@ def ppf_growth_canvas(
             title="Economic Growth",
         ),
         theme=selected.to_mosaickit(),
+        config=selected.mosaickit_config(),
         labels=labels,
         visibility=visibility,
     ).extend(

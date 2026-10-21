@@ -2,19 +2,28 @@
 
 from __future__ import annotations
 
-import warnings
-from dataclasses import dataclass, field
+import os
+from collections.abc import Mapping
+from dataclasses import dataclass, field, replace
+from pathlib import Path
 
 from mosaickit import (
+    Config,
+    ConfigurationError,
     DashStyle,
     Fill,
     LegendStyle,
     Marker,
+    MathFont,
     Stroke,
     StyleBundle,
+    TextFonts,
     TextStyle,
     Theme,
 )
+from mosaickit.config import current_config
+
+GENERIC_FONTS = ("sans", "serif", "mono")
 
 COLORBLIND_CYCLE_RGB: tuple[tuple[int, int, int], ...] = (
     (55, 126, 184),
@@ -174,6 +183,44 @@ class PlotTheme:
     show_ticks: bool = False
     show_axis_arrows: bool = True
     show_origin_label: bool = True
+    # Fonts behave as in every diagram package built on MosaicKit: a generic font, files that
+    # replace the generic fonts, and a math font.
+    font: str = "sans"
+    fonts: TextFonts | None = None
+    math_font: MathFont | str | os.PathLike[str] | None = None
+    font_roles: Mapping[str, str] = field(default_factory=dict, hash=False)
+
+    def __post_init__(self) -> None:
+        for name in (self.font, *self.font_roles.values()):
+            if name not in GENERIC_FONTS:
+                raise ValueError(
+                    f"font must be one of {', '.join(GENERIC_FONTS)}, got {name!r}; "
+                    "to use your own font files pass fonts=TextFonts(...)"
+                )
+        if self.fonts is not None and not isinstance(self.fonts, TextFonts):
+            raise ValueError("fonts must be a mosaickit.TextFonts or None")
+        math_font = self.math_font
+        if isinstance(math_font, (str, os.PathLike)):
+            try:
+                math_font = MathFont(Path(math_font))
+            except ConfigurationError as error:
+                raise ValueError(f"math_font: {error}") from None
+        elif math_font is not None and not isinstance(math_font, MathFont):
+            raise ValueError(
+                "math_font must be a mosaickit.MathFont or the path of a math font file"
+            )
+        object.__setattr__(self, "math_font", math_font)
+
+    def mosaickit_config(self) -> Config:
+        """MosaicKit's current settings with this theme's font files and math font."""
+        base = current_config()
+        if self.fonts is None and self.math_font is None:
+            return base
+        return replace(
+            base,
+            fonts=self.fonts if self.fonts is not None else base.fonts,
+            math_font=self.math_font if self.math_font is not None else base.math_font,  # type: ignore[arg-type]
+        )
 
     @classmethod
     def from_palette(cls, palette: str, **kwargs: object) -> PlotTheme:
@@ -181,13 +228,6 @@ class PlotTheme:
 
     def to_mosaickit(self) -> Theme:
         c = self.color_model
-        # MosaicKit 0.8 deprecates TextStyle.weight in favour of GlyphKit but offers no other way to set
-        # bold text yet. Keep the weights, and silence the warning here instead of in every caller.
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", message="TextStyle.family and TextStyle.weight", category=DeprecationWarning)
-            return self._theme(c)
-
-    def _theme(self, c: ColorModel) -> Theme:
         solid = DashStyle.SOLID
         dashed = DashStyle.DASHED
         dotted = DashStyle.DOTTED
@@ -353,7 +393,15 @@ class PlotTheme:
                 text=TextStyle(color=c.label_color, size=12, weight="normal")
             ),
         }
-        return Theme(f"principle-{c.name}", roles)
+        for role, font in self.font_roles.items():
+            roles[role] = StyleBundle(text=TextStyle(font=font)).merged_over(
+                roles.get(role, StyleBundle())
+            )
+        return Theme(
+            f"principle-{c.name}",
+            roles,
+            defaults=StyleBundle(text=TextStyle(font=self.font)),
+        )
 
     def __getattr__(self, name: str) -> str:
         if name.endswith("_color"):

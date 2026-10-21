@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## Unreleased
+
+### Changed
+
+- Fonts behave as in every diagram package built on MosaicKit. `PlotTheme(font=...)` is `"sans"` (the
+  default), `"serif"` or `"mono"`; `PlotTheme(fonts=TextFonts(...))` replaces any of the three with
+  your font files and the rest keep the defaults; `PlotTheme(math_font=...)` takes a `MathFont` or the
+  path of an OpenType math font, and without it math is set by Matplotlib.
+  `PlotTheme(font_roles={...})` gives one role, such as `principle.market.demand`, its own generic font.
+- Requires `mosaickit>=0.9.2,<0.10.0`.
+
 ## v0.10.2 (2026-10-20)
 
 ### Changed

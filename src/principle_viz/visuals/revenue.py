@@ -33,6 +33,7 @@ def elasticity_revenue_canvases(
             title="Demand and Elasticity",
         ),
         theme=selected.to_mosaickit(),
+        config=selected.mosaickit_config(),
         labels=labels,
         visibility=visibility,
     ).extend(
@@ -92,6 +93,7 @@ def elasticity_revenue_canvases(
             title="Total Revenue",
         ),
         theme=selected.to_mosaickit(),
+        config=selected.mosaickit_config(),
         labels=labels,
         visibility=visibility,
     ).extend(

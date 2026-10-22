@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## Unreleased
+
+### Added
+
+- `palette="manual"`: the greys of the principle-viz manual (black axes, supply and arrows, a grey
+  demand curve, grey surplus regions), the same look as utility-viz's manual figures.
+- `PlotTheme(language=...)`: `"en"` (the default), `"zh-TW"` or `"zh-CN"`. Built-in figure text such
+  as "Shortage", "Consumer surplus" and panel titles is drawn in that language, from the table the
+  manual's Chinese editions use. Text you set through `labels=` or `configure_label` is kept as
+  written. Chinese text needs a font with the characters, e.g. `fonts=TextFonts(serif=...)`.
+
 ## v0.11.1 (2026-10-22)
 
 ### Changed

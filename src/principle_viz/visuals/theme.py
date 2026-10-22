@@ -23,6 +23,8 @@ from mosaickit import (
 )
 from mosaickit.config import current_config
 
+from principle_viz.i18n import validate_language
+
 GENERIC_FONTS = ("sans", "serif", "mono")
 
 COLORBLIND_CYCLE_RGB: tuple[tuple[int, int, int], ...] = (
@@ -141,6 +143,25 @@ MONOCHROME_COLOR_MODEL = ColorModel(
     arrow_color="#111111",
 )
 
+# The greys of the principle-viz manual: black axes, supply and arrows, a grey demand
+# curve, and grey surplus regions; the same look as utility-viz's manual figures.
+MANUAL_COLOR_MODEL = ColorModel(
+    name="manual",
+    axis_color="#1a1a1a",
+    label_color="#1a1a1a",
+    demand_color="#8c8c8c",
+    supply_color="#1a1a1a",
+    baseline_color="#1a1a1a",
+    shifted_color="#6e6e6e",
+    tax_color="#595959",
+    control_color="#595959",
+    cs_color="#b8b8b8",
+    ps_color="#8c8c8c",
+    tax_revenue_color="#d9d9d9",
+    dwl_color="#595959",
+    arrow_color="#1a1a1a",
+)
+
 BUILTIN_COLOR_MODELS = {
     model.name: model
     for model in (
@@ -148,6 +169,7 @@ BUILTIN_COLOR_MODELS = {
         COLORBLIND_COLOR_MODEL,
         NORD_COLOR_MODEL,
         MONOCHROME_COLOR_MODEL,
+        MANUAL_COLOR_MODEL,
     )
 }
 
@@ -189,8 +211,12 @@ class PlotTheme:
     fonts: TextFonts | None = None
     math_font: MathFont | str | os.PathLike[str] | None = None
     font_roles: Mapping[str, str] = field(default_factory=dict, hash=False)
+    # The language of principle-viz's built-in figure text: "en", "zh-TW" or "zh-CN".
+    # Chinese text needs a font that has the characters, e.g. fonts=TextFonts(serif=...).
+    language: str = "en"
 
     def __post_init__(self) -> None:
+        validate_language(self.language)
         for name in (self.font, *self.font_roles.values()):
             if name not in GENERIC_FONTS:
                 raise ValueError(

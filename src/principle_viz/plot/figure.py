@@ -99,6 +99,7 @@ class MarketFigure:
             ),
             theme=self.theme.to_mosaickit(),
             config=self.theme.mosaickit_config(),
+            language=self.theme.language,
             labels=labels,
             visibility=visibility,
         )
@@ -659,6 +660,7 @@ class MarketFigure:
             config=self.canvas.config,
             renderer=self.canvas.renderer,
             role_overrides=self.canvas.role_overrides,
+            language=self.canvas.language,
         ).extend(self.scene.layers)
         canvas.save(target)
 

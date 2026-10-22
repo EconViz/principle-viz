@@ -9,6 +9,7 @@ from typing import Any
 from mosaickit import Canvas as MosaicCanvas
 from mosaickit import FillLayer, Layer
 
+from principle_viz.i18n import translate, validate_language
 from principle_viz.plot.label import Label, apply_label, is_label_layer
 
 
@@ -20,8 +21,10 @@ class Canvas(MosaicCanvas):
         *args: Any,
         labels: Mapping[str, Label] | None = None,
         visibility: Mapping[str, bool] | None = None,
+        language: str = "en",
         **kwargs: Any,
     ) -> None:
+        self.language = validate_language(language)
         self._label_overrides = dict(labels or {})
         if not all(
             isinstance(label, Label) for label in self._label_overrides.values()
@@ -29,12 +32,13 @@ class Canvas(MosaicCanvas):
             raise TypeError("labels must map layer ids to Label values")
         self._visibility_overrides = dict(visibility or {})
         if not all(
-            isinstance(visible, bool)
-            for visible in self._visibility_overrides.values()
+            isinstance(visible, bool) for visible in self._visibility_overrides.values()
         ):
             raise TypeError("visibility values must be bools")
         self._label_defaults: dict[str, Layer] = {}
         super().__init__(*args, **kwargs)
+        # Built-in titles and axis labels; layers are translated as they are added.
+        self.spec = translate(self.spec, self.language)
 
     @property
     def layer_ids(self) -> tuple[str, ...]:
@@ -66,6 +70,7 @@ class Canvas(MosaicCanvas):
         regions = self._regions(layers)
         prepared: list[Layer] = []
         for layer in layers:
+            layer = translate(layer, self.language)
             if layer.id in self._visibility_overrides:
                 layer = replace(
                     layer,
@@ -136,7 +141,11 @@ class Canvas(MosaicCanvas):
         selected = label or Label(text=text, visible=visible, offset=offset)
         candidates = (layer_id, f"{layer_id}.label")
         resolved_id = next(
-            (candidate for candidate in candidates if candidate in self._label_defaults),
+            (
+                candidate
+                for candidate in candidates
+                if candidate in self._label_defaults
+            ),
             "",
         )
         if not resolved_id:
@@ -163,6 +172,7 @@ class Canvas(MosaicCanvas):
             role_overrides=self.role_overrides,
             labels=self._label_overrides,
             visibility=self._visibility_overrides,
+            language=self.language,
         )
         canvas._scene = self._scene
         canvas._bindings = self._bindings

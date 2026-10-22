@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## v0.11.1 (2026-10-22)
+
+### Changed
+
+- Requires `mosaickit>=1.0.0rc2,<2.0.0` (was `>=0.9.2,<0.10.0`). MosaicKit 1.0.0rc2 places labels on
+  arrays and caches mathtext while a figure is drawn, which makes the market diagrams about 1.4x
+  faster with byte-identical output (measured on the eight benchmark diagrams). The test suite
+  passes unchanged.
+
 ## v0.11.0 (2026-10-21)
 
 ### Changed

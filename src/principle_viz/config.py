@@ -5,7 +5,7 @@ declares what principle-viz takes from it. The shared top level sets the startin
 model (``base``), the fonts and the axis and label colours; principle-viz's own settings
 live in the ``[principle]`` table::
 
-    base = "manual"           # built-in colour model to start from
+    base = "manual"           # shared theme to start from (mosaickit.themes)
 
     [font]
     text = "serif"
@@ -50,15 +50,17 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any
 
 from mosaickit import MathFont, econ_toml
+from mosaickit.themes import list_shared_themes
 
 from principle_viz.i18n import LANGUAGES
 
 if TYPE_CHECKING:
     from principle_viz.visuals.theme import ColorModel, PlotTheme
 
-# The built-in colour models and the ColorModel colour roles (tests check that these
-# match principle_viz.visuals.theme, which this module cannot import at load time).
-COLOR_MODELS = ("default", "colorblind", "nord", "monochrome", "manual")
+# The built-in colour models are mosaickit's shared themes; principle_viz.visuals.roles
+# builds one per theme. The ColorModel colour roles are listed here because this module
+# cannot import principle_viz.visuals at load time (tests check that they match).
+COLOR_MODELS = list_shared_themes()
 COLOR_ROLES = (
     "axis",
     "label",
@@ -106,8 +108,16 @@ def _theme_module() -> ModuleType:
     return theme
 
 
+def _roles_module() -> ModuleType:
+    # The only place where the settings file meets the shared themes (imported on
+    # use, like _theme_module).
+    from principle_viz.visuals import roles
+
+    return roles
+
+
 def _base(name: str) -> Any:
-    return lambda: _Draft(theme=_theme_module().PlotTheme.from_palette(name))
+    return lambda: _Draft(theme=_roles_module().plot_theme(name))
 
 
 _PALETTE = econ_toml.choice("palette", COLOR_MODELS)
@@ -118,7 +128,7 @@ def _palette(value: Any, ctx: econ_toml.Context) -> ColorModel:
     if isinstance(value, str):
         value = value.strip().lower()
     _PALETTE.convert(value, ctx, "palette")
-    return _theme_module().get_color_model(value)
+    return _roles_module().get_color_model(value)
 
 
 def _width(key: str) -> econ_toml.Field:

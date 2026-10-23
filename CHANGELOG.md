@@ -9,9 +9,24 @@ All notable changes to this project are documented in this file.
 - `econ-viz.toml` is read by mosaickit: principle-viz declares its `[principle]` table as a
   `mosaickit.econ_toml.Schema` and has no parser of its own. `Config`, `default_theme()` and the
   figures behave as before, and the same file gives the same figures.
-- The shared `base` now picks principle-viz's starting colour model (`default`, `colorblind`, `nord`,
-  `monochrome` or `manual`). `[principle] palette` still works and wins over `base` for
-  principle-viz.
+- The colour models are mosaickit's shared themes: `manual`, `default`, `colorblind`, `monochrome`,
+  `nord`, `paper` and `presentation` (the last two are new here). `principle_viz.visuals.roles` maps
+  each element to a theme role (axis, label, baseline and arrow to ink; demand to primary; supply
+  to secondary; shifted to tertiary; tax and control to intervention; consumer surplus, producer
+  surplus, deadweight loss and tax revenue to the light, mid, dark and faint fills) and builds the
+  colour models and plot themes from the tokens. The theme's line and marker scales multiply
+  principle-viz's line widths and equilibrium dot. `get_color_model`, `list_color_models` and
+  `PlotTheme.from_palette` take the same names.
+- `manual` is unchanged. The other themes change colour: demand takes the primary colour and supply
+  the secondary, and the fills follow the curves. In `default`, demand is `#377EB8` (was the
+  palette's `blue`), supply `#4DAF4A` (was `red`), shifted curves `#777777`, tax and price controls
+  `#FF7F00`, and consumer surplus, producer surplus, deadweight loss and tax revenue `#377EB8`,
+  `#4DAF4A`, `#E41A1C` and `#FF7F00`; `default` no longer names mosaickit palette colours, so a
+  `[palette]` override no longer recolours it. `colorblind` now matches `default`, `nord` and
+  `monochrome` reassign their roles the same way (e.g. nord supply `#A3BE8C`, was `#BF616A`;
+  monochrome demand and supply both `#000000`).
+- The shared `base` picks principle-viz's starting theme. `[principle] palette` still works and
+  wins over `base` for principle-viz (it sets the colours only).
 - Mistakes are reported in mosaickit's format, naming the file and the table and suggesting the
   closest key, e.g. `econ-viz.toml: [principle.color] unknown key 'demnad'; did you mean 'demand'?`.
   Colours are now checked (`#rgb`, `#rrggbb`, `#rrggbbaa` or a colour name), and unknown top-level

@@ -151,7 +151,8 @@ and label colours; principle-viz's own settings live in the `[principle]` table,
 other packages, such as `[utility]`, are skipped.
 
 ```toml
-base = "default"     # default, colorblind, nord, monochrome or manual
+base = "default"     # a shared theme: manual, default, colorblind, monochrome, nord,
+                     # paper or presentation
 
 [font]
 text = "serif"
@@ -184,6 +185,26 @@ from principle_viz import Config
 
 Config.load("econ-viz.toml").use()  # figures made without theme= use it
 ```
+
+### Themes
+
+The colour models are mosaickit's shared themes (`mosaickit.themes`), so `base = "nord"` means the
+same look in every EconViz package. A theme gives a colour to each role, and
+`principle_viz.visuals.roles` says which role each figure element takes:
+
+| role | elements |
+|---|---|
+| ink | axis, label, baseline, arrow |
+| primary | demand |
+| secondary | supply |
+| tertiary | shifted |
+| intervention | tax, control |
+| fill.light / fill.mid / fill.dark / fill.faint | cs / ps / dwl / tax_revenue |
+
+The theme's line and marker scales multiply principle-viz's own line widths and equilibrium dot
+(`presentation` draws them 1.5 and 1.3 times as large). `PlotTheme.from_palette(name)`,
+`get_color_model(name)` and `palette=name` take the same names; `[principle.color]` still sets one
+element.
 
 A `theme=` or `palette=` passed to a figure still wins. Relative paths are resolved against the
 file's directory. A mistake raises `mosaickit.ConfigurationError` naming the file and the table,

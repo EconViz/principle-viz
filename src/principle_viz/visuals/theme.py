@@ -6,6 +6,7 @@ import os
 from collections.abc import Mapping
 from dataclasses import dataclass, field, replace
 from pathlib import Path
+from types import ModuleType
 
 from mosaickit import (
     Config,
@@ -72,128 +73,48 @@ class ColorModel:
     arrow_color: str = "#111111"
 
 
-_COLORBLIND = {
-    "axis_color": "#222222",
-    "label_color": "#222222",
-    "demand_color": _BLUE,
-    "supply_color": _RED,
-    "baseline_color": "#111111",
-    "shifted_color": _GREEN,
-    "tax_color": _ORANGE,
-    "control_color": _PURPLE,
-    "cs_color": _GREEN,
-    "ps_color": _BLUE,
-    "tax_revenue_color": _ORANGE,
-    "dwl_color": _RED,
-    "arrow_color": "#111111",
-}
-
-# Default: colours named from the active MosaicKit palette (``DEFAULT_PALETTE``
-# unless ``Config(palette=...)`` or a TOML ``[palette]`` table overrides it), so
-# redefining "blue" there recolours demand, consumer surplus, and everything else
-# that names it. Demand is blue and supply red; consumer and producer surplus
-# reuse those hues, and deadweight loss gets its own (teal).
-_DEFAULT = {
-    "axis_color": "grey-800",
-    "label_color": "grey-900",
-    "demand_color": "blue",
-    "supply_color": "red",
-    "baseline_color": "grey-900",
-    "shifted_color": "grey-600",
-    "tax_color": "red",
-    "control_color": "teal",
-    "cs_color": "blue",
-    "ps_color": "red",
-    "tax_revenue_color": "grey-400",
-    "dwl_color": "teal",
-    "arrow_color": "grey-900",
-}
-
-DEFAULT_COLOR_MODEL = ColorModel(name="default", **_DEFAULT)
-COLORBLIND_COLOR_MODEL = ColorModel(name="colorblind", **_COLORBLIND)
-NORD_COLOR_MODEL = ColorModel(
-    name="nord",
-    axis_color="#2E3440",
-    label_color="#2E3440",
-    demand_color="#88C0D0",
-    supply_color="#BF616A",
-    shifted_color="#A3BE8C",
-    tax_color="#EBCB8B",
-    control_color="#B48EAD",
-    cs_color="#A3BE8C",
-    ps_color="#5E81AC",
-    tax_revenue_color="#EBCB8B",
-    dwl_color="#BF616A",
-    arrow_color="#4C566A",
-)
-MONOCHROME_COLOR_MODEL = ColorModel(
-    name="monochrome",
-    axis_color="#111111",
-    label_color="#111111",
-    demand_color="#111111",
-    supply_color="#4A4A4A",
-    baseline_color="#000000",
-    shifted_color="#6E6E6E",
-    tax_color="#2E2E2E",
-    control_color="#595959",
-    cs_color="#E0E0E0",
-    ps_color="#BDBDBD",
-    tax_revenue_color="#969696",
-    dwl_color="#636363",
-    arrow_color="#111111",
+# The built-in colour models, one per mosaickit shared theme, are built from the theme
+# tokens in principle_viz.visuals.roles, which imports this module; the names below are
+# looked up there on first use.
+_ROLES_EXPORTS = frozenset(
+    {
+        "BUILTIN_COLOR_MODELS",
+        "COLORBLIND_COLOR_MODEL",
+        "DEFAULT_COLOR_MODEL",
+        "MANUAL_COLOR_MODEL",
+        "MONOCHROME_COLOR_MODEL",
+        "NORD_COLOR_MODEL",
+    }
 )
 
-# The greys of the principle-viz manual: black axes, supply and arrows, a grey demand
-# curve, and grey surplus regions; the same look as utility-viz's manual figures.
-MANUAL_COLOR_MODEL = ColorModel(
-    name="manual",
-    axis_color="#1a1a1a",
-    label_color="#1a1a1a",
-    demand_color="#8c8c8c",
-    supply_color="#1a1a1a",
-    baseline_color="#1a1a1a",
-    shifted_color="#6e6e6e",
-    tax_color="#595959",
-    control_color="#595959",
-    cs_color="#b8b8b8",
-    ps_color="#8c8c8c",
-    tax_revenue_color="#d9d9d9",
-    dwl_color="#595959",
-    arrow_color="#1a1a1a",
-)
 
-BUILTIN_COLOR_MODELS = {
-    model.name: model
-    for model in (
-        DEFAULT_COLOR_MODEL,
-        COLORBLIND_COLOR_MODEL,
-        NORD_COLOR_MODEL,
-        MONOCHROME_COLOR_MODEL,
-        MANUAL_COLOR_MODEL,
-    )
-}
+def _roles() -> ModuleType:
+    from principle_viz.visuals import roles
+
+    return roles
+
+
+def __getattr__(name: str) -> object:
+    if name in _ROLES_EXPORTS:
+        return getattr(_roles(), name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def list_color_models() -> tuple[str, ...]:
-    return tuple(BUILTIN_COLOR_MODELS)
+    """The built-in colour models: one per mosaickit shared theme."""
+    return _roles().list_color_models()
 
 
 def get_color_model(name: str) -> ColorModel:
-    key = name.strip().lower()
-    try:
-        return BUILTIN_COLOR_MODELS[key]
-    except KeyError as exc:
-        available = ", ".join(list_color_models())
-        raise ValueError(
-            f"Unknown color model: {name}. Available: {available}"
-        ) from exc
+    """The built-in colour model called ``name`` (case and spaces ignored)."""
+    return _roles().get_color_model(name)
 
 
 @dataclass(frozen=True)
 class PlotTheme:
     """Compatibility settings compiled into a MosaicKit theme."""
 
-    color_model: ColorModel = field(default_factory=lambda: DEFAULT_COLOR_MODEL)
+    color_model: ColorModel = field(default_factory=lambda: get_color_model("default"))
     demand_linewidth: float = 3.5
     supply_linewidth: float = 3.5
     shifted_linewidth: float = 1.0
@@ -250,7 +171,11 @@ class PlotTheme:
 
     @classmethod
     def from_palette(cls, palette: str, **kwargs: object) -> PlotTheme:
-        return cls(color_model=get_color_model(palette), **kwargs)
+        """The theme of a built-in colour model, with its sizes scaled by the theme.
+
+        ``palette`` names a mosaickit shared theme; keyword arguments override fields.
+        """
+        return _roles().plot_theme(palette, cls=cls, **kwargs)
 
     def to_mosaickit(self) -> Theme:
         c = self.color_model
@@ -436,13 +361,8 @@ class PlotTheme:
 
 
 __all__ = [
-    "BUILTIN_COLOR_MODELS",
-    "COLORBLIND_COLOR_MODEL",
     "COLORBLIND_CYCLE_HEX",
     "COLORBLIND_CYCLE_RGB",
-    "DEFAULT_COLOR_MODEL",
-    "MONOCHROME_COLOR_MODEL",
-    "NORD_COLOR_MODEL",
     "ColorModel",
     "PlotTheme",
     "get_color_model",

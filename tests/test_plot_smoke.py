@@ -167,7 +167,7 @@ def test_movement_arrows_are_thin_black_and_dashed() -> None:
     stroke = theme.to_mosaickit().roles[MOVEMENT_ROLE].stroke
     assert stroke.dash == DashStyle.DASHED
     assert stroke.width == theme.arrow_linewidth < theme.demand_linewidth
-    assert stroke.color == theme.arrow_color
+    assert stroke.color.to_hex().lower() == theme.arrow_color.lower()
     arrow, label = tax_shift_layers(
         quantity=4, base_price=6, taxed_price=8, label="$t = 2$", layer_id="tax"
     )

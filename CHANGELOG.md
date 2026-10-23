@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented in this file.
 
-## Unreleased
+## v0.11.2 (2026-10-22)
 
 ### Added
 
@@ -12,6 +12,11 @@ All notable changes to this project are documented in this file.
   as "Shortage", "Consumer surplus" and panel titles is drawn in that language, from the table the
   manual's Chinese editions use. Text you set through `labels=` or `configure_label` is kept as
   written. Chinese text needs a font with the characters, e.g. `fonts=TextFonts(serif=...)`.
+
+### Changed
+
+- Requires `mosaickit>=1.0.0rc3,<2.0.0`, which sets panel titles and text mixed with math in the
+  configured fonts, so Chinese titles render instead of boxes.
 
 ## v0.11.1 (2026-10-22)
 

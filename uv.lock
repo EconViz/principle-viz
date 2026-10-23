@@ -881,7 +881,7 @@ wheels = [
 
 [[package]]
 name = "mosaickit"
-version = "1.0.0rc2"
+version = "1.0.0rc3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "glyphkit" },
@@ -892,9 +892,9 @@ dependencies = [
     { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ec/e2/275a933541e19ef8c5fcda4f68cc183ea6d6a66f444d0c2e3ea7763435f2/mosaickit-1.0.0rc2.tar.gz", hash = "sha256:44551ec9045e8d837c0ada957e7a1c33299259d5517298f79de1a3906647146e", size = 282181, upload-time = "2026-10-22T05:52:38.585Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c5/2a/6890895238ac178e92465c249c738f77d203ff2b175ed29176755cc51755/mosaickit-1.0.0rc3.tar.gz", hash = "sha256:70af0407561eac07f9cea94ff6c654f09f0ae4d554ec1e78552fe0441241f439", size = 283047, upload-time = "2026-10-22T15:13:47.497Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8f/da/9a568cfb20ad4dab3553d3538b941ad006cf676553482e8902797b03cdae/mosaickit-1.0.0rc2-py3-none-any.whl", hash = "sha256:7f40c973060face4831c88c6a7c84baf7f3bbdeedd411c2b1a1f2b7938f5532b", size = 118955, upload-time = "2026-10-22T05:52:36.909Z" },
+    { url = "https://files.pythonhosted.org/packages/11/c0/99b04880450bc66faf0ea7c36f3aa3612e4f7cef85ee2b4145b2d069baff/mosaickit-1.0.0rc3-py3-none-any.whl", hash = "sha256:2084d942fa1fca024c1811254805f590a12cbc2fc1d5359d2421f37ec289bd6e", size = 119615, upload-time = "2026-10-22T15:13:45.838Z" },
 ]
 
 [[package]]
@@ -1234,7 +1234,7 @@ wheels = [
 
 [[package]]
 name = "principle-viz"
-version = "0.11.1"
+version = "0.11.2"
 source = { editable = "." }
 dependencies = [
     { name = "mosaickit" },
@@ -1248,7 +1248,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "mosaickit", specifier = ">=1.0.0rc2,<2.0.0" }]
+requires-dist = [{ name = "mosaickit", specifier = ">=1.0.0rc3,<2.0.0" }]
 
 [package.metadata.requires-dev]
 dev = [

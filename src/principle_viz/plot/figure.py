@@ -27,7 +27,7 @@ from principle_viz.core.factor_markets import LoanableFundsResult, MinimumWageRe
 from principle_viz.core.line import Line
 from principle_viz.core.shifts import ComparativeStaticsResult
 from principle_viz.plot.canvas import Canvas
-from principle_viz.plot.label import Label
+from principle_viz.plot.label import Label, Length
 from principle_viz.plot.theme import PlotTheme
 from principle_viz.policy.common_resources import CommonResourceResult
 from principle_viz.policy.externality import ExternalityResult
@@ -173,11 +173,16 @@ class MarketFigure:
         text: str | None = None,
         visible: bool | None = None,
         offset: tuple[float, float] | None = None,
+        top: Length | None = None,
+        bottom: Length | None = None,
+        left: Length | None = None,
+        right: Length | None = None,
     ) -> MarketFigure:
         """Show, hide, rename, or move one built-in label.
 
         ``layer_id`` may be the label id returned by :attr:`label_ids` or the id
-        without its final ``".label"``. Offsets are in points.
+        without its final ``".label"``. Offsets are in points; ``top``, ``bottom``,
+        ``left`` and ``right`` move the placed label (see :class:`Label`).
         """
         self.canvas.configure_label(
             layer_id,
@@ -185,6 +190,10 @@ class MarketFigure:
             text=text,
             visible=visible,
             offset=offset,
+            top=top,
+            bottom=bottom,
+            left=left,
+            right=right,
         )
         return self
 

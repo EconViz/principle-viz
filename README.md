@@ -143,6 +143,25 @@ discrete_demand_aggregation_figure(
 
 `supply_aggregation_figure` and `discrete_supply_aggregation_figure` draw the supply side. Examples: `examples/scripts/aggregation_*.py`, output under `examples/output/aggregation/`.
 
+## Labels
+
+Every built-in label has a stable id (`figure.label_ids`). A `Label` renames, hides or moves one:
+
+```python
+from principle_viz import Label, MarketFigure
+
+figure = MarketFigure(labels={"market.equilibrium": Label(top="4pt")})
+figure.configure_label("market.supply", Label(right="8pt"))
+figure.configure_label("market.demand", text="$D_0$", left="0.5em")
+```
+
+`top`, `bottom`, `left` and `right` move the label that far after it has been placed, so
+principle-viz still picks the spot and you only fine-tune it. A length is a number of points or a
+string with a unit: `"10pt"`, `"0.5em"` (the label's font size) or `"2mm"`; `top` and `bottom`
+combine, as do `right` and `left`. `Label(offset=(dx, dy))` still places a label at an exact
+offset in points instead of automatically; a nudge then moves it from there. Axis tick labels do
+not take nudges.
+
 ## Settings File
 
 principle-viz reads `econ-viz.toml`, the settings file every EconViz package shares; mosaickit

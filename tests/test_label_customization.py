@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import pytest
 from mosaickit import BraceLayer, PointLabelLayer, TextLayer
 
@@ -144,3 +146,77 @@ def test_generic_visibility_survives_later_label_changes() -> None:
     label = _layers(figure)["market.supply.label"]
     assert label.text == "$S_0$"
     assert not label.visible
+
+
+def _equilibrium_figure(**kwargs: object) -> MarketFigure:
+    from principle_viz.core.equilibrium import solve_equilibrium
+
+    return (
+        MarketFigure(**kwargs)
+        .add_curves(DEMAND, SUPPLY, q_max=10)
+        .add_equilibrium(solve_equilibrium(DEMAND, SUPPLY))
+    )
+
+
+def test_label_nudge_moves_one_label_after_placement() -> None:
+    from mosaickit.styles.nudge import Nudge
+
+    figure = _equilibrium_figure(labels={"market.equilibrium": Label(top="4pt")})
+    layers = _layers(figure)
+    label = layers["market.equilibrium.label"]
+    assert isinstance(label, PointLabelLayer)  # still placed automatically
+    assert label.nudge == Nudge(0, 4)
+    assert layers["market.demand.label"].nudge is None
+
+
+def test_configure_label_nudges_in_points_em_and_mm() -> None:
+    from mosaickit.styles.nudge import Nudge
+
+    figure = _equilibrium_figure()
+    figure.configure_label("market.supply", Label(right="8pt", bottom=2))
+    figure.configure_label("market.demand", left="0.5em", top="2mm")
+    layers = _layers(figure)
+    assert layers["market.supply.label"].nudge == Nudge(8, -2)
+    demand = layers["market.demand.label"]
+    assert demand.nudge.dx == pytest.approx(-5.5)  # the label's 11 pt font
+    assert demand.nudge.dy == pytest.approx(72 / 25.4 * 2)
+
+
+def test_nudge_applies_after_an_offset() -> None:
+    from mosaickit.styles.nudge import Nudge
+
+    figure = _equilibrium_figure()
+    figure.configure_label("market.supply", Label(offset=(8, -5), top=3))
+    label = _layers(figure)["market.supply.label"]
+    assert isinstance(label, TextLayer)
+    assert label.offset == (8, -5)
+    assert label.nudge == Nudge(0, 3)
+
+
+def test_nudged_label_changes_the_drawing_and_plain_labels_do_not(tmp_path) -> None:
+    def svg(**kwargs: object) -> str:
+        target = tmp_path / "figure.svg"
+        _equilibrium_figure(**kwargs).save(target)
+        text = re.sub(r"<dc:date>.*?</dc:date>", "", target.read_text())
+        return re.sub(r"\b([pm])[0-9a-f]{8,}\b", r"\1", text)
+
+    plain = svg()
+    assert svg(labels={"market.equilibrium": Label()}) == plain
+    assert svg(labels={"market.equilibrium": Label(top="4pt")}) != plain
+
+
+def test_label_rejects_invalid_lengths() -> None:
+    with pytest.raises(ValueError, match="Label.top"):
+        Label(top="4 parsecs")
+    with pytest.raises(ValueError, match="Label.left"):
+        Label(left=True)
+
+
+def test_axis_labels_reject_nudges() -> None:
+    from mosaickit import AxisMarkLayer
+
+    from principle_viz.plot.label import apply_label
+
+    mark = AxisMarkLayer(id="mark", axis="y", value=3.0, label="$p_0$")
+    with pytest.raises(ValueError, match="Axis labels"):
+        apply_label(mark, Label(top=2))

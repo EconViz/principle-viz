@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## v0.12.1 (2026-10-23)
 
+### Added
+
+- `Label` takes `top`, `bottom`, `left` and `right`: lengths that move one label after it has been
+  placed, e.g. `MarketFigure(labels={"market.equilibrium": Label(top="4pt")})` or
+  `figure.configure_label("market.supply", Label(right="8pt"))` (`configure_label` also takes them
+  as keywords). A length is a number of points or a string such as `"10pt"`, `"0.5em"` (the label's
+  font size) or `"2mm"`. They become a mosaickit `Nudge` on the label layer; `Label(offset=...)`
+  keeps its behaviour and a nudge applies after it. Figures without nudges are unchanged. There is
+  no `[principle.label]` default in `econ-viz.toml` yet.
+
 ### Changed
 
 - `econ-viz.toml` is read by mosaickit: principle-viz declares its `[principle]` table as a

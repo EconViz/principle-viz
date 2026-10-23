@@ -32,7 +32,7 @@ from principle_viz.core.factor_markets import (
 )
 from principle_viz.core.line import Line
 from principle_viz.core.shifts import ShiftScenario, ShiftSpec, comparative_statics
-from principle_viz.plot import get_color_model
+from principle_viz.plot import ColorModel, get_color_model
 from principle_viz.plot.figure import MarketFigure
 from principle_viz.policy.common_resources import analyze_common_resource
 from principle_viz.policy.externality import ExternalityScenario, analyze_externality
@@ -257,30 +257,32 @@ def test_welfare_tax_transition_keeps_one_mark_per_price() -> None:
     assert set(_marks(figure, "y")) == {"p_d", "p_0", "p_s"}
 
 
-def test_default_theme_names_palette_colours() -> None:
+def test_default_theme_uses_the_shared_default_colours() -> None:
     model = get_color_model("default")
     assert (model.demand_color, model.supply_color, model.dwl_color) == (
-        "blue",
-        "red",
-        "teal",
+        "#377EB8",
+        "#4DAF4A",
+        "#E41A1C",
     )
     roles = PlotTheme().to_mosaickit().roles
-    assert roles["principle.market.demand"].stroke.color == "blue"
-    assert roles["principle.market.supply"].stroke.color == "red"
-    assert roles["principle.welfare.loss"].fill.color == "teal"
-    assert roles["principle.welfare.consumer"].fill.color == "blue"
+    assert roles["principle.market.demand"].stroke.color.to_hex().upper() == "#377EB8"
+    assert roles["principle.market.supply"].stroke.color.to_hex().upper() == "#4DAF4A"
+    assert roles["principle.welfare.loss"].fill.color.to_hex().upper() == "#E41A1C"
+    assert roles["principle.welfare.consumer"].fill.color.to_hex().upper() == "#377EB8"
 
 
 def test_other_palettes_still_render(tmp_path) -> None:
-    for name in ("colorblind", "nord", "monochrome"):
+    for name in ("colorblind", "nord", "monochrome", "paper", "presentation"):
         figure = MarketFigure(palette=name).add_curves(DEMAND, SUPPLY, q_max=10)
         figure.save(tmp_path / f"{name}.svg")
 
 
 def test_config_palette_override_recolours_the_demand_curve(tmp_path) -> None:
     palette = Palette("brand", {**DEFAULT_PALETTE.colors, "blue": "#0072B2"})
+    # A colour model may name palette colours; they resolve against the active palette.
+    theme = PlotTheme(color_model=ColorModel(name="named", demand_color="blue"))
     with use_config(Config(palette=palette)):
-        figure = MarketFigure().add_curves(DEMAND, SUPPLY, q_max=10)
+        figure = MarketFigure(theme=theme).add_curves(DEMAND, SUPPLY, q_max=10)
     target = tmp_path / "recoloured.svg"
     figure.save(target)
     svg = target.read_text().lower()

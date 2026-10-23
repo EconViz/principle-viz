@@ -10,7 +10,7 @@ from mosaickit import Canvas as MosaicCanvas
 from mosaickit import FillLayer, Layer
 
 from principle_viz.i18n import translate, validate_language
-from principle_viz.plot.label import Label, apply_label, is_label_layer
+from principle_viz.plot.label import Label, Length, apply_label, is_label_layer
 
 
 class Canvas(MosaicCanvas):
@@ -80,7 +80,9 @@ class Canvas(MosaicCanvas):
                 self._label_defaults[layer.id] = layer
                 override = self._label_override(layer.id)
                 if override is not None:
-                    layer = apply_label(layer, override, regions=regions)
+                    layer = apply_label(
+                        layer, override, regions=regions, theme=self.theme
+                    )
             prepared.append(layer)
         return tuple(prepared)
 
@@ -132,13 +134,24 @@ class Canvas(MosaicCanvas):
         text: str | None = None,
         visible: bool | None = None,
         offset: tuple[float, float] | None = None,
+        top: Length | None = None,
+        bottom: Length | None = None,
+        left: Length | None = None,
+        right: Length | None = None,
     ) -> Canvas:
         """Show, hide, rename, or move one supplied text label."""
-        if label is not None and any(
-            value is not None for value in (text, visible, offset)
-        ):
+        options = {
+            "text": text,
+            "visible": visible,
+            "offset": offset,
+            "top": top,
+            "bottom": bottom,
+            "left": left,
+            "right": right,
+        }
+        if label is not None and any(value is not None for value in options.values()):
             raise ValueError("Pass either a Label or individual label options")
-        selected = label or Label(text=text, visible=visible, offset=offset)
+        selected = label or Label(**options)
         candidates = (layer_id, f"{layer_id}.label")
         resolved_id = next(
             (
@@ -158,7 +171,9 @@ class Canvas(MosaicCanvas):
                 default,
                 visible=self._visibility_overrides[resolved_id],
             )
-        replacement = apply_label(default, selected, regions=self._regions())
+        replacement = apply_label(
+            default, selected, regions=self._regions(), theme=self.theme
+        )
         super().remove(resolved_id)
         super().add(replacement)
         return self

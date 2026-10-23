@@ -143,13 +143,36 @@ discrete_demand_aggregation_figure(
 
 `supply_aggregation_figure` and `discrete_supply_aggregation_figure` draw the supply side. Examples: `examples/scripts/aggregation_*.py`, output under `examples/output/aggregation/`.
 
+## Labels
+
+Every built-in label has a stable id (`figure.label_ids`). A `Label` renames, hides or moves one:
+
+```python
+from principle_viz import Label, MarketFigure
+
+figure = MarketFigure(labels={"market.equilibrium": Label(top="4pt")})
+figure.configure_label("market.supply", Label(right="8pt"))
+figure.configure_label("market.demand", text="$D_0$", left="0.5em")
+```
+
+`top`, `bottom`, `left` and `right` move the label that far after it has been placed, so
+principle-viz still picks the spot and you only fine-tune it. A length is a number of points or a
+string with a unit: `"10pt"`, `"0.5em"` (the label's font size) or `"2mm"`; `top` and `bottom`
+combine, as do `right` and `left`. `Label(offset=(dx, dy))` still places a label at an exact
+offset in points instead of automatically; a nudge then moves it from there. Axis tick labels do
+not take nudges.
+
 ## Settings File
 
-principle-viz reads `econ-viz.toml`, the settings file every EconViz package shares. The shared
-sections set the fonts and the axis and label colours; principle-viz's own settings live in the
-`[principle]` table, and sections of other packages are skipped.
+principle-viz reads `econ-viz.toml`, the settings file every EconViz package shares; mosaickit
+reads and checks it. The top level sets the starting colour model (`base`), the fonts and the axis
+and label colours; principle-viz's own settings live in the `[principle]` table, and the tables of
+other packages, such as `[utility]`, are skipped.
 
 ```toml
+base = "default"     # a shared theme: manual, default, colorblind, monochrome, nord,
+                     # paper or presentation
+
 [font]
 text = "serif"
 math = "fonts/texgyrepagella-math.otf"
@@ -162,7 +185,7 @@ axis = "#1a1a1a"
 label = "#1a1a1a"
 
 [principle]
-palette = "manual"   # built-in colour model to start from
+palette = "manual"   # colour model for principle-viz only; wins over base
 language = "zh-TW"   # language of built-in figure text
 
 [principle.color]    # any colour-model role, without "_color"
@@ -182,8 +205,29 @@ from principle_viz import Config
 Config.load("econ-viz.toml").use()  # figures made without theme= use it
 ```
 
+### Themes
+
+The colour models are mosaickit's shared themes (`mosaickit.themes`), so `base = "nord"` means the
+same look in every EconViz package. A theme gives a colour to each role, and
+`principle_viz.visuals.roles` says which role each figure element takes:
+
+| role | elements |
+|---|---|
+| ink | axis, label, baseline, arrow |
+| primary | demand |
+| secondary | supply |
+| tertiary | shifted |
+| intervention | tax, control |
+| fill.light / fill.mid / fill.dark / fill.faint | cs / ps / dwl / tax_revenue |
+
+The theme's line and marker scales multiply principle-viz's own line widths and equilibrium dot
+(`presentation` draws them 1.5 and 1.3 times as large). `PlotTheme.from_palette(name)`,
+`get_color_model(name)` and `palette=name` take the same names; `[principle.color]` still sets one
+element.
+
 A `theme=` or `palette=` passed to a figure still wins. Relative paths are resolved against the
-file's directory.
+file's directory. A mistake raises `mosaickit.ConfigurationError` naming the file and the table,
+e.g. `econ-viz.toml: [principle.color] unknown key 'demnad'; did you mean 'demand'?`.
 
 ## CLI
 

@@ -31,18 +31,20 @@ from principle_viz.visuals.policy import (
 )
 from principle_viz.visuals.ppf import ppf_canvas, ppf_growth_canvas
 from principle_viz.visuals.revenue import elasticity_revenue_canvases
-from principle_viz.visuals.theme import (
+from principle_viz.visuals.roles import (
     BUILTIN_COLOR_MODELS,
     COLORBLIND_COLOR_MODEL,
-    COLORBLIND_CYCLE_HEX,
-    COLORBLIND_CYCLE_RGB,
     DEFAULT_COLOR_MODEL,
     MONOCHROME_COLOR_MODEL,
     NORD_COLOR_MODEL,
-    ColorModel,
-    PlotTheme,
     get_color_model,
     list_color_models,
+)
+from principle_viz.visuals.theme import (
+    COLORBLIND_CYCLE_HEX,
+    COLORBLIND_CYCLE_RGB,
+    ColorModel,
+    PlotTheme,
 )
 from principle_viz.visuals.trade import trade_layers
 from principle_viz.visuals.welfare import welfare_layers, welfare_overlay_layers

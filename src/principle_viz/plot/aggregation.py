@@ -16,7 +16,7 @@ from principle_viz.core.aggregation import (
 )
 from principle_viz.core.discrete import DiscreteDemand, DiscreteSupply
 from principle_viz.core.line import Line
-from principle_viz.plot.label import Label
+from principle_viz.plot.label import Label, Length
 from principle_viz.visuals.aggregation import (
     aggregation_panel,
     named_path_layers,
@@ -94,6 +94,10 @@ class AggregationFigure:
         text: str | None = None,
         visible: bool | None = None,
         offset: tuple[float, float] | None = None,
+        top: Length | None = None,
+        bottom: Length | None = None,
+        left: Length | None = None,
+        right: Length | None = None,
     ) -> AggregationFigure:
         matched = False
         for panel in self.panels:
@@ -104,6 +108,10 @@ class AggregationFigure:
                     text=text,
                     visible=visible,
                     offset=offset,
+                    top=top,
+                    bottom=bottom,
+                    left=left,
+                    right=right,
                 )
                 matched = True
         if not matched:

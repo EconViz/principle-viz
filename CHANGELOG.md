@@ -2,6 +2,49 @@
 
 All notable changes to this project are documented in this file.
 
+## v0.12.1 (2026-10-23)
+
+### Added
+
+- `Label` takes `top`, `bottom`, `left` and `right`: lengths that move one label after it has been
+  placed, e.g. `MarketFigure(labels={"market.equilibrium": Label(top="4pt")})` or
+  `figure.configure_label("market.supply", Label(right="8pt"))` (`configure_label` also takes them
+  as keywords). A length is a number of points or a string such as `"10pt"`, `"0.5em"` (the label's
+  font size) or `"2mm"`. They become a mosaickit `Nudge` on the label layer; `Label(offset=...)`
+  keeps its behaviour and a nudge applies after it. Figures without nudges are unchanged. There is
+  no `[principle.label]` default in `econ-viz.toml` yet.
+
+### Changed
+
+- `econ-viz.toml` is read by mosaickit: principle-viz declares its `[principle]` table as a
+  `mosaickit.econ_toml.Schema` and has no parser of its own. `Config`, `default_theme()` and the
+  figures behave as before, and the same file gives the same figures.
+- The colour models are mosaickit's shared themes: `manual`, `default`, `colorblind`, `monochrome`,
+  `nord`, `paper` and `presentation` (the last two are new here). `principle_viz.visuals.roles` maps
+  each element to a theme role (axis, label, baseline and arrow to ink; demand to primary; supply
+  to secondary; shifted to tertiary; tax and control to intervention; consumer surplus, producer
+  surplus, deadweight loss and tax revenue to the light, mid, dark and faint fills) and builds the
+  colour models and plot themes from the tokens. The theme's line and marker scales multiply
+  principle-viz's line widths and equilibrium dot. `get_color_model`, `list_color_models` and
+  `PlotTheme.from_palette` take the same names.
+- `manual` is unchanged. The other themes change colour: demand takes the primary colour and supply
+  the secondary, and the fills follow the curves. In `default`, demand is `#377EB8` (was the
+  palette's `blue`), supply `#4DAF4A` (was `red`), shifted curves `#777777`, tax and price controls
+  `#FF7F00`, and consumer surplus, producer surplus, deadweight loss and tax revenue `#377EB8`,
+  `#4DAF4A`, `#E41A1C` and `#FF7F00`; `default` no longer names mosaickit palette colours, so a
+  `[palette]` override no longer recolours it. `colorblind` now matches `default`, `nord` and
+  `monochrome` reassign their roles the same way (e.g. nord supply `#A3BE8C`, was `#BF616A`;
+  monochrome demand and supply both `#000000`).
+- The shared `base` picks principle-viz's starting theme. `[principle] palette` still works and
+  wins over `base` for principle-viz (it sets the colours only).
+- Mistakes are reported in mosaickit's format, naming the file and the table and suggesting the
+  closest key, e.g. `econ-viz.toml: [principle.color] unknown key 'demnad'; did you mean 'demand'?`.
+  Colours are now checked (`#rgb`, `#rrggbb`, `#rrggbbaa` or a colour name), and unknown top-level
+  keys are errors. utility-viz's tables, under `[utility]` or at the old top level, are skipped.
+- principle-viz registers its `Config` under the `econviz.config` entry point, so
+  `mosaickit.econ_toml.use()` loads it with the other installed packages.
+- Requires `mosaickit>=1.0.0rc6`.
+
 ## v0.12.0 (2026-10-23)
 
 ### Added

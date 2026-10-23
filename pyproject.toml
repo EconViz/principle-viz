@@ -1,6 +1,6 @@
 [project]
 name = "principle-viz"
-version = "0.12.0"
+version = "0.12.1"
 description = "Principles of Economics toolkit for demand/supply analytics and diagrams."
 readme = "README.md"
 authors = [{ name = "Anthony Sung", email = "sungpinyue@gmail.com" }]
@@ -16,11 +16,14 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-    "mosaickit>=1.0.0rc5,<2.0.0",
+    "mosaickit>=1.0.0rc6,<2.0.0",
 ]
 
 [project.scripts]
 principle-viz = "principle_viz.cli.main:main"
+
+[project.entry-points."econviz.config"]
+principle = "principle_viz.config:Config"
 
 [project.urls]
 Homepage = "https://github.com/EconViz/principle-viz"

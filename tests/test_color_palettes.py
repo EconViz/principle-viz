@@ -12,8 +12,15 @@ from principle_viz.plot import (
 
 def test_list_color_models_matches_econ_viz_builtin_names() -> None:
     names = set(list_color_models())
-    assert {"default", "colorblind", "nord"}.issubset(names)
-    assert "monochrome" in names
+    assert names == {
+        "manual",
+        "default",
+        "colorblind",
+        "monochrome",
+        "nord",
+        "paper",
+        "presentation",
+    }
 
 
 def test_get_color_model_resolves_known_palettes() -> None:
@@ -45,18 +52,17 @@ def test_unknown_palette_raises() -> None:
         get_color_model("not-a-palette")
 
 
-def test_default_palette_names_mosaickit_palette_colours() -> None:
-    from mosaickit import DEFAULT_PALETTE as P
+def test_default_palette_takes_the_shared_default_theme() -> None:
+    from mosaickit.themes import get_tokens
 
+    tokens = get_tokens("default").colors
     default = get_color_model("default")
-    assert default.demand_color == "blue"
-    assert default.supply_color == "red"
-    assert default.cs_color == default.demand_color
-    assert default.ps_color == default.supply_color
-    assert default.dwl_color == "teal"
-    assert all(
-        getattr(default, name) in P for name in vars(default) if name.endswith("_color")
-    )
+    assert default.demand_color == tokens["primary"] == "#377EB8"
+    assert default.supply_color == tokens["secondary"] == "#4DAF4A"
+    assert default.cs_color == tokens["fill.light"]
+    assert default.ps_color == tokens["fill.mid"]
+    assert default.dwl_color == tokens["fill.dark"]
+    assert default.tax_revenue_color == tokens["fill.faint"]
 
 
 def test_default_theme_welfare_opacities_and_background() -> None:

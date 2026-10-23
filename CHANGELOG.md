@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## v0.12.0 (2026-10-23)
+
+### Added
+
+- `Config.load("econ-viz.toml").use()` reads the settings file every EconViz package shares:
+  fonts, the math font and the axis and label colours from the shared sections, and principle-viz's
+  own settings from the `[principle]` table (`palette`, `language`, `[principle.color]`,
+  `[principle.stroke]`, `[principle.marker]`). Figures made without `theme=` or `palette=` then use
+  it; `default_theme()` returns the theme they get. Sections of other packages are skipped.
+
+### Changed
+
+- Requires `mosaickit>=1.0.0rc5`, which reads the shared sections.
+
 ## v0.11.2 (2026-10-22)
 
 ### Added

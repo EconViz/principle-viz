@@ -200,7 +200,9 @@ def public_good_canvas(
     labels: Mapping[str, Label] | None = None,
     visibility: Mapping[str, bool] | None = None,
 ) -> Canvas:
-    selected = theme or PlotTheme()
+    from principle_viz.config import default_theme  # avoids an import cycle
+
+    selected = theme or default_theme()
     q_max = result.points[-1].quantity * 1.08
     y_max = (
         max(

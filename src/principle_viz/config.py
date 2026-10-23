@@ -1,7 +1,11 @@
-"""Read principle-viz settings from ``econ-viz.toml``, the file every EconViz package reads.
+"""principle-viz settings from ``econ-viz.toml``, the file every EconViz package reads.
 
-The shared sections (see ``mosaickit.econ_toml``) set the fonts and the axis and label
-colours; principle-viz's own settings live in the ``[principle]`` table::
+mosaickit reads and checks the file (see ``mosaickit.econ_toml``); this module only
+declares what principle-viz takes from it. The shared top level sets the starting colour
+model (``base``), the fonts and the axis and label colours; principle-viz's own settings
+live in the ``[principle]`` table::
+
+    base = "manual"           # built-in colour model to start from
 
     [font]
     text = "serif"
@@ -15,7 +19,7 @@ colours; principle-viz's own settings live in the ``[principle]`` table::
     label = "#1a1a1a"
 
     [principle]
-    palette = "manual"        # built-in colour model to start from
+    palette = "manual"        # colour model for principle-viz only; wins over base
     language = "zh-TW"        # language of built-in figure text
 
     [principle.color]         # any colour-model role, without "_color"
@@ -40,142 +44,163 @@ the built-in default.
 
 from __future__ import annotations
 
-import dataclasses
-from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields, make_dataclass, replace
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any
 
-from mosaickit import ConfigurationError, econ_toml
+from mosaickit import MathFont, econ_toml
+
+from principle_viz.i18n import LANGUAGES
 
 if TYPE_CHECKING:
-    from principle_viz.visuals.theme import PlotTheme
+    from principle_viz.visuals.theme import ColorModel, PlotTheme
 
-_TABLE_KEYS = {"palette", "language", "color", "stroke", "marker"}
-_STROKES = {
-    "demand": "demand_linewidth",
-    "supply": "supply_linewidth",
-    "shifted": "shifted_linewidth",
-    "tax": "tax_linewidth",
-    "arrow": "arrow_linewidth",
-    "dashed": "dashed_linewidth",
-}
-_MARKERS = {"equilibrium": "equilibrium_marker_size"}
+# The built-in colour models and the ColorModel colour roles (tests check that these
+# match principle_viz.visuals.theme, which this module cannot import at load time).
+COLOR_MODELS = ("default", "colorblind", "nord", "monochrome", "manual")
+COLOR_ROLES = (
+    "axis",
+    "label",
+    "demand",
+    "supply",
+    "baseline",
+    "shifted",
+    "tax",
+    "control",
+    "cs",
+    "ps",
+    "tax_revenue",
+    "dwl",
+    "arrow",
+)
+STROKES = ("demand", "supply", "shifted", "tax", "arrow", "dashed")
+
+# The colour roles the file sets; None keeps the colour model's own colour.
+_Colors = make_dataclass(
+    "_Colors",
+    [(f"{role}_color", "str | None", field(default=None)) for role in COLOR_ROLES],
+    frozen=True,
+)
 
 
 @dataclass(frozen=True)
-class Config:
+class _Draft:
+    """What the file sets, turned into a PlotTheme by ``_finish``.
+
+    The colours are kept apart from the theme so that ``[principle] palette``, which
+    replaces the whole colour model, still keeps the colours the file names.
+    """
+
+    theme: PlotTheme
+    color_model: Any = field(default_factory=_Colors)
+    palette: ColorModel | None = None
+    equilibrium_diameter: float | None = None
+
+
+def _theme_module() -> ModuleType:
+    # Imported on use: the plotting modules import this one, so a module-level
+    # import of principle_viz.visuals would be circular.
+    from principle_viz.visuals import theme
+
+    return theme
+
+
+def _base(name: str) -> Any:
+    return lambda: _Draft(theme=_theme_module().PlotTheme.from_palette(name))
+
+
+_PALETTE = econ_toml.choice("palette", COLOR_MODELS)
+_POSITIVE = econ_toml.positive("")
+
+
+def _palette(value: Any, ctx: econ_toml.Context) -> ColorModel:
+    if isinstance(value, str):
+        value = value.strip().lower()
+    _PALETTE.convert(value, ctx, "palette")
+    return _theme_module().get_color_model(value)
+
+
+def _width(key: str) -> econ_toml.Field:
+    def convert(value: Any, ctx: econ_toml.Context) -> float:
+        return float(_POSITIVE.convert(value, ctx, key))
+
+    return econ_toml.transform(f"theme.{key}_linewidth", convert)
+
+
+def _diameter(value: Any, ctx: econ_toml.Context) -> float:
+    return float(_POSITIVE.convert(value, ctx, "equilibrium"))
+
+
+def _math_font(value: Any, ctx: econ_toml.Context) -> MathFont:
+    return MathFont(Path(value))
+
+
+def _finish(draft: _Draft, ctx: econ_toml.Context) -> PlotTheme:
+    model = draft.palette if draft.palette is not None else draft.theme.color_model
+    colors = {
+        f.name: getattr(draft.color_model, f.name)
+        for f in fields(draft.color_model)
+        if getattr(draft.color_model, f.name) is not None
+    }
+    if colors:
+        model = replace(model, **colors)
+    changes: dict[str, Any] = {}
+    if model is not draft.theme.color_model:
+        changes["color_model"] = model
+    if draft.equilibrium_diameter is not None:
+        # PlotTheme keeps the marker's area, the square of its diameter.
+        changes["equilibrium_marker_size"] = draft.equilibrium_diameter**2
+    return replace(draft.theme, **changes) if changes else draft.theme
+
+
+SCHEMA = econ_toml.register(
+    econ_toml.Schema(
+        package="principle",
+        base={name: _base(name) for name in COLOR_MODELS},
+        fields={
+            "palette": econ_toml.transform("palette", _palette),
+            "language": econ_toml.choice("theme.language", LANGUAGES),
+            **{
+                f"color.{role}": econ_toml.color(f"color_model.{role}_color")
+                for role in COLOR_ROLES
+            },
+            **{f"stroke.{name}": _width(name) for name in STROKES},
+            "marker.equilibrium": econ_toml.transform(
+                "equilibrium_diameter", _diameter
+            ),
+        },
+        shared={
+            "font": "theme.font",
+            "fonts": "theme.fonts",
+            "math_font": econ_toml.transform("theme.math_font", _math_font),
+            "axis": "color_model.axis_color",
+            "label": "color_model.label_color",
+        },
+        finalize=_finish,
+        docs={
+            "palette": "colour model for principle-viz only; wins over base",
+            "language": "language of built-in figure text",
+            "marker.equilibrium": "equilibrium dot diameter in points (default 6.5)",
+            **{
+                f"color.{role}": "unset keeps the colour model's"
+                for role in COLOR_ROLES
+            },
+            **{f"stroke.{name}": "line width in points" for name in STROKES},
+        },
+    )
+)
+
+
+class Config(SCHEMA.config_class()):  # type: ignore[misc]
     """A theme read from ``econ-viz.toml``; :meth:`use` makes it the default."""
 
-    theme: PlotTheme = field(default_factory=lambda: _theme_module().PlotTheme())
+    __slots__ = ()
 
-    @classmethod
-    def load(cls, path: str | Path | None = None) -> Config:
-        """Read ``path``, or ``econ-viz.toml`` in the working directory."""
-        if path is None:
-            found = econ_toml.find()
-            if found is None:
-                raise ConfigurationError(
-                    f"config file not found: {econ_toml.FILE_NAME}"
-                )
-            path = found
-        source = Path(path)
-        return cls.from_dict(
-            econ_toml.read(source), source=str(source), base_dir=source.resolve().parent
-        )
-
-    @classmethod
-    def discover(cls, directory: str | Path | None = None) -> Config:
-        """``econ-viz.toml`` in ``directory`` if there is one, else the defaults."""
-        found = econ_toml.find(directory)
-        return cls() if found is None else cls.load(found)
-
-    @classmethod
-    def from_dict(
-        cls,
-        data: Mapping[str, Any],
-        *,
-        source: str = "config",
-        base_dir: str | Path | None = None,
-    ) -> Config:
-        """Build the theme from parsed TOML data."""
-        shared = econ_toml.shared_settings(data, base_dir=base_dir, source=source)
-        table = econ_toml.package_table(data, "principle", source=source)
-        unknown = set(table) - _TABLE_KEYS
-        if unknown:
-            raise ConfigurationError(
-                f"{source}: unknown [principle] key(s) {', '.join(sorted(unknown))}; "
-                f"choose from {', '.join(sorted(_TABLE_KEYS))}"
-            )
-        theme_module = _theme_module()
-        color_roles = tuple(
-            f.name.removesuffix("_color")
-            for f in dataclasses.fields(theme_module.ColorModel)
-            if f.name.endswith("_color")
-        )
-        palette = table.get("palette", "default")
-        try:
-            model = theme_module.get_color_model(palette)
-        except (ValueError, AttributeError) as error:
-            raise ConfigurationError(
-                f"{source}: [principle] palette: {error}"
-            ) from None
-        colors = {"axis_color": shared.axis, "label_color": shared.label}
-        for role, value in _subtable(table, "color", source).items():
-            if role not in color_roles:
-                raise ConfigurationError(
-                    f"{source}: unknown [principle.color] role {role!r}; choose from {', '.join(color_roles)}"
-                )
-            if not isinstance(value, str):
-                raise ConfigurationError(
-                    f"{source}: [principle.color] {role} must be a colour string"
-                )
-            colors[f"{role}_color"] = value
-        model = dataclasses.replace(
-            model, **{k: v for k, v in colors.items() if v is not None}
-        )
-        sizes: dict[str, float] = {}
-        sizes.update(_numbers(table, "stroke", _STROKES, source))
-        sizes.update(
-            {
-                name: value**2
-                for name, value in _numbers(table, "marker", _MARKERS, source).items()
-            }
-        )
-        options: dict[str, Any] = {"color_model": model, **sizes}
-        if "language" in table:
-            options["language"] = table["language"]
-        if shared.font is not None:
-            options["font"] = shared.font
-        if shared.fonts is not None:
-            options["fonts"] = shared.fonts
-        if shared.math_font is not None:
-            options["math_font"] = shared.math_font
-        try:
-            return cls(theme=theme_module.PlotTheme(**options))
-        except ValueError as error:
-            raise ConfigurationError(f"{source}: {error}") from None
-
-    def use(self) -> Config:
-        """Make this the theme of every figure made without an explicit ``theme``."""
-        global _active
-        _active = self
-        return self
-
-    @staticmethod
-    def reset() -> None:
-        """Go back to the built-in default theme."""
-        global _active
-        _active = None
-
-    @staticmethod
-    def active() -> Config | None:
-        """The config set by :meth:`use`, if any."""
-        return _active
-
-
-_active: Config | None = None
+    @property
+    def theme(self) -> PlotTheme:
+        """The PlotTheme the file describes."""
+        return self.value
 
 
 def default_theme(palette: str | None = None) -> PlotTheme:
@@ -187,41 +212,17 @@ def default_theme(palette: str | None = None) -> PlotTheme:
     plot_theme = _theme_module().PlotTheme
     if palette is not None:
         return plot_theme.from_palette(palette)
-    if _active is not None:
-        return _active.theme
+    active = Config.active()
+    if active is not None:
+        return active.theme
     return plot_theme.from_palette("default")
 
 
-def _theme_module() -> ModuleType:
-    # Imported on use: the plotting modules import this one, so a module-level
-    # import of principle_viz.visuals would be circular.
-    from principle_viz.visuals import theme
-
-    return theme
-
-
-def _subtable(table: Mapping[str, Any], key: str, source: str) -> Mapping[str, Any]:
-    value = table.get(key, {})
-    if not isinstance(value, Mapping):
-        raise ConfigurationError(f"{source}: [principle.{key}] must be a table")
-    return value
-
-
-def _numbers(
-    table: Mapping[str, Any], key: str, names: Mapping[str, str], source: str
-) -> dict[str, float]:
-    out = {}
-    for name, value in _subtable(table, key, source).items():
-        if name not in names:
-            raise ConfigurationError(
-                f"{source}: unknown [principle.{key}] key {name!r}; choose from {', '.join(names)}"
-            )
-        if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
-            raise ConfigurationError(
-                f"{source}: [principle.{key}] {name} must be a positive number"
-            )
-        out[names[name]] = float(value)
-    return out
-
-
-__all__ = ["Config", "default_theme"]
+__all__ = [
+    "COLOR_MODELS",
+    "COLOR_ROLES",
+    "SCHEMA",
+    "STROKES",
+    "Config",
+    "default_theme",
+]

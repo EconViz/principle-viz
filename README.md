@@ -145,11 +145,14 @@ discrete_demand_aggregation_figure(
 
 ## Settings File
 
-principle-viz reads `econ-viz.toml`, the settings file every EconViz package shares. The shared
-sections set the fonts and the axis and label colours; principle-viz's own settings live in the
-`[principle]` table, and sections of other packages are skipped.
+principle-viz reads `econ-viz.toml`, the settings file every EconViz package shares; mosaickit
+reads and checks it. The top level sets the starting colour model (`base`), the fonts and the axis
+and label colours; principle-viz's own settings live in the `[principle]` table, and the tables of
+other packages, such as `[utility]`, are skipped.
 
 ```toml
+base = "default"     # default, colorblind, nord, monochrome or manual
+
 [font]
 text = "serif"
 math = "fonts/texgyrepagella-math.otf"
@@ -162,7 +165,7 @@ axis = "#1a1a1a"
 label = "#1a1a1a"
 
 [principle]
-palette = "manual"   # built-in colour model to start from
+palette = "manual"   # colour model for principle-viz only; wins over base
 language = "zh-TW"   # language of built-in figure text
 
 [principle.color]    # any colour-model role, without "_color"
@@ -183,7 +186,8 @@ Config.load("econ-viz.toml").use()  # figures made without theme= use it
 ```
 
 A `theme=` or `palette=` passed to a figure still wins. Relative paths are resolved against the
-file's directory.
+file's directory. A mistake raises `mosaickit.ConfigurationError` naming the file and the table,
+e.g. `econ-viz.toml: [principle.color] unknown key 'demnad'; did you mean 'demand'?`.
 
 ## CLI
 

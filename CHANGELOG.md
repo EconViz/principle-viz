@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented in this file.
 
+## v0.12.1 (2026-10-23)
+
+### Changed
+
+- `econ-viz.toml` is read by mosaickit: principle-viz declares its `[principle]` table as a
+  `mosaickit.econ_toml.Schema` and has no parser of its own. `Config`, `default_theme()` and the
+  figures behave as before, and the same file gives the same figures.
+- The shared `base` now picks principle-viz's starting colour model (`default`, `colorblind`, `nord`,
+  `monochrome` or `manual`). `[principle] palette` still works and wins over `base` for
+  principle-viz.
+- Mistakes are reported in mosaickit's format, naming the file and the table and suggesting the
+  closest key, e.g. `econ-viz.toml: [principle.color] unknown key 'demnad'; did you mean 'demand'?`.
+  Colours are now checked (`#rgb`, `#rrggbb`, `#rrggbbaa` or a colour name), and unknown top-level
+  keys are errors. utility-viz's tables, under `[utility]` or at the old top level, are skipped.
+- principle-viz registers its `Config` under the `econviz.config` entry point, so
+  `mosaickit.econ_toml.use()` loads it with the other installed packages.
+- Requires `mosaickit>=1.0.0rc6`.
+
 ## v0.12.0 (2026-10-23)
 
 ### Added

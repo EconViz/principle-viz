@@ -34,7 +34,9 @@ def ppf_canvas(
     visibility: Mapping[str, bool] | None = None,
 ) -> Canvas:
     frontier = result.frontier
-    selected = theme or PlotTheme()
+    from principle_viz.config import default_theme  # avoids an import cycle
+
+    selected = theme or default_theme()
     x_max = frontier.x_intercept * 1.15
     y_max = frontier.y_intercept * 1.15
     canvas = Canvas(
@@ -109,7 +111,9 @@ def ppf_growth_canvas(
     labels: Mapping[str, Label] | None = None,
     visibility: Mapping[str, bool] | None = None,
 ) -> Canvas:
-    selected = theme or PlotTheme()
+    from principle_viz.config import default_theme  # avoids an import cycle
+
+    selected = theme or default_theme()
     x_max = max(result.baseline.x_intercept, result.shifted.x_intercept) * 1.1
     y_max = max(result.baseline.y_intercept, result.shifted.y_intercept) * 1.1
     canvas = Canvas(

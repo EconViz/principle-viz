@@ -85,7 +85,9 @@ class MarketFigure:
         labels: Mapping[str, Label] | None = None,
         visibility: Mapping[str, bool] | None = None,
     ) -> None:
-        self.theme = theme or PlotTheme.from_palette(palette or "default")
+        from principle_viz.config import default_theme  # avoids an import cycle
+
+        self.theme = theme or default_theme(palette)
         self.x_max = float(x_max)
         self.y_max = float(y_max)
         self.canvas = Canvas(

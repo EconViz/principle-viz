@@ -143,6 +143,48 @@ discrete_demand_aggregation_figure(
 
 `supply_aggregation_figure` and `discrete_supply_aggregation_figure` draw the supply side. Examples: `examples/scripts/aggregation_*.py`, output under `examples/output/aggregation/`.
 
+## Settings File
+
+principle-viz reads `econ-viz.toml`, the settings file every EconViz package shares. The shared
+sections set the fonts and the axis and label colours; principle-viz's own settings live in the
+`[principle]` table, and sections of other packages are skipped.
+
+```toml
+[font]
+text = "serif"
+math = "fonts/texgyrepagella-math.otf"
+
+[fonts]
+serif = ["fonts/NotoSerifTC-Regular.otf", "fonts/NotoSerifTC-Bold.otf"]
+
+[color]
+axis = "#1a1a1a"
+label = "#1a1a1a"
+
+[principle]
+palette = "manual"   # built-in colour model to start from
+language = "zh-TW"   # language of built-in figure text
+
+[principle.color]    # any colour-model role, without "_color"
+demand = "#8c8c8c"
+supply = "#1a1a1a"
+
+[principle.stroke]   # line widths in points
+demand = 3.5
+
+[principle.marker]
+equilibrium = 6.5    # equilibrium dot diameter in points
+```
+
+```python
+from principle_viz import Config
+
+Config.load("econ-viz.toml").use()  # figures made without theme= use it
+```
+
+A `theme=` or `palette=` passed to a figure still wins. Relative paths are resolved against the
+file's directory.
+
 ## CLI
 
 ```bash

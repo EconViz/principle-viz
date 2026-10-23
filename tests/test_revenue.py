@@ -52,12 +52,8 @@ def test_revenue_layers_and_text_are_user_configurable() -> None:
         visibility={"elasticity.unit.point": False},
         labels={"elasticity.revenue.maximum": Label(text="$TR_{max}$")},
     )
-    demand_layers = {
-        layer.id: layer for layer in demand_canvas.snapshot().layers
-    }
-    revenue_layers = {
-        layer.id: layer for layer in revenue_canvas.snapshot().layers
-    }
+    demand_layers = {layer.id: layer for layer in demand_canvas.snapshot().layers}
+    revenue_layers = {layer.id: layer for layer in revenue_canvas.snapshot().layers}
 
     assert not demand_layers["elasticity.unit.point"].visible
     assert revenue_layers["elasticity.revenue.maximum.label"].text == "$TR_{max}$"

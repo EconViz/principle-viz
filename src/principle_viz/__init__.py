@@ -27,6 +27,7 @@ from principle_viz.api import (
     solve_subsidy_equilibrium,
     solve_tax_equilibrium,
 )
+from principle_viz.config import Config, default_theme
 from principle_viz.core.aggregation import (
     AggregationError,
     market_demand,
@@ -115,6 +116,7 @@ __all__ = [
     "ColorModel",
     "CommonResourceResult",
     "ComparativeAdvantageResult",
+    "Config",
     "DiscreteDemand",
     "DiscreteEquilibriumResult",
     "DiscreteMarketError",
@@ -170,6 +172,7 @@ __all__ = [
     "compute_discrete_surplus",
     "compute_point_elasticity",
     "compute_surplus",
+    "default_theme",
     "demand_aggregation_figure",
     "discrete_demand_aggregation_figure",
     "discrete_supply_aggregation_figure",

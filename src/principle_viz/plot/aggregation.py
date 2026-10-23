@@ -54,11 +54,15 @@ class AggregationFigure:
 
     @property
     def layer_ids(self) -> tuple[str, ...]:
-        return tuple(dict.fromkeys(id_ for panel in self.panels for id_ in panel.layer_ids))
+        return tuple(
+            dict.fromkeys(id_ for panel in self.panels for id_ in panel.layer_ids)
+        )
 
     @property
     def label_ids(self) -> tuple[str, ...]:
-        return tuple(dict.fromkeys(id_ for panel in self.panels for id_ in panel.label_ids))
+        return tuple(
+            dict.fromkeys(id_ for panel in self.panels for id_ in panel.label_ids)
+        )
 
     def hide(self, *layer_ids: str) -> AggregationFigure:
         return self._set_visibility(layer_ids, visible=False)
@@ -124,7 +128,9 @@ def _check(individuals: Mapping[str, object]) -> None:
 
 
 def _theme(theme: PlotTheme | None, palette: str | None) -> PlotTheme:
-    return theme or PlotTheme.from_palette(palette or "default")
+    from principle_viz.config import default_theme  # avoids an import cycle
+
+    return theme or default_theme(palette)
 
 
 def _sub(symbol: str, name: str) -> str:
@@ -221,9 +227,7 @@ def _line_panels(
         )
     market_q = sum(panel.quantity for panel in panels)
     active_names = [
-        name
-        for name, panel in zip(names, panels, strict=True)
-        if panel.quantity > 0
+        name for name, panel in zip(names, panels, strict=True) if panel.quantity > 0
     ]
     panels.append(
         _Panel(

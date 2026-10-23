@@ -21,7 +21,9 @@ def elasticity_revenue_canvases(
     labels: Mapping[str, Label] | None = None,
     visibility: Mapping[str, bool] | None = None,
 ) -> tuple[Canvas, Canvas]:
-    selected = theme or PlotTheme()
+    from principle_viz.config import default_theme  # avoids an import cycle
+
+    selected = theme or default_theme()
     q_max = result.choke_quantity * 1.2
     demand_canvas = Canvas(
         CanvasSpec(

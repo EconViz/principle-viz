@@ -22,6 +22,8 @@ from mosaickit import (
 from mosaickit.errors import ConfigurationError
 from mosaickit.styles.nudge import Nudge, nudge_from, parse_length
 
+from principle_viz.label_groups import label_group
+
 Offset = tuple[float, float]
 Length = float | str
 """A number of points, or a string with a unit: ``"10pt"``, ``"0.5em"``, ``"2mm"``."""
@@ -107,6 +109,19 @@ def _nudged(layer: Layer, nudge: Nudge | None) -> Layer:
     if current is not None:
         nudge = Nudge(current.dx + nudge.dx, current.dy + nudge.dy)
     return replace(layer, nudge=nudge)
+
+
+def apply_default_nudge(
+    layer: Layer, default: Layer, nudges: Mapping[str, Nudge]
+) -> Layer:
+    """Move ``layer`` by the default nudge of the label group ``default`` belongs to.
+
+    ``default`` is the label as the diagram supplied it; ``layer`` is that label after
+    any ``Label`` override. Axis labels and groups without a nudge are returned as is.
+    """
+    group = label_group(default)
+    nudge = nudges.get(group) if group is not None else None
+    return layer if nudge is None else _nudged(layer, nudge)
 
 
 def _region_position(
@@ -233,4 +248,11 @@ def is_label_layer(layer: Layer) -> bool:
     )
 
 
-__all__ = ["Label", "Length", "Offset", "apply_label", "is_label_layer"]
+__all__ = [
+    "Label",
+    "Length",
+    "Offset",
+    "apply_default_nudge",
+    "apply_label",
+    "is_label_layer",
+]

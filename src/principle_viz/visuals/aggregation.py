@@ -53,6 +53,7 @@ def aggregation_panel(
         theme=theme.to_mosaickit(),
         config=theme.mosaickit_config(),
         language=theme.language,
+        label_nudges=theme.label_nudges,
         labels=labels,
         visibility=visibility,
     ).extend(

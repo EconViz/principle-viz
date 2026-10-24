@@ -38,6 +38,7 @@ def elasticity_revenue_canvases(
         theme=selected.to_mosaickit(),
         config=selected.mosaickit_config(),
         language=selected.language,
+        label_nudges=selected.label_nudges,
         labels=labels,
         visibility=visibility,
     ).extend(
@@ -99,6 +100,7 @@ def elasticity_revenue_canvases(
         theme=selected.to_mosaickit(),
         config=selected.mosaickit_config(),
         language=selected.language,
+        label_nudges=selected.label_nudges,
         labels=labels,
         visibility=visibility,
     ).extend(

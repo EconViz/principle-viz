@@ -52,6 +52,7 @@ def ppf_canvas(
         theme=selected.to_mosaickit(),
         config=selected.mosaickit_config(),
         language=selected.language,
+        label_nudges=selected.label_nudges,
         labels=labels,
         visibility=visibility,
     ).extend(
@@ -130,6 +131,7 @@ def ppf_growth_canvas(
         theme=selected.to_mosaickit(),
         config=selected.mosaickit_config(),
         language=selected.language,
+        label_nudges=selected.label_nudges,
         labels=labels,
         visibility=visibility,
     ).extend(

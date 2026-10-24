@@ -102,6 +102,7 @@ class MarketFigure:
             theme=self.theme.to_mosaickit(),
             config=self.theme.mosaickit_config(),
             language=self.theme.language,
+            label_nudges=self.theme.label_nudges,
             labels=labels,
             visibility=visibility,
         )
@@ -665,6 +666,7 @@ class MarketFigure:
         if dpi == self.canvas.spec.dpi:
             self.canvas.save(target)
             return
+        # No label_nudges: the supplied layers have been nudged already.
         canvas = Canvas(
             self.canvas.spec.replace(dpi=int(dpi)),
             theme=self.canvas.theme,

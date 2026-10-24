@@ -23,8 +23,10 @@ from mosaickit import (
     Theme,
 )
 from mosaickit.config import current_config
+from mosaickit.styles.nudge import Nudge
 
 from principle_viz.i18n import validate_language
+from principle_viz.label_groups import LABEL_GROUPS
 
 GENERIC_FONTS = ("sans", "serif", "mono")
 
@@ -135,9 +137,20 @@ class PlotTheme:
     # The language of principle-viz's built-in figure text: "en", "zh-TW" or "zh-CN".
     # Chinese text needs a font that has the characters, e.g. fonts=TextFonts(serif=...).
     language: str = "en"
+    # A default move for whole groups of labels (see principle_viz.label_groups), e.g.
+    # {"point": Nudge(0, 3)}; a label with its own Label(top=, ...) is not moved by it.
+    label_nudges: Mapping[str, Nudge] = field(default_factory=dict, hash=False)
 
     def __post_init__(self) -> None:
         validate_language(self.language)
+        for group, nudge in self.label_nudges.items():
+            if group not in LABEL_GROUPS:
+                raise ValueError(
+                    f"label_nudges: unknown label group {group!r}; "
+                    f"choose from {', '.join(LABEL_GROUPS)}"
+                )
+            if not isinstance(nudge, Nudge):
+                raise TypeError(f"label_nudges[{group!r}] must be a mosaickit Nudge")
         for name in (self.font, *self.font_roles.values()):
             if name not in GENERIC_FONTS:
                 raise ValueError(

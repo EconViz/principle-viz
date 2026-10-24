@@ -33,6 +33,19 @@ live in the ``[principle]`` table::
     [principle.marker]
     equilibrium = 6.5         # equilibrium dot diameter in points
 
+    [principle.label.point]   # move whole groups of labels (see below)
+    top = "2pt"               # also bottom, left, right; pt, mm, cm or in, no em
+
+The label groups are ``point`` (equilibrium and PPF point labels such as ``e_0``, ``e^*``,
+``L^*``), ``curve`` (``D``, ``S``, ``D_1``, ``S + t``, ``MSB``, ``MC``, ``PPF``), ``region``
+(consumer and producer surplus, deadweight loss, tax revenue and the other named regions,
+callouts included), ``mark`` (``p_c``, ``w_min``, ``p_w`` and the ``t = ...`` and
+``s = ...`` wedges) and ``annotation`` (brace labels, metrics and the other text). Each
+takes ``top``, ``bottom``, ``left`` and ``right`` as in ``Label``; ``top`` and ``bottom``
+combine, as do ``right`` and ``left``. A label given its own ``Label(top=, ...)`` is moved
+by that and not by the group's nudge; a ``Label`` that only renames, hides or offsets a
+label keeps the group's nudge. Axis labels are never moved.
+
 Load it once and every figure made without an explicit ``theme`` uses it::
 
     from principle_viz import Config
@@ -50,9 +63,11 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any
 
 from mosaickit import MathFont, econ_toml
+from mosaickit.styles.nudge import Nudge, nudge_from
 from mosaickit.themes import list_shared_themes
 
 from principle_viz.i18n import LANGUAGES
+from principle_viz.label_groups import LABEL_GROUPS, LABEL_SIDES
 
 if TYPE_CHECKING:
     from principle_viz.visuals.theme import ColorModel, PlotTheme
@@ -86,6 +101,20 @@ _Colors = make_dataclass(
 )
 
 
+_DIRECTIONS = {"top": "up", "bottom": "down", "left": "left", "right": "right"}
+
+# The label nudges the file sets, one length per group and side; None leaves it out.
+_Nudges = make_dataclass(
+    "_Nudges",
+    [
+        (f"{group}_{side}", "float | None", field(default=None))
+        for group in LABEL_GROUPS
+        for side in LABEL_SIDES
+    ],
+    frozen=True,
+)
+
+
 @dataclass(frozen=True)
 class _Draft:
     """What the file sets, turned into a PlotTheme by ``_finish``.
@@ -98,6 +127,7 @@ class _Draft:
     color_model: Any = field(default_factory=_Colors)
     palette: ColorModel | None = None
     equilibrium_diameter: float | None = None
+    nudges: Any = field(default_factory=_Nudges)
 
 
 def _theme_module() -> ModuleType:
@@ -161,7 +191,22 @@ def _finish(draft: _Draft, ctx: econ_toml.Context) -> PlotTheme:
     if draft.equilibrium_diameter is not None:
         # PlotTheme keeps the marker's area, the square of its diameter.
         changes["equilibrium_marker_size"] = draft.equilibrium_diameter**2
+    label_nudges = _label_nudges(draft.nudges)
+    if label_nudges:
+        changes["label_nudges"] = label_nudges
     return replace(draft.theme, **changes) if changes else draft.theme
+
+
+def _label_nudges(nudges: Any) -> dict[str, Nudge]:
+    """The nudge of each group the file moves; a group set to no move is left out."""
+    found: dict[str, Nudge] = {}
+    for group in LABEL_GROUPS:
+        nudge = nudge_from(
+            **{side: getattr(nudges, f"{group}_{side}") for side in LABEL_SIDES}
+        )
+        if not nudge.is_zero:
+            found[group] = nudge
+    return found
 
 
 SCHEMA = econ_toml.register(
@@ -176,6 +221,11 @@ SCHEMA = econ_toml.register(
                 for role in COLOR_ROLES
             },
             **{f"stroke.{name}": _width(name) for name in STROKES},
+            **{
+                f"label.{group}.{side}": econ_toml.length(f"nudges.{group}_{side}")
+                for group in LABEL_GROUPS
+                for side in LABEL_SIDES
+            },
             "marker.equilibrium": econ_toml.transform(
                 "equilibrium_diameter", _diameter
             ),
@@ -197,6 +247,11 @@ SCHEMA = econ_toml.register(
                 for role in COLOR_ROLES
             },
             **{f"stroke.{name}": "line width in points" for name in STROKES},
+            **{
+                f"label.{group}.{side}": f"move {group} labels {_DIRECTIONS[side]} (a length)"
+                for group in LABEL_GROUPS
+                for side in LABEL_SIDES
+            },
         },
     )
 )

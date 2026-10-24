@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented in this file.
 
+## v0.14.1 (2026-10-24)
+
+### Added
+
+- Per-figure label overrides from the shared part of `econ-viz.toml`:
+  `[figure.<stem>.label."<layer id>"]` with `top`, `bottom`, `left`, `right` moves one label of the
+  figure saved as `<stem>.<ext>`. mosaickit reads and applies it in `Canvas.save()` and
+  `CanvasGrid.save()`, so `MarketFigure.save()` (also with another `dpi`), the visuals' canvases and
+  `AggregationFigure.save()` honour it with no change of their own once a config read from the file
+  is active. An override replaces the label's nudge, including a `[principle.label.<group>]`
+  default and a `Label(top=...)`; a callout's leader follows. Figures without overrides are
+  unchanged. Axis marks (`Q_0`, `p_c`, ...) are not moved.
+
+### Changed
+
+- Requires `mosaickit>=1.0.0rc8`, which also moves the label of a brace drawn in the axis gutter
+  (side `outside`, such as the tax and subsidy wedge).
+
 ## v0.14.0 (2026-10-24)
 
 ### Added

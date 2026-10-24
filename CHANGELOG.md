@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## v0.13.0 (2026-10-24)
+
+### Added
+
+- The figure title is a parameter instead of fixed text: `ppf_canvas`, `ppf_growth_canvas` and
+  `public_good_canvas` take `title=` (default unchanged, `None` draws no title), and
+  `elasticity_revenue_canvases` takes `titles=(demand_title, revenue_title)`. A title that is a
+  built-in English phrase is still translated by the figure's language; any other text is drawn as
+  given.
+
 ## v0.12.1 (2026-10-23)
 
 ### Added

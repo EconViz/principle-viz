@@ -159,3 +159,21 @@ def test_public_good_layers_and_labels_are_user_configurable() -> None:
     layers = {layer.id: layer for layer in canvas.snapshot().layers}
     assert not layers["public_good.efficient.guide"].visible
     assert layers["public_good.efficient.mark"].label == "Q_e"
+
+
+def test_public_good_title_is_a_parameter_not_fixed_text() -> None:
+    result = analyze_public_good(
+        (IndividualBenefit("A", Line.from_inverse(8, -1)),),
+        Line.from_inverse(5, 0),
+    )
+
+    def drawn_title(**options) -> str:
+        drawn = public_good_canvas(result, **options).render()
+        try:
+            return drawn.axes.get_title()
+        finally:
+            drawn.close()
+
+    assert drawn_title() == "Public Good"
+    assert drawn_title(title="Free riding") == "Free riding"
+    assert drawn_title(title=None) == ""

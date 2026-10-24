@@ -196,6 +196,7 @@ def common_resource_layers(
 def public_good_canvas(
     result: PublicGoodResult,
     *,
+    title: str | None = "Public Good",
     theme: PlotTheme | None = None,
     labels: Mapping[str, Label] | None = None,
     visibility: Mapping[str, bool] | None = None,
@@ -218,7 +219,7 @@ def public_good_canvas(
             y_range=(0, y_max),
             x_label="Q",
             y_label="Marginal value / cost",
-            title="Public Good",
+            title=title,
         ),
         theme=selected.to_mosaickit(),
         config=selected.mosaickit_config(),

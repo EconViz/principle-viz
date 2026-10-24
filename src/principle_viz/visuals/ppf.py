@@ -29,6 +29,7 @@ _STATUS_ROLES = {
 def ppf_canvas(
     result: PPFAnalysisResult,
     *,
+    title: str | None = "Production Possibilities Frontier",
     theme: PlotTheme | None = None,
     labels: Mapping[str, Label] | None = None,
     visibility: Mapping[str, bool] | None = None,
@@ -46,7 +47,7 @@ def ppf_canvas(
             y_range=(0, y_max),
             x_label=frontier.x_good,
             y_label=frontier.y_good,
-            title="Production Possibilities Frontier",
+            title=title,
         ),
         theme=selected.to_mosaickit(),
         config=selected.mosaickit_config(),
@@ -107,6 +108,7 @@ def ppf_canvas(
 def ppf_growth_canvas(
     result: PPFGrowthResult,
     *,
+    title: str | None = "Economic Growth",
     theme: PlotTheme | None = None,
     labels: Mapping[str, Label] | None = None,
     visibility: Mapping[str, bool] | None = None,
@@ -123,7 +125,7 @@ def ppf_growth_canvas(
             y_range=(0, y_max),
             x_label=result.baseline.x_good,
             y_label=result.baseline.y_good,
-            title="Economic Growth",
+            title=title,
         ),
         theme=selected.to_mosaickit(),
         config=selected.mosaickit_config(),

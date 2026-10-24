@@ -8,9 +8,16 @@ from typing import Any
 
 from mosaickit import Canvas as MosaicCanvas
 from mosaickit import FillLayer, Layer
+from mosaickit.styles.nudge import Nudge
 
 from principle_viz.i18n import translate, validate_language
-from principle_viz.plot.label import Label, Length, apply_label, is_label_layer
+from principle_viz.plot.label import (
+    Label,
+    Length,
+    apply_default_nudge,
+    apply_label,
+    is_label_layer,
+)
 
 
 class Canvas(MosaicCanvas):
@@ -22,9 +29,11 @@ class Canvas(MosaicCanvas):
         labels: Mapping[str, Label] | None = None,
         visibility: Mapping[str, bool] | None = None,
         language: str = "en",
+        label_nudges: Mapping[str, Nudge] | None = None,
         **kwargs: Any,
     ) -> None:
         self.language = validate_language(language)
+        self._label_nudges = dict(label_nudges or {})
         self._label_overrides = dict(labels or {})
         if not all(
             isinstance(label, Label) for label in self._label_overrides.values()
@@ -66,6 +75,24 @@ class Canvas(MosaicCanvas):
             return override
         return self._label_overrides.get(layer_id.removesuffix(".label"))
 
+    def _styled_label(
+        self,
+        default: Layer,
+        override: Label | None,
+        regions: Mapping[str, tuple[tuple[float, float], ...]],
+    ) -> Layer:
+        """``default`` with its ``Label`` override, else its group's default nudge.
+
+        A label that sets its own ``top``, ``bottom``, ``left`` or ``right`` replaces the
+        group's default nudge; an override of only the text, visibility or offset keeps it.
+        """
+        if override is None:
+            return apply_default_nudge(default, default, self._label_nudges)
+        layer = apply_label(default, override, regions=regions, theme=self.theme)
+        if override.has_nudge:
+            return layer
+        return apply_default_nudge(layer, default, self._label_nudges)
+
     def _prepare(self, layers: tuple[Layer, ...]) -> tuple[Layer, ...]:
         regions = self._regions(layers)
         prepared: list[Layer] = []
@@ -78,11 +105,9 @@ class Canvas(MosaicCanvas):
                 )
             if is_label_layer(layer):
                 self._label_defaults[layer.id] = layer
-                override = self._label_override(layer.id)
-                if override is not None:
-                    layer = apply_label(
-                        layer, override, regions=regions, theme=self.theme
-                    )
+                layer = self._styled_label(
+                    layer, self._label_override(layer.id), regions
+                )
             prepared.append(layer)
         return tuple(prepared)
 
@@ -171,9 +196,7 @@ class Canvas(MosaicCanvas):
                 default,
                 visible=self._visibility_overrides[resolved_id],
             )
-        replacement = apply_label(
-            default, selected, regions=self._regions(), theme=self.theme
-        )
+        replacement = self._styled_label(default, selected, self._regions())
         super().remove(resolved_id)
         super().add(replacement)
         return self
@@ -188,6 +211,7 @@ class Canvas(MosaicCanvas):
             labels=self._label_overrides,
             visibility=self._visibility_overrides,
             language=self.language,
+            label_nudges=self._label_nudges,
         )
         canvas._scene = self._scene
         canvas._bindings = self._bindings

@@ -67,7 +67,9 @@ from principle_viz.policy.tax import TaxOn, TaxScenario, TaxType
 
 demand = Line.from_inverse(10.0, -1.0)
 supply = Line.from_inverse(0.0, 1.0)
-scenario = TaxScenario(tax_type=TaxType.AD_VALOREM_TAX, amount=0.35, tax_on=TaxOn.CONSUMER)
+scenario = TaxScenario(
+    tax_type=TaxType.AD_VALOREM_TAX, amount=0.35, tax_on=TaxOn.CONSUMER
+)
 
 fig = MarketFigure(x_max=12, y_max=12, title="Ad Valorem Tax")
 fig.add_curves(demand, supply, q_max=10)
@@ -159,8 +161,10 @@ figure.configure_label("market.demand", text="$D_0$", left="0.5em")
 principle-viz still picks the spot and you only fine-tune it. A length is a number of points or a
 string with a unit: `"10pt"`, `"0.5em"` (the label's font size) or `"2mm"`; `top` and `bottom`
 combine, as do `right` and `left`. `Label(offset=(dx, dy))` still places a label at an exact
-offset in points instead of automatically; a nudge then moves it from there. Axis tick labels do
-not take nudges.
+offset in points instead of automatically; a nudge then moves it from there. Axis labels (the axis
+names, the origin and the marks on the axes) do not take nudges.
+
+To move a whole group of labels at once, set a default in `econ-viz.toml` (see Settings File).
 
 ## Settings File
 
@@ -197,6 +201,9 @@ demand = 3.5
 
 [principle.marker]
 equilibrium = 6.5    # equilibrium dot diameter in points
+
+[principle.label.point]   # default move for a group of labels
+top = "2pt"               # also bottom, left, right: pt, mm, cm or in (no em); unset = no move
 ```
 
 ```python
@@ -204,6 +211,30 @@ from principle_viz import Config
 
 Config.load("econ-viz.toml").use()  # figures made without theme= use it
 ```
+
+### Label nudges
+
+`[principle.label.<group>]` moves every label of a group by default. Each group takes `top`,
+`bottom`, `left` and `right`, lengths as in `Label` (a number of points, or `"2pt"`, `"1mm"`,
+`"0.1cm"`, `"0.05in"`; `em` is not accepted because the file has no font size). `top` and `bottom`
+combine, as do `right` and `left`. The groups follow what a label names:
+
+| group | labels |
+|---|---|
+| `point` | equilibrium points (`e_0`, `e^*`, `e_1`, `e_t`, `L^*`, the discrete `Q^* = ..., p^* = ...`) and the points of a PPF |
+| `curve` | curves named at their end: `D`, `S`, `D_1`, `S + t`, `MSB`, `MSC`, `MC`, `\Sigma MB`, `PPF`, `PPF_0`, `PPF_1` |
+| `region` | names inside filled regions, callouts with a leader line included: consumer and producer surplus, deadweight loss, tax revenue, subsidy cost, tariff revenue |
+| `mark` | price lines and policy marks: `p_c`, `p_f`, `w_min`, `p_w`, `p_w + t`, the `t = ...`, `s = ...` and `f = ...` wedges |
+| `annotation` | other text: brace labels (Shortage, Tax, Subsidy, Imports, Unemployment), price intervals, metrics, elasticity zone names |
+
+Axis labels (axis names, origin, the `Q_0`, `p_1` marks and their notes) belong to no group. A
+callout's leader line keeps pointing at the moved label.
+
+A label given its own `top`, `bottom`, `left` or `right` (`Label(top=...)`, `labels=`,
+`configure_label`) is moved by those values and **not** by its group's default: the per-label
+nudge replaces the default, they do not add up. A `Label` that only renames, hides or sets an
+`offset` keeps the default nudge. Without `[principle.label.*]` settings figures are drawn exactly
+as before.
 
 ### Themes
 

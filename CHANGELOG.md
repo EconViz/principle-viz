@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented in this file.
 
+## v0.14.0 (2026-10-24)
+
+### Added
+
+- `[principle.label.<group>]` in `econ-viz.toml` moves whole groups of labels by default. Each
+  group takes `top`, `bottom`, `left` and `right` (lengths in pt, mm, cm or in, validated like
+  utility-viz's nudges; `em` is not accepted; default no move). The groups: `point` (equilibrium
+  and PPF point labels such as `e_0`, `e^*`, `L^*`), `curve` (`D`, `S`, `D_1`, `S + t`, `MSB`, `MSC`,
+  `MC`, `PPF`, ...), `region` (consumer/producer surplus, deadweight loss, tax and tariff revenue,
+  subsidy cost, callouts included), `mark` (`p_c`, `w_min`, `p_w` and the `t = ...` / `s = ...`
+  wedges) and `annotation` (brace labels, metrics and other text). Axis labels belong to no group.
+- `PlotTheme.label_nudges` (group name to mosaickit `Nudge`) carries the defaults, and
+  `principle_viz.label_groups.label_group(layer)` tells which group a label layer is in.
+- A label with its own `Label(top=, bottom=, left=, right=)` is moved by those values only: the
+  per-label nudge replaces the group default instead of adding to it. A `Label` that only renames,
+  hides or offsets a label keeps the default. Figures without these settings are unchanged.
+
 ## v0.13.0 (2026-10-24)
 
 ### Added

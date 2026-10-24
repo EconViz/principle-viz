@@ -301,11 +301,6 @@ def test_visual_canvas_save_applies_overrides(tmp_path):
 # ---- label ids
 
 
-def _gutter_brace(layer: object) -> bool:
-    """A brace drawn in the axis gutter: mosaickit places its label without the nudge."""
-    return isinstance(layer, BraceLayer) and layer.side == "outside"
-
-
 @pytest.mark.parametrize("build", [_tax_figure, _ceiling_figure])
 def test_label_ids_map_to_override_keys(build, tmp_path):
     """Every label id the figure reports is an override key, except axis marks."""
@@ -322,8 +317,6 @@ def test_label_ids_map_to_override_keys(build, tmp_path):
             axis_marks.append(label_id)
             continue
         assert hasattr(layer, "nudge"), label_id  # a key mosaickit accepts
-        if _gutter_brace(layer):
-            continue
         _activate(tmp_path, f'[figure.f.label."{label_id}"]\ntop = "7pt"\n')
         figure.save(tmp_path / "t" / "f.svg")
         assert _read(tmp_path / "t" / "f.svg") != plain, label_id

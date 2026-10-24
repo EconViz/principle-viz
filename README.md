@@ -257,9 +257,8 @@ follows. `MarketFigure.save(path, dpi=...)` behaves the same. Ids that no label 
 The key is the layer id of the label: the entries of `MarketFigure.label_ids` (for example
 `market.demand.label`, `market.welfare.dwl.label`, `market.equilibrium.label`,
 `market.control.gap`), which is also the `id` of the element in the saved SVG; a brace's label is
-`<brace id>.label`. Axis marks (`Q_0`, `p_c`, ...) cannot be moved this way, and the label of a
-brace drawn in the axis gutter (side `outside`, such as the tax and subsidy wedge) accepts the
-key but mosaickit does not move it yet. Needs `mosaickit>=1.0.0rc7`.
+`<brace id>.label`, including braces drawn in the axis gutter (the tax and subsidy wedge). Axis
+marks (`Q_0`, `p_c`, ...) cannot be moved this way. Needs `mosaickit>=1.0.0rc8`.
 
 ### Themes
 

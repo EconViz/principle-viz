@@ -13,12 +13,12 @@ All notable changes to this project are documented in this file.
   `AggregationFigure.save()` honour it with no change of their own once a config read from the file
   is active. An override replaces the label's nudge, including a `[principle.label.<group>]`
   default and a `Label(top=...)`; a callout's leader follows. Figures without overrides are
-  unchanged. Axis marks and the label of a brace drawn in the axis gutter (side `outside`) are
-  not moved by mosaickit.
+  unchanged. Axis marks (`Q_0`, `p_c`, ...) are not moved.
 
 ### Changed
 
-- Requires `mosaickit>=1.0.0rc7`.
+- Requires `mosaickit>=1.0.0rc8`, which also moves the label of a brace drawn in the axis gutter
+  (side `outside`, such as the tax and subsidy wedge).
 
 ## v0.14.0 (2026-10-24)
 

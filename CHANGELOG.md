@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## v0.14.2 (2026-10-24)
+
+### Changed
+
+- Requires `mosaickit>=1.0.0rc9`: a callout's leader line now ends at one of the label box's eight
+  anchor points (corners and edge midpoints) facing the start point, instead of the nearest point
+  of the box, including after a label is moved.
+
 ## v0.14.1 (2026-10-24)
 
 ### Added

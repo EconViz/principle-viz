@@ -97,3 +97,23 @@ def test_ppf_layers_and_labels_are_user_configurable() -> None:
     layers = {layer.id: layer for layer in canvas.snapshot().layers}
     assert not layers["ppf.point.0"].visible
     assert layers["ppf.point.0.label"].text == "A"
+
+
+def test_ppf_titles_are_parameters_not_fixed_text() -> None:
+    frontier = ProductionPossibilitiesFrontier(10, 8, curvature=2)
+    analysis = analyze_ppf(frontier, ((4, 3, "B"),))
+    growth = analyze_ppf_growth(frontier, PPFGrowthScenario(0.2, 0.1))
+
+    def drawn_title(canvas) -> str:
+        result = canvas.render()
+        try:
+            return result.axes.get_title()
+        finally:
+            result.close()
+
+    assert drawn_title(ppf_canvas(analysis)) == "Production Possibilities Frontier"
+    assert drawn_title(ppf_canvas(analysis, title="Frontier")) == "Frontier"
+    assert drawn_title(ppf_canvas(analysis, title=None)) == ""
+    assert drawn_title(ppf_growth_canvas(growth)) == "Economic Growth"
+    assert drawn_title(ppf_growth_canvas(growth, title="Growth")) == "Growth"
+    assert drawn_title(ppf_growth_canvas(growth, title=None)) == ""

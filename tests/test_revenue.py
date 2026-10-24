@@ -57,3 +57,21 @@ def test_revenue_layers_and_text_are_user_configurable() -> None:
 
     assert not demand_layers["elasticity.unit.point"].visible
     assert revenue_layers["elasticity.revenue.maximum.label"].text == "$TR_{max}$"
+
+
+def test_revenue_titles_are_parameters_not_fixed_text() -> None:
+    demand = Line.from_inverse(12, -1)
+    result = elasticity_revenue_schedule(demand)
+
+    def titles(**options) -> tuple[str, str]:
+        drawn = [
+            c.render() for c in elasticity_revenue_canvases(demand, result, **options)
+        ]
+        try:
+            return drawn[0].axes.get_title(), drawn[1].axes.get_title()
+        finally:
+            for item in drawn:
+                item.close()
+
+    assert titles() == ("Demand and Elasticity", "Total Revenue")
+    assert titles(titles=("A", None)) == ("A", "")

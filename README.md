@@ -236,6 +236,31 @@ nudge replaces the default, they do not add up. A `Label` that only renames, hid
 `offset` keeps the default nudge. Without `[principle.label.*]` settings figures are drawn exactly
 as before.
 
+### Moving one label of one figure
+
+`[figure.<stem>.label."<layer id>"]` moves a single label of the figure saved as `<stem>.png`
+(or `.svg`, `.pdf`). It sits at the top level of `econ-viz.toml`, next to `[principle]`, and
+mosaickit reads and applies it, so nothing in your Python changes:
+
+```toml
+[figure.tax_welfare.label."market.welfare.dwl.label"]
+top = "12pt"
+```
+
+`MarketFigure.save()`, the canvases of the `principle_viz.visuals` helpers (`.save()`) and
+`AggregationFigure.save()` apply it once a config read from the file is active (`Config.load(...).use()`).
+The stem is the one of the path given to `save()`. The override **replaces** the label's nudge,
+whether it came from `Label(top=...)` or from `[principle.label.<group>]`, so `top = "12pt"` means 12 pt
+up, not 12 pt on top of the group default; an empty table cancels the nudge. A callout's leader
+follows. `MarketFigure.save(path, dpi=...)` behaves the same. Ids that no label has are ignored.
+
+The key is the layer id of the label: the entries of `MarketFigure.label_ids` (for example
+`market.demand.label`, `market.welfare.dwl.label`, `market.equilibrium.label`,
+`market.control.gap`), which is also the `id` of the element in the saved SVG; a brace's label is
+`<brace id>.label`. Axis marks (`Q_0`, `p_c`, ...) cannot be moved this way, and the label of a
+brace drawn in the axis gutter (side `outside`, such as the tax and subsidy wedge) accepts the
+key but mosaickit does not move it yet. Needs `mosaickit>=1.0.0rc7`.
+
 ### Themes
 
 The colour models are mosaickit's shared themes (`mosaickit.themes`), so `base = "nord"` means the

@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## Unreleased
+
+### Changed
+
+- `principle_viz.plot.figure` and `principle_viz.plot.aggregation` are now packages of small modules
+  instead of single files above 450 lines. Every import path and public name is unchanged, and the
+  rendered figures are identical. A test now fails when any file under `src/` exceeds 450 lines.
+
 ## v0.14.2 (2026-10-24)
 
 ### Changed
